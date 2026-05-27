@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.TicketDetailController" stylesheets="@../css/styles.css" styleClass="main-container">
+    <top>
+        <HBox styleClass="header-bar" spacing="20" alignment="CENTER_LEFT">
+            <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+            <Button text="&lt; Zurück" onAction="#handleBack" styleClass="btn-ghost" />
+            <Label text="Ticket Details" styleClass="heading-lg" />
+        </HBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.58" styleClass="content-area">
+            <VBox spacing="15" styleClass="card">
+                <Label fx:id="titleLabel" styleClass="heading-lg" wrapText="true"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="Ticket-Nr.:" styleClass="field-label"/>
+                    <Label fx:id="ticketNumberLabel" text="-" styleClass="text-primary"/>
+                </HBox>
+                <HBox spacing="20">
+                    <VBox spacing="4">
+                        <Label text="Status" styleClass="field-label"/>
+                        <Label fx:id="statusLabel" styleClass="badge"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Priorität" styleClass="field-label"/>
+                        <Label fx:id="priorityLabel" styleClass="badge"/>
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Erstellt von" styleClass="field-label"/>
+                        <Label fx:id="createdByLabel" styleClass="text-primary" />
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="Agent" styleClass="field-label"/>
+                        <Label fx:id="assignedToLabel" styleClass="text-primary" />
+                    </VBox>
+                    <VBox spacing="4">
+                        <Label text="SLA" styleClass="field-label"/>
+                        <Label fx:id="slaLabel" text="-" styleClass="text-warning" />
+                    </VBox>
+                </HBox>
+                <GridPane hgap="16" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="25"/>
+                    </columnConstraints>
+                    <VBox GridPane.columnIndex="0" spacing="4"><Label text="Fällig am" styleClass="field-label"/><Label fx:id="dueDateLabel" text="-" styleClass="text-muted" wrapText="true"/></VBox>
+                    <VBox GridPane.columnIndex="1" spacing="4"><Label text="Anhang" styleClass="field-label"/><Label fx:id="attachmentLabel" text="Kein Anhang" styleClass="text-muted" wrapText="true"/></VBox>
+                    <VBox GridPane.columnIndex="2" spacing="4"><Label text="Lösungsgrund" styleClass="field-label"/><Label fx:id="solutionLabel" text="-" styleClass="text-muted" wrapText="true"/></VBox>
+                    <VBox GridPane.columnIndex="3" spacing="4"><Label text="Kundenfeedback" styleClass="field-label"/><Label fx:id="ratingLabel" text="-" styleClass="text-muted" wrapText="true"/></VBox>
+                </GridPane>
+                <Label text="Beschreibung" styleClass="section-title"/>
+                <TextArea fx:id="descriptionArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="statusCombo" promptText="Neuer Status"/>
+                    <Button fx:id="updateStatusBtn" text="Status aktualisieren" onAction="#handleUpdateStatus" styleClass="btn-primary"/>
+                    <ComboBox fx:id="priorityCombo" promptText="Neue Priorität"/>
+                    <Button fx:id="updatePriorityBtn" text="Priorität aktualisieren" onAction="#handleUpdatePriority" styleClass="btn-ghost"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="agentCombo" promptText="Agent auswählen" prefWidth="260" />
+                    <Button fx:id="assignAgentBtn" text="Agent zuweisen" onAction="#handleAssignAgent" styleClass="btn-ghost"/>
+                    <Button fx:id="takeTicketBtn" text="Ticket übernehmen" onAction="#handleTakeTicket" styleClass="btn-primary"/>
+                </HBox>
+                <VBox spacing="8">
+                    <TextArea fx:id="solutionReasonArea" promptText="Lösungsgrund eingeben, dann Ticket schließen..." prefRowCount="2" wrapText="true" />
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button fx:id="closeWithSolutionBtn" text="Mit Lösungsgrund schließen" onAction="#handleCloseWithSolution" styleClass="btn-primary"/>
+                        <TextField fx:id="attachmentNameField" promptText="Anhang-Dateiname, z.B. screenshot.png" HBox.hgrow="ALWAYS" />
+                        <Button fx:id="attachBtn" text="Anhang speichern" onAction="#handleAddAttachment" styleClass="btn-ghost"/>
+                    </HBox>
+                </VBox>
+                <Label text="Ticket-Historie" styleClass="section-title"/>
+                <ListView fx:id="historyList" prefHeight="150" styleClass="list-view" />
+            </VBox>
+            <VBox spacing="10" styleClass="card">
+                <Label text="Kommentare" styleClass="section-title"/>
+                <ListView fx:id="commentsList" VBox.vgrow="ALWAYS" styleClass="comments-list"/>
+                <VBox spacing="5">
+                    <TextArea fx:id="newCommentArea" prefRowCount="3" promptText="Neuer Kommentar..."/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <CheckBox fx:id="internalCheckBox" text="Interner Kommentar" />
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Senden" onAction="#handleAddComment" styleClass="btn-primary"/>
+                    </HBox>
+                    <Separator />
+                    <Label text="Feedback nach Lösung" styleClass="section-title"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Spinner fx:id="ratingSpinner" prefWidth="80"/>
+                        <TextArea fx:id="feedbackArea" prefRowCount="2" promptText="Bewertung/Feedback..." HBox.hgrow="ALWAYS" wrapText="true"/>
+                        <Button fx:id="sendFeedbackBtn" text="Feedback senden" onAction="#handleSendFeedback" styleClass="btn-primary"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </SplitPane>
+    </center>
+</BorderPane>
