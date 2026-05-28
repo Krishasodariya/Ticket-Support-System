@@ -140,6 +140,8 @@
                                 <Label fx:id="statAvgResolution" text="-" styleClass="heading-md" />
                                 <Label text="Eskalierte Tickets" styleClass="text-muted" />
                                 <Label fx:id="statEscalated" text="-" styleClass="heading-md" />
+                                <Label text="AGENT-PERFORMANCE" styleClass="label-uppercase" />
+                                <ListView fx:id="agentPerformanceList" prefHeight="145" styleClass="list-view" />
                                 <HBox spacing="10">
                                     <Button text="Überfällige eskalieren" onAction="#handleEscalateOverdue" styleClass="btn-ghost" />
                                     <Button text="Demo-Daten erstellen" onAction="#handleGenerateDemoData" styleClass="btn-primary" />
