@@ -19,6 +19,8 @@ import com.ticketsystem.frontend.service.WorkflowOptionApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
+import com.ticketsystem.frontend.util.NotificationPopup;
+
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
@@ -28,8 +30,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
@@ -637,4 +641,20 @@ public class AdminController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
+    
+    @FXML
+    private void handleNotifications(MouseEvent event) {
+        new Thread(() -> {
+            try {
+                List<NotificationFX> notifications = notificationService.getMyNotifications();
+                Platform.runLater(() ->
+                        NotificationPopup.show((Node) event.getSource(), notifications)
+                );
+            } catch (Exception ex) {
+                Platform.runLater(() ->
+                        AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
+                );
+            }
+        }, "admin-load-notifications-popup").start();
+    }
 }
