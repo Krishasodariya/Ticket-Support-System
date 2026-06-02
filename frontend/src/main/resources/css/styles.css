@@ -763,3 +763,397 @@
 .register-error {
     -fx-text-fill: #fca5a5;
 }
+.notification-popup {
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.25, 0, 6);
+}
+
+.theme-dark.notification-popup {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+}
+
+.theme-light.notification-popup {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+}
+
+.notification-header {
+    -fx-padding: 14 16;
+    -fx-border-width: 0 0 1 0;
+}
+
+.theme-dark .notification-header {
+    -fx-border-color: #243244;
+}
+
+.theme-light .notification-header {
+    -fx-border-color: #E5E7EB;
+}
+
+.notification-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.notification-link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #0EA5E9;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.notification-list {
+    -fx-padding: 6 0;
+}
+
+.notification-row {
+    -fx-padding: 14 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0 0 1 0;
+}
+
+.theme-dark .notification-row {
+    -fx-border-color: #1E293B;
+}
+
+.theme-light .notification-row {
+    -fx-border-color: #E5E7EB;
+}
+
+.theme-dark .notification-row:hover {
+    -fx-background-color: #0F1B2D;
+}
+
+.theme-light .notification-row:hover {
+    -fx-background-color: #EFF6FF;
+}
+
+.notification-row-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.notification-row-message {
+    -fx-font-size: 13px;
+}
+
+.notification-row-time {
+    -fx-font-size: 12px;
+}
+
+.theme-dark .notification-row-title,
+.theme-dark .notification-detail-title {
+    -fx-text-fill: #F8FAFC;
+}
+
+.theme-dark .notification-row-message,
+.theme-dark .notification-detail-message {
+    -fx-text-fill: #CBD5E1;
+}
+
+.theme-dark .notification-row-time {
+    -fx-text-fill: #94A3B8;
+}
+
+.theme-light .notification-row-title,
+.theme-light .notification-detail-title {
+    -fx-text-fill: #111827;
+}
+
+.theme-light .notification-row-message,
+.theme-light .notification-detail-message {
+    -fx-text-fill: #374151;
+}
+
+.theme-light .notification-row-time {
+    -fx-text-fill: #6B7280;
+}
+
+.notification-empty {
+    -fx-padding: 24;
+    -fx-font-size: 14px;
+}
+
+.notification-pill {
+    -fx-padding: 6 9;
+    -fx-background-radius: 18;
+}
+
+.theme-dark .notification-pill {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+    -fx-border-radius: 18;
+}
+
+.theme-light .notification-pill {
+    -fx-background-color: #E2E8F0;
+    -fx-border-color: #CBD5E1;
+    -fx-border-radius: 18;
+}
+
+.notification-count {
+    -fx-background-color: #EF4444;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 10px;
+    -fx-padding: 1 5;
+    -fx-background-radius: 10;
+    -fx-translate-x: 9;
+    -fx-translate-y: -8;
+}
+
+.notification-detail-dialog {
+    -fx-background-color: transparent;
+}
+
+.notification-detail-content {
+    -fx-background-radius: 10;
+}
+
+.theme-dark .notification-detail-content {
+    -fx-background-color: #0B1220;
+}
+
+.theme-light .notification-detail-content {
+    -fx-background-color: #FFFFFF;
+}
+
+.notification-detail-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.notification-detail-section {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0EA5E9;
+}
+/* =========================================================
+   MODERN NOTIFICATION POPUP + DETAILS
+   ========================================================= */
+
+.notification-popup {
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 22, 0.22, 0, 8);
+}
+
+.theme-dark.notification-popup {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+    -fx-border-width: 1;
+}
+
+.theme-light.notification-popup {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+    -fx-border-width: 1;
+}
+
+.notification-header {
+    -fx-padding: 14 16;
+    -fx-border-width: 0 0 1 0;
+}
+
+.theme-dark .notification-header {
+    -fx-border-color: #243244;
+}
+
+.theme-light .notification-header {
+    -fx-border-color: #E5E7EB;
+}
+
+.notification-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.notification-link-button,
+.notification-show-all {
+    -fx-background-color: transparent;
+    -fx-text-fill: #0EA5E9;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.notification-link-button:hover,
+.notification-show-all:hover {
+    -fx-text-fill: #38BDF8;
+}
+
+.notification-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.notification-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.notification-list {
+    -fx-padding: 6 0;
+}
+
+.notification-row {
+    -fx-padding: 14 16;
+    -fx-cursor: hand;
+    -fx-border-width: 0 0 1 0;
+}
+
+.theme-dark .notification-row {
+    -fx-border-color: #1E293B;
+}
+
+.theme-light .notification-row {
+    -fx-border-color: #E5E7EB;
+}
+
+.theme-dark .notification-row:hover {
+    -fx-background-color: #0F1B2D;
+}
+
+.theme-light .notification-row:hover {
+    -fx-background-color: #EFF6FF;
+}
+
+.notification-row-icon,
+.notification-detail-icon {
+    -fx-min-width: 34;
+    -fx-min-height: 34;
+    -fx-alignment: center;
+    -fx-font-size: 18px;
+    -fx-background-radius: 10;
+}
+
+.theme-dark .notification-row-icon,
+.theme-dark .notification-detail-icon {
+    -fx-background-color: #082F49;
+    -fx-text-fill: #E0F2FE;
+}
+
+.theme-light .notification-row-icon,
+.theme-light .notification-detail-icon {
+    -fx-background-color: #DBEAFE;
+    -fx-text-fill: #1D4ED8;
+}
+
+.notification-row-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.notification-row-message {
+    -fx-font-size: 13px;
+}
+
+.notification-row-time {
+    -fx-font-size: 12px;
+}
+
+.notification-unread-dot {
+    -fx-text-fill: #0EA5E9;
+    -fx-font-size: 13px;
+}
+
+.theme-dark .notification-row-title,
+.theme-dark .notification-detail-title {
+    -fx-text-fill: #F8FAFC;
+}
+
+.theme-dark .notification-row-message,
+.theme-dark .notification-detail-message {
+    -fx-text-fill: #CBD5E1;
+}
+
+.theme-dark .notification-row-time {
+    -fx-text-fill: #94A3B8;
+}
+
+.theme-light .notification-row-title,
+.theme-light .notification-detail-title {
+    -fx-text-fill: #111827;
+}
+
+.theme-light .notification-row-message,
+.theme-light .notification-detail-message {
+    -fx-text-fill: #374151;
+}
+
+.theme-light .notification-row-time {
+    -fx-text-fill: #6B7280;
+}
+
+.notification-empty {
+    -fx-padding: 28;
+    -fx-font-size: 14px;
+}
+
+.notification-show-all {
+    -fx-padding: 12;
+    -fx-max-width: Infinity;
+    -fx-border-width: 1 0 0 0;
+}
+
+.theme-dark .notification-show-all {
+    -fx-border-color: #243244;
+}
+
+.theme-light .notification-show-all {
+    -fx-border-color: #E5E7EB;
+}
+
+/* Detail popup */
+
+.notification-detail-content {
+    -fx-padding: 18;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 22, 0.22, 0, 8);
+}
+
+.theme-dark.notification-detail-content {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+    -fx-border-width: 1;
+}
+
+.theme-light.notification-detail-content {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+    -fx-border-width: 1;
+}
+
+.notification-detail-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.notification-detail-section {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0EA5E9;
+}
+
+.notification-detail-message {
+    -fx-font-size: 14px;
+    -fx-line-spacing: 2;
+}
+
+.notification-detail-button {
+    -fx-padding: 8 18;
+}
+
+.notification-close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #94A3B8;
+    -fx-font-size: 20px;
+    -fx-padding: 2 8;
+}
+
+.notification-close-button:hover {
+    -fx-text-fill: #FFFFFF;
+    -fx-background-color: rgba(14,165,233,0.16);
+}

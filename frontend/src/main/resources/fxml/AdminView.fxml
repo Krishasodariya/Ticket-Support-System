@@ -72,11 +72,20 @@
             <Label fx:id="breadcrumb" text="Admin  /  Dashboard" styleClass="text-muted" style="-fx-font-size: 12px;" />
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
-                <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
-                <StackPane styleClass="notification-pill" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand;">
-                    <Label text="🔔" style="-fx-font-size: 14px;" />
-                    <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
-                </StackPane>
+<StackPane fx:id="notificationButton"
+           styleClass="notification-pill"
+           onMouseClicked="#handleNotifications"
+           style="-fx-cursor: hand;">
+
+    <Label text="🔔"
+           style="-fx-font-size: 16px;" />
+
+    <Label fx:id="notificationCountLabel"
+           text="0"
+           styleClass="notification-count"
+           StackPane.alignment="TOP_RIGHT" />
+
+</StackPane>
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle radius="14" fill="#0EA5E9" />
                     <Label fx:id="topbarInitials" text="AD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
