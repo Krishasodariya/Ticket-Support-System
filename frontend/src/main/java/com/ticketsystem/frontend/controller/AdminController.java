@@ -19,6 +19,8 @@ import com.ticketsystem.frontend.service.WorkflowOptionApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
+import com.ticketsystem.frontend.util.NotificationPopup;
+
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
@@ -28,8 +30,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
@@ -701,8 +705,6 @@ public class AdminController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
-<<<<<<< HEAD
-=======
     
     @FXML
     private void handleNotifications(MouseEvent event) {
@@ -717,41 +719,5 @@ public class AdminController {
                         AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
                 );
             }
-        }, "admin-load-notifications-popup").start();
-    }
-    private void updateAdminTicketStatistics(List<TicketFX> tickets) {
-        if (tickets == null) {
-            adminTotalTicketsLabel.setText("0");
-            adminOpenTicketsLabel.setText("0");
-            adminProgressTicketsLabel.setText("0");
-            adminWaitingTicketsLabel.setText("0");
-            adminResolvedTicketsLabel.setText("0");
-            return;
-        }
-
-        long total = tickets.size();
-
-        long open = tickets.stream()
-                .filter(t -> "OPEN".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        long progress = tickets.stream()
-                .filter(t -> "IN_PROGRESS".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        long waiting = tickets.stream()
-                .filter(t -> "WAITING".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        long resolved = tickets.stream()
-                .filter(t -> "RESOLVED".equalsIgnoreCase(t.getStatus()))
-                .count();
-
-        adminTotalTicketsLabel.setText(String.valueOf(total));
-        adminOpenTicketsLabel.setText(String.valueOf(open));
-        adminProgressTicketsLabel.setText(String.valueOf(progress));
-        adminWaitingTicketsLabel.setText(String.valueOf(waiting));
-        adminResolvedTicketsLabel.setText(String.valueOf(resolved));
-    }
->>>>>>> dd97d5c (UI/UX für Admin- und Customer-Dashboard verbessert)
+        }, "admin-load-notifications-popup").start(
 }
