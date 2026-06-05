@@ -67,29 +67,22 @@ public class CustomerController {
 
     @FXML
     public void initialize() {
-        if (!SessionManager.isLoggedIn() || !SessionManager.hasRole(UserRole.CUSTOMER)) {
-            Navigator.navigateToLogin();
-            return;
-        }
+    	String username = SessionManager.getUsername();
 
-        String username = SessionManager.getUsername();
-        String initial = username.length() > 0 ? username.substring(0, 1).toUpperCase() : "U";
-        sidebarInitials.setText(initial);
-        topbarInitials.setText(initial);
-        sidebarName.setText(username);
-        greetingLabel.setText("Hallo, " + username + "!");
-        
-        newFirstName.setText(username);
-        newEmail.setText("email@test.com"); // Dummy for now
+    	if (username == null || username.isBlank()) {
+    	    username = "User";
+    	}
 
-        quickPriorityCombo.getItems().setAll(TicketPriority.values());
-        newPriorityCombo.getItems().setAll(TicketPriority.values());
-        initFilters();
-        
-        initTable();
-        showOverview();
-        loadCategories();
-        loadUnreadNotifications();
+    	String initial = username.substring(0, 1).toUpperCase();
+
+    	sidebarInitials.setText(initial);
+    	topbarInitials.setText(initial);
+    	sidebarName.setText(username);
+
+    	greetingLabel.setText("Hallo, " + username + "! 👋");
+
+    	newFirstName.setText(username);
+    	newEmail.setText("");
     }
 
     private void initTable() {
@@ -189,7 +182,32 @@ public class CustomerController {
             statResolved.setText(String.valueOf(tickets.stream().filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus())).count()));
 
             activeTicketsContainer.getChildren().clear();
-            tickets.stream().filter(t -> !"CLOSED".equals(t.getStatus())).limit(5).forEach(t -> {
+
+            List<TicketFX> activeTickets = tickets.stream()
+                    .filter(t -> !"CLOSED".equals(t.getStatus()))
+                    .limit(5)
+                    .toList();
+
+            if (activeTickets.isEmpty()) {
+                VBox emptyBox = new VBox(8);
+                emptyBox.setAlignment(Pos.CENTER);
+                emptyBox.getStyleClass().add("empty-state");
+
+                Label icon = new Label("📭");
+                icon.getStyleClass().add("empty-state-icon");
+
+                Label title = new Label("Noch keine aktiven Tickets");
+                title.getStyleClass().add("empty-state-title");
+
+                Label text = new Label("Erstellen Sie ein neues Ticket, wenn Sie Hilfe brauchen.");
+                text.getStyleClass().add("empty-state-text");
+
+                emptyBox.getChildren().addAll(icon, title, text);
+                activeTicketsContainer.getChildren().add(emptyBox);
+                return;
+            }
+
+            activeTickets.forEach(t -> {
                 VBox card = new VBox(5);
                 card.getStyleClass().add("ticket-card");
                 
