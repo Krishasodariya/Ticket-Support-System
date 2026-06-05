@@ -57,6 +57,11 @@ public class AdminController {
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
 
     @FXML private Label statTotal, statOpen, statResolvedToday, statCritical;
+    @FXML private Label adminTotalTicketsLabel;
+    @FXML private Label adminOpenTicketsLabel;
+    @FXML private Label adminProgressTicketsLabel;
+    @FXML private Label adminWaitingTicketsLabel;
+    @FXML private Label adminResolvedTicketsLabel;
     @FXML private Label statCreatedToday, statOverdue, statEscalated, statAvgResolution;
     @FXML private Label lblCriticalCount, lblHighCount, lblMediumCount, lblLowCount;
     @FXML private ProgressBar progressCritical, progressHigh, progressMedium, progressLow;
@@ -194,31 +199,83 @@ public class AdminController {
 
     private <T> TableCell<T, String> badgeCell() {
         return new TableCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+
                 setText(null);
-                setGraphic(empty || item == null ? null : createBadge(item));
+                setGraphic(null);
+
+                if (empty || item == null || item.isBlank()) {
+                    return;
+                }
+
+                setGraphic(createBadge(item));
             }
         };
     }
 
     private Label createBadge(String type) {
-        Label badge = new Label(type);
+        String value = type == null ? "" : type.trim().toUpperCase();
+
+        Label badge = new Label();
         badge.getStyleClass().add("badge");
-        switch (type.toUpperCase()) {
-            case "OPEN" -> { badge.getStyleClass().add("badge-open"); badge.setText("Offen"); }
-            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress"); badge.setText("In Bearbeitung"); }
-            case "WAITING" -> { badge.getStyleClass().add("badge-waiting"); badge.setText("Wartend"); }
-            case "RESOLVED" -> { badge.getStyleClass().add("badge-resolved"); badge.setText("Gelöst"); }
-            case "CLOSED" -> { badge.getStyleClass().add("badge-closed"); badge.setText("Geschlossen"); }
-            case "CRITICAL" -> { badge.getStyleClass().add("badge-critical"); badge.setText("Kritisch"); }
-            case "HIGH" -> { badge.getStyleClass().add("badge-high"); badge.setText("Hoch"); }
-            case "MEDIUM" -> { badge.getStyleClass().add("badge-medium"); badge.setText("Mittel"); }
-            case "LOW" -> { badge.getStyleClass().add("badge-low"); badge.setText("Niedrig"); }
-            case "ADMIN" -> badge.getStyleClass().add("badge-admin");
-            case "AGENT" -> badge.getStyleClass().add("badge-agent");
-            default -> badge.getStyleClass().add("badge-customer");
+
+        switch (value) {
+            case "OPEN" -> {
+                badge.getStyleClass().add("badge-open");
+                badge.setText("● Offen");
+            }
+            case "IN_PROGRESS" -> {
+                badge.getStyleClass().add("badge-progress");
+                badge.setText("● In Bearbeitung");
+            }
+            case "WAITING" -> {
+                badge.getStyleClass().add("badge-waiting");
+                badge.setText("● Wartend");
+            }
+            case "RESOLVED" -> {
+                badge.getStyleClass().add("badge-resolved");
+                badge.setText("● Gelöst");
+            }
+            case "CLOSED" -> {
+                badge.getStyleClass().add("badge-closed");
+                badge.setText("● Geschlossen");
+            }
+            case "CRITICAL" -> {
+                badge.getStyleClass().add("badge-critical");
+                badge.setText("● Kritisch");
+            }
+            case "HIGH" -> {
+                badge.getStyleClass().add("badge-high");
+                badge.setText("● Hoch");
+            }
+            case "MEDIUM" -> {
+                badge.getStyleClass().add("badge-medium");
+                badge.setText("● Mittel");
+            }
+            case "LOW" -> {
+                badge.getStyleClass().add("badge-low");
+                badge.setText("● Niedrig");
+            }
+            case "ADMIN" -> {
+                badge.getStyleClass().add("badge-admin");
+                badge.setText("Admin");
+            }
+            case "AGENT" -> {
+                badge.getStyleClass().add("badge-agent");
+                badge.setText("Agent");
+            }
+            case "CUSTOMER" -> {
+                badge.getStyleClass().add("badge-customer");
+                badge.setText("Customer");
+            }
+            default -> {
+                badge.getStyleClass().add("badge-customer");
+                badge.setText(type);
+            }
         }
+
         return badge;
     }
 
@@ -273,13 +330,20 @@ public class AdminController {
 
     private void loadTickets() {
         Task<List<TicketFX>> task = new Task<>() {
-            @Override protected List<TicketFX> call() throws Exception { return ticketService.getAllTickets(); }
+            @Override
+            protected List<TicketFX> call() throws Exception {
+                return ticketService.getAllTickets();
+            }
         };
+
         task.setOnSucceeded(e -> {
             allTickets.setAll(task.getValue());
+            updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
         });
+
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden."));
+
         new Thread(task, "admin-load-tickets").start();
     }
 
@@ -655,6 +719,5 @@ public class AdminController {
                         AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
                 );
             }
-        }, "admin-load-notifications-popup").start();
-    }
+        }, "admin-load-notifications-popup").start(
 }
