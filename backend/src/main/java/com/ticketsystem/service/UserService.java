@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class UserService {
     public User findUserEntityById(UUID id) {
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
-    
+
     public User findUserEntityByUsername(String username) {
         return userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
@@ -98,5 +99,45 @@ public class UserService {
         }
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+    // ── Aufgabe 15: Agent-Spezialisierung ────────────────────────────────────
+
+    /**
+     * Setzt die Spezialisierung (komma-separierte Kategorie-Namen) für einen Agenten.
+     * Nur ADMIN darf dies aufrufen (Prüfung im Controller).
+     */
+    @Transactional
+    public UserResponse updateSpecialization(UUID agentId, String specialization) {
+        User agent = findUserEntityById(agentId);
+        if (agent.getRole() != UserRole.AGENT && agent.getRole() != UserRole.ADMIN) {
+            throw new IllegalArgumentException("Spezialisierungen können nur für Agenten oder Admins gesetzt werden.");
+        }
+        agent.setSpecialization(specialization == null ? null : specialization.trim());
+        return userMapper.toResponse(userRepository.save(agent));
+    }
+
+    /**
+     * Gibt alle aktiven Agenten zurück, deren Spezialisierung den übergebenen
+     * Kategorie-Namen enthält (Aufgabe 15 – für Routing-Vorschlag).
+     * Agenten ohne Spezialisierung gelten als „Generalisten" und werden ebenfalls zurückgegeben.
+     */
+    public List<User> findActiveAgentsMatchingCategory(String categoryName) {
+        return userRepository.findByRoleAndIsActiveTrue(UserRole.AGENT).stream()
+                .filter(agent -> {
+                    String spec = agent.getSpecialization();
+                    if (!StringUtils.hasText(spec)) return true; // Generalist
+                    return Arrays.stream(spec.split(","))
+                            .map(String::trim)
+                            .anyMatch(s -> s.equalsIgnoreCase(categoryName));
+                })
+                .collect(Collectors.toList());
+    }
+
+    /** Workload: Anzahl offener Tickets pro Agent (wird von TicketService genutzt). */
+    public long countOpenTicketsForUser(UUID userId, List<com.ticketsystem.model.Ticket> allOpen) {
+        return allOpen.stream()
+                .filter(t -> t.getAssignedTo() != null && t.getAssignedTo().getId().equals(userId))
+                .count();
     }
 }
