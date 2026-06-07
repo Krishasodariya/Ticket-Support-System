@@ -22,6 +22,7 @@ import javafx.scene.control.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class TicketDetailController {
     private static String currentTicketId;
@@ -46,9 +47,14 @@ public class TicketDetailController {
     @FXML private ComboBox<UserFX> agentCombo;
     @FXML private Button assignAgentBtn;
     @FXML private Button takeTicketBtn, closeWithSolutionBtn, attachBtn, sendFeedbackBtn;
+    // Feature 38 – Ticket wiedereröffnen (nur CUSTOMER, sichtbar wenn RESOLVED/CLOSED)
+    @FXML private Button reopenTicketBtn;
     @FXML private TextArea solutionReasonArea, feedbackArea;
     @FXML private TextField attachmentNameField;
-    @FXML private Spinner<Integer> ratingSpinner;
+
+    // Feature 23 – Stern-Bewertung
+    @FXML private Label star1, star2, star3, star4, star5, starValueLabel;
+    private int selectedRating = 0;
 
     @FXML private ListView<CommentFX> commentsList;
     @FXML private ListView<AuditLogFX> historyList;
@@ -83,9 +89,11 @@ public class TicketDetailController {
         if (attachmentNameField != null) attachmentNameField.setVisible(!customer);
         if (sendFeedbackBtn != null) sendFeedbackBtn.setVisible(customer);
         if (feedbackArea != null) feedbackArea.setVisible(customer);
-        if (ratingSpinner != null) {
-            ratingSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 5, 5));
-            ratingSpinner.setVisible(customer);
+        // Feature 38 – Reopen-Button: nur für Customer, Sichtbarkeit nach Ticket-Load gesetzt
+        if (reopenTicketBtn != null) reopenTicketBtn.setVisible(false);
+        // Feature 23 – Sterne nur für Customer sichtbar
+        for (Label s : new Label[]{star1, star2, star3, star4, star5, starValueLabel}) {
+            if (s != null) { s.setVisible(customer); s.setManaged(customer); }
         }
 
         if (!customer) {
@@ -175,6 +183,14 @@ public class TicketDetailController {
                     if (solutionLabel != null) solutionLabel.setText(currentTicket.getSolutionReason() != null ? currentTicket.getSolutionReason() : "Noch kein Lösungsgrund");
                     if (ratingLabel != null) ratingLabel.setText(currentTicket.getCustomerRating() != null ? currentTicket.getCustomerRating() + "/5 - " + safe(currentTicket.getCustomerFeedback()) : "Noch kein Feedback");
                     descriptionArea.setText(currentTicket.getDescription());
+
+                    // Feature 38 – Reopen-Button nur wenn RESOLVED oder CLOSED und CUSTOMER
+                    if (reopenTicketBtn != null) {
+                        boolean canReopen = SessionManager.getRole() == UserRole.CUSTOMER
+                                && ("RESOLVED".equals(currentTicket.getStatus()) || "CLOSED".equals(currentTicket.getStatus()));
+                        reopenTicketBtn.setVisible(canReopen);
+                        reopenTicketBtn.setManaged(canReopen);
+                    }
 
                     if (SessionManager.getRole() != UserRole.CUSTOMER) {
                         statusCombo.setValue(TicketStatus.valueOf(currentTicket.getStatus()));
@@ -317,16 +333,56 @@ public class TicketDetailController {
 
     @FXML
     public void handleSendFeedback() {
-        int rating = ratingSpinner == null ? 5 : ratingSpinner.getValue();
+        if (selectedRating == 0) {
+            AlertHelper.showError("Bewertung fehlt", "Bitte wähle zuerst eine Sternebewertung.");
+            return;
+        }
         String feedback = feedbackArea == null || feedbackArea.getText() == null ? "" : feedbackArea.getText().trim();
         new Thread(() -> {
             try {
-                ticketService.sendFeedback(currentTicketId, rating, feedback);
-                Platform.runLater(() -> { if (feedbackArea != null) feedbackArea.clear(); AlertHelper.showInfo("Danke", "Feedback wurde gespeichert."); loadTicket(); });
+                ticketService.sendFeedback(currentTicketId, selectedRating, feedback);
+                Platform.runLater(() -> {
+                    if (feedbackArea != null) feedbackArea.clear();
+                    selectedRating = 0;
+                    updateStarDisplay(0);
+                    AlertHelper.showInfo("Danke", "Feedback wurde gespeichert.");
+                    loadTicket();
+                });
             } catch (Exception e) {
                 Platform.runLater(() -> AlertHelper.showError("Fehler", "Feedback konnte nicht gespeichert werden.\n" + e.getMessage()));
             }
         }).start();
+    }
+
+    // ── Feature 23: Stern-Handler ─────────────────────────────────────────────
+    @FXML public void handleStar1() { selectedRating = 1; updateStarDisplay(1); }
+    @FXML public void handleStar2() { selectedRating = 2; updateStarDisplay(2); }
+    @FXML public void handleStar3() { selectedRating = 3; updateStarDisplay(3); }
+    @FXML public void handleStar4() { selectedRating = 4; updateStarDisplay(4); }
+    @FXML public void handleStar5() { selectedRating = 5; updateStarDisplay(5); }
+
+    @FXML public void hoverStar1() { if (selectedRating == 0) updateStarDisplay(1); }
+    @FXML public void hoverStar2() { if (selectedRating == 0) updateStarDisplay(2); }
+    @FXML public void hoverStar3() { if (selectedRating == 0) updateStarDisplay(3); }
+    @FXML public void hoverStar4() { if (selectedRating == 0) updateStarDisplay(4); }
+    @FXML public void hoverStar5() { if (selectedRating == 0) updateStarDisplay(5); }
+    @FXML public void hoverStarReset() { if (selectedRating == 0) updateStarDisplay(0); }
+
+    private void updateStarDisplay(int count) {
+        Label[] stars = {star1, star2, star3, star4, star5};
+        for (int i = 0; i < stars.length; i++) {
+            if (stars[i] == null) continue;
+            if (i < count) {
+                stars[i].setText("★");
+                stars[i].setStyle("-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #F59E0B;");
+            } else {
+                stars[i].setText("☆");
+                stars[i].setStyle("-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #94A3B8;");
+            }
+        }
+        if (starValueLabel != null) {
+            starValueLabel.setText(count > 0 ? count + " / 5" : "");
+        }
     }
 
     @FXML
@@ -349,8 +405,55 @@ public class TicketDetailController {
         }).start();
     }
 
+    // Feature 38 – Ticket wiedereröffnen
+    @FXML
+    public void handleReopenTicket() {
+        new Thread(() -> {
+            try {
+                ticketService.reopenTicket(currentTicketId);
+                Platform.runLater(() -> {
+                    AlertHelper.showInfo("Wiedereröffnet", "Ticket wurde wieder geöffnet.");
+                    loadTicket();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> AlertHelper.showError("Fehler", "Ticket konnte nicht wiedereröffnet werden.\n" + e.getMessage()));
+            }
+        }).start();
+    }
+
     @FXML
     public void handleBack() {
+        if (hasUnsavedChanges() && !AlertHelper.confirmDiscardUnsavedChanges()) {
+            return;
+        }
         Navigator.navigateAfterLogin(SessionManager.getRole());
+    }
+
+    private boolean hasUnsavedChanges() {
+        if (!text(newCommentArea).isBlank()) return true;
+        if (solutionReasonArea != null && solutionReasonArea.isVisible() && !text(solutionReasonArea).isBlank()) return true;
+        if (attachmentNameField != null && attachmentNameField.isVisible() && !text(attachmentNameField).isBlank()) return true;
+        if (feedbackArea != null && feedbackArea.isVisible() && !text(feedbackArea).isBlank()) return true;
+
+        if (currentTicket == null || SessionManager.getRole() == UserRole.CUSTOMER) return false;
+
+        if (statusCombo != null && statusCombo.isVisible() && statusCombo.getValue() != null
+                && !statusCombo.getValue().name().equals(currentTicket.getStatus())) {
+            return true;
+        }
+        if (priorityCombo != null && priorityCombo.isVisible() && priorityCombo.getValue() != null
+                && !priorityCombo.getValue().name().equals(currentTicket.getPriority())) {
+            return true;
+        }
+        if (agentCombo != null && agentCombo.isVisible() && agentCombo.getValue() != null) {
+            String selectedAgentId = agentCombo.getValue().getId();
+            String currentAgentId = currentTicket.getAssignedToUser() == null ? null : currentTicket.getAssignedToUser().getId();
+            return !Objects.equals(selectedAgentId, currentAgentId);
+        }
+        return false;
+    }
+
+    private String text(TextInputControl control) {
+        return control == null || control.getText() == null ? "" : control.getText().trim();
     }
 }
