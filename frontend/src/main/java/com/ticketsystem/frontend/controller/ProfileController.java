@@ -4,7 +4,6 @@ import com.ticketsystem.dto.request.ProfileUpdateRequest;
 import com.ticketsystem.frontend.model.UserFX;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
-import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
@@ -14,11 +13,6 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
-import javafx.scene.shape.Circle;
-
-import java.time.LocalDate;
-import java.util.Objects;
 
 public class ProfileController {
     @FXML private TextField usernameField;
@@ -29,17 +23,11 @@ public class ProfileController {
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
 
-    @FXML private Circle avatarBackground;
-    @FXML private ImageView profileImageView;
     @FXML private Label avatarInitials;
     @FXML private Label nameLabel;
     @FXML private Label roleBadge;
 
     private final UserApiService userService = new UserApiService();
-
-    private String savedEmail = "";
-    private String savedProfilePicture = "";
-    private LocalDate savedBirthDate;
 
     @FXML
     public void initialize() {
@@ -54,8 +42,6 @@ public class ProfileController {
         nameLabel.setText(SessionManager.getUsername());
         roleBadge.setText(SessionManager.getRole() != null ? SessionManager.getRole().name() : "USER");
 
-        setupProfilePicturePreview();
-        updateProfilePicturePreview(SessionManager.getProfilePicture());
         loadProfile();
     }
 
@@ -67,10 +53,7 @@ public class ProfileController {
             UserFX user = task.getValue();
             emailField.setText(user.getEmail());
             if (user.getBirthDate() != null) birthDatePicker.setValue(user.getBirthDate());
-            profilePicField.setText(user.getProfilePicture() != null ? user.getProfilePicture() : "");
-            SessionManager.setProfilePicture(profilePicField.getText());
-            updateProfilePicturePreview(profilePicField.getText());
-            rememberSavedState();
+            if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) profilePicField.setText(user.getProfilePicture());
         });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Profil konnte nicht geladen werden."));
         new Thread(task).start();
@@ -83,23 +66,13 @@ public class ProfileController {
         if (birthDatePicker.getValue() != null) request.setBirthDate(birthDatePicker.getValue());
         request.setProfilePicture(profilePicField.getText());
 
-        Task<UserFX> task = new Task<>() {
-            @Override protected UserFX call() throws Exception {
-                return userService.updateProfile(request);
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() throws Exception {
+                userService.updateProfile(request);
+                return null;
             }
         };
-        task.setOnSucceeded(e -> {
-            UserFX updatedUser = task.getValue();
-            if (updatedUser != null) {
-                emailField.setText(updatedUser.getEmail());
-                birthDatePicker.setValue(updatedUser.getBirthDate());
-                profilePicField.setText(updatedUser.getProfilePicture() != null ? updatedUser.getProfilePicture() : "");
-            }
-            SessionManager.setProfilePicture(profilePicField.getText());
-            updateProfilePicturePreview(profilePicField.getText());
-            rememberSavedState();
-            AlertHelper.showInfo("Erfolg", "Profil erfolgreich aktualisiert.");
-        });
+        task.setOnSucceeded(e -> AlertHelper.showInfo("Erfolg", "Profil erfolgreich aktualisiert."));
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Profil-Update fehlgeschlagen.\n" + task.getException().getMessage()));
         new Thread(task).start();
     }
@@ -147,46 +120,6 @@ public class ProfileController {
 
     @FXML
     public void handleBack() {
-        if (hasUnsavedChanges() && !AlertHelper.confirmDiscardUnsavedChanges()) {
-            return;
-        }
         Navigator.navigateAfterLogin(SessionManager.getRole());
-    }
-
-    private void setupProfilePicturePreview() {
-        if (profilePicField != null) {
-            profilePicField.setOnAction(e -> updateProfilePicturePreview(profilePicField.getText()));
-            profilePicField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-                if (!isFocused) {
-                    updateProfilePicturePreview(profilePicField.getText());
-                }
-            });
-        }
-    }
-
-    private void updateProfilePicturePreview(String imageUrl) {
-        AvatarHelper.showAvatar(imageUrl, profileImageView, avatarBackground, avatarInitials, 88);
-    }
-
-    private void rememberSavedState() {
-        savedEmail = text(emailField);
-        savedProfilePicture = text(profilePicField);
-        savedBirthDate = birthDatePicker.getValue();
-    }
-
-    private boolean hasUnsavedChanges() {
-        boolean profileChanged = !Objects.equals(text(emailField), savedEmail)
-                || !Objects.equals(text(profilePicField), savedProfilePicture)
-                || !Objects.equals(birthDatePicker.getValue(), savedBirthDate);
-
-        boolean passwordFieldsFilled = !text(currentPasswordField).isBlank()
-                || !text(newPasswordField).isBlank()
-                || !text(confirmPasswordField).isBlank();
-
-        return profileChanged || passwordFieldsFilled;
-    }
-
-    private String text(TextField field) {
-        return field == null || field.getText() == null ? "" : field.getText().trim();
     }
 }

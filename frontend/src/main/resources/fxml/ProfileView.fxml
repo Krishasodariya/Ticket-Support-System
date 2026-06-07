@@ -2,7 +2,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.ProfileController" stylesheets="@../css/styles.css" styleClass="root">
@@ -37,8 +36,7 @@
                 <VBox styleClass="card" prefWidth="280" minWidth="280" spacing="15">
                     <VBox alignment="CENTER" spacing="10">
                         <StackPane>
-                            <Circle fx:id="avatarBackground" radius="44" styleClass="profile-avatar" />
-                            <ImageView fx:id="profileImageView" fitWidth="88" fitHeight="88" preserveRatio="false" smooth="true" visible="false" managed="false" />
+                            <Circle radius="44" styleClass="profile-avatar" />
                             <Label fx:id="avatarInitials" text="JD" style="-fx-font-size: 22px; -fx-text-fill: white; -fx-font-weight: bold;" />
                         </StackPane>
                         <Label fx:id="nameLabel" text="Vorname Nachname" styleClass="heading-md" />
