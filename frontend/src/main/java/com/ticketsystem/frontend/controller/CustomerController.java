@@ -8,6 +8,7 @@ import com.ticketsystem.frontend.service.CategoryApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
+import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -20,6 +21,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -40,6 +42,8 @@ public class CustomerController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
+    @FXML private ImageView sidebarProfileImage, topbarProfileImage;
+    @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
 
     @FXML private Label statTotal, statOpen, statProgress, statResolved;
     @FXML private VBox activeTicketsContainer;
@@ -78,6 +82,7 @@ public class CustomerController {
         topbarInitials.setText(initial);
         sidebarName.setText(username);
         greetingLabel.setText("Hallo, " + username + "!");
+        updateAvatarDisplay(SessionManager.getProfilePicture());
 
         newFirstName.setText(username);
         newEmail.setText("email@test.com"); // Dummy for now
@@ -90,6 +95,11 @@ public class CustomerController {
         showOverview();
         loadCategories();
         loadUnreadNotifications();
+    }
+
+    private void updateAvatarDisplay(String profilePictureUrl) {
+        AvatarHelper.showAvatar(profilePictureUrl, sidebarProfileImage, sidebarAvatarBackground, sidebarInitials, 32);
+        AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
     private void initTable() {
@@ -372,7 +382,8 @@ public class CustomerController {
         };
         task.setOnSucceeded(e -> {
             AlertHelper.showInfo("Erfolg", "Ticket erfolgreich erstellt.");
-            quickTitleField.clear(); newTitleField.clear(); newDescField.clear(); if (newAttachmentNameField != null) newAttachmentNameField.clear();
+            quickTitleField.clear();
+            resetNewTicketForm();
             newErrorLabel.setVisible(false);
             showMyTickets();
         });
@@ -380,9 +391,50 @@ public class CustomerController {
         new Thread(task).start();
     }
 
-    @FXML public void showOverview() { switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht"); loadTickets(); }
-    @FXML public void showMyTickets() { switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets"); loadTickets(); }
+    @FXML public void showOverview() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht");
+        loadTickets();
+    }
+    @FXML public void showMyTickets() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets");
+        loadTickets();
+    }
     @FXML public void showNewTicket() { switchTab(paneNewTicket, navNewTicket, dotNewTicket, labelNewTicket, "Neues Ticket"); }
+
+    private boolean confirmDiscardNewTicketIfNeeded() {
+        if (paneNewTicket != null && paneNewTicket.isVisible() && hasUnsavedNewTicketInput()) {
+            return AlertHelper.confirmDiscardUnsavedChanges();
+        }
+        return true;
+    }
+
+    private boolean hasUnsavedNewTicketInput() {
+        return !text(newTitleField).isBlank()
+                || !text(newDescField).isBlank()
+                || newPriorityCombo.getValue() != null
+                || newCategoryCombo.getValue() != null
+                || !text(newAttachmentNameField).isBlank()
+                || !text(newLastName).isBlank()
+                || !text(newFirstName).equals(SessionManager.getUsername())
+                || !text(newEmail).equals("email@test.com");
+    }
+
+    private String text(TextInputControl control) {
+        return control == null || control.getText() == null ? "" : control.getText().trim();
+    }
+
+    private void resetNewTicketForm() {
+        if (newTitleField != null) newTitleField.clear();
+        if (newDescField != null) newDescField.clear();
+        if (newPriorityCombo != null) newPriorityCombo.setValue(null);
+        if (newCategoryCombo != null) newCategoryCombo.setValue(null);
+        if (newAttachmentNameField != null) newAttachmentNameField.clear();
+        if (newLastName != null) newLastName.clear();
+        if (newFirstName != null) newFirstName.setText(SessionManager.getUsername());
+        if (newEmail != null) newEmail.setText("email@test.com");
+    }
 
     private void switchTab(javafx.scene.Node paneToShow, HBox navActive, Circle dotActive, Label labelActive, String crumbTitle) {
         paneOverview.setVisible(false); paneMyTickets.setVisible(false); paneNewTicket.setVisible(false);
@@ -449,6 +501,13 @@ public class CustomerController {
         }, "mark-notifications-read").start();
     }
 
-    @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
-    @FXML public void handleLogout() { Navigator.logout(); }
+    @FXML public void handleProfile() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        Navigator.navigateTo("ProfileView.fxml");
+    }
+
+    @FXML public void handleLogout() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        Navigator.logout();
+    }
 }
