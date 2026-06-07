@@ -2,6 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.AdminController" stylesheets="@../css/styles.css" styleClass="root">
@@ -56,7 +57,8 @@
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
                 <StackPane>
-                    <Circle radius="16" fill="#0EA5E9" />
+                    <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9" />
+                    <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false" />
                     <Label fx:id="sidebarInitials" text="AD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
                 </StackPane>
                 <VBox>
@@ -84,7 +86,8 @@
                     <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
                 </StackPane>
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
-                    <Circle radius="14" fill="#0EA5E9" />
+                    <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9" />
+                    <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false" />
                     <Label fx:id="topbarInitials" text="AD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
                 </StackPane>
             </HBox>
