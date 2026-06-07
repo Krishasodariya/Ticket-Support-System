@@ -13,7 +13,6 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
-    // Aufgabe 15 / 25: Aktive Agenten nach Rolle (und Admins für Eskalation)
     List<User> findByRoleAndIsActiveTrue(UserRole role);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);

@@ -64,4 +64,25 @@ public class TicketApiService {
     public void deleteTicket(String id) throws Exception {
         ApiClient.delete("/tickets/" + id);
     }
+
+    // Feature 17: Ähnliche Tickets
+    public List<TicketFX> findSimilar(String title, String description) throws Exception {
+        String path = "/tickets/search/similar?title=" + URLEncoder.encode(title == null ? "" : title, StandardCharsets.UTF_8)
+                + "&description=" + URLEncoder.encode(description == null ? "" : description, StandardCharsets.UTF_8);
+        TicketFX[] arr = ApiClient.get(path, TicketFX[].class);
+        return Arrays.asList(arr);
+    }
+
+    // Feature 18: Duplikat-Erkennung
+    public List<TicketFX> findDuplicates(String title, String description) throws Exception {
+        String path = "/tickets/search/duplicates?title=" + URLEncoder.encode(title == null ? "" : title, StandardCharsets.UTF_8)
+                + "&description=" + URLEncoder.encode(description == null ? "" : description, StandardCharsets.UTF_8);
+        TicketFX[] arr = ApiClient.get(path, TicketFX[].class);
+        return Arrays.asList(arr);
+    }
+
+    // Feature 38: Ticket wiedereröffnen
+    public TicketFX reopenTicket(String id) throws Exception {
+        return ApiClient.patch("/tickets/" + id + "/reopen", Map.of(), TicketFX.class);
+    }
 }
