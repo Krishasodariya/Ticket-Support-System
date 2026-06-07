@@ -21,6 +21,9 @@ public class TicketResponse {
     private String slaLabel;
     private String attachmentName;
     private Integer customerRating;
+    private Integer feedbackRating;   // Alias für customerRating – für Frontend-Kompatibilität
+    private String customerFeedback;
+    private LocalDateTime resolvedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

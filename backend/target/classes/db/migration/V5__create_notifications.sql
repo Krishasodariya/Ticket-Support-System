@@ -1,9 +1,0 @@
-CREATE TABLE notifications (
-    id UUID PRIMARY KEY,
-    recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    ticket_id UUID REFERENCES tickets(id) ON DELETE CASCADE,
-    title VARCHAR(120) NOT NULL,
-    message TEXT NOT NULL,
-    is_read BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
