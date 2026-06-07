@@ -8,12 +8,12 @@ import com.ticketsystem.mapper.UserMapper;
 import com.ticketsystem.model.User;
 import com.ticketsystem.model.enums.UserRole;
 import com.ticketsystem.repository.UserRepository;
-import com.ticketsystem.service.SystemAuditLogService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,16 +23,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    // Feature 32 – System-Aktivitätsprotokoll
-    private final SystemAuditLogService systemAuditLogService;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper,
-                       PasswordEncoder passwordEncoder,
-                       SystemAuditLogService systemAuditLogService) {
+    public UserService(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
-        this.systemAuditLogService = systemAuditLogService;
     }
 
     public List<UserResponse> getAllUsers() {
@@ -65,22 +60,13 @@ public class UserService {
     public UserResponse updateUserActiveStatus(UUID id, boolean isActive) {
         User user = findUserEntityById(id);
         user.setActive(isActive);
-        // Feature 32 – Benutzeraktivierung/-deaktivierung protokollieren
-        systemAuditLogService.log("admin", isActive ? "USER_ACTIVATED" : "USER_DEACTIVATED",
-                "Benutzer " + user.getUsername() + " wurde " + (isActive ? "aktiviert" : "deaktiviert"),
-                user.getId(), null);
         return userMapper.toResponse(userRepository.save(user));
     }
 
     @Transactional
     public UserResponse updateUserRole(UUID id, UserRole newRole) {
         User user = findUserEntityById(id);
-        String oldRole = user.getRole().name();
         user.setRole(newRole);
-        // Feature 32 – Rollenänderung protokollieren
-        systemAuditLogService.log("admin", "ROLE_CHANGED",
-                "Rolle von " + user.getUsername() + " geändert: " + oldRole + " → " + newRole.name(),
-                user.getId(), null);
         return userMapper.toResponse(userRepository.save(user));
     }
 
@@ -113,5 +99,45 @@ public class UserService {
         }
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+    // ── Aufgabe 15: Agent-Spezialisierung ────────────────────────────────────
+
+    /**
+     * Setzt die Spezialisierung (komma-separierte Kategorie-Namen) für einen Agenten.
+     * Nur ADMIN darf dies aufrufen (Prüfung im Controller).
+     */
+    @Transactional
+    public UserResponse updateSpecialization(UUID agentId, String specialization) {
+        User agent = findUserEntityById(agentId);
+        if (agent.getRole() != UserRole.AGENT && agent.getRole() != UserRole.ADMIN) {
+            throw new IllegalArgumentException("Spezialisierungen können nur für Agenten oder Admins gesetzt werden.");
+        }
+        agent.setSpecialization(specialization == null ? null : specialization.trim());
+        return userMapper.toResponse(userRepository.save(agent));
+    }
+
+    /**
+     * Gibt alle aktiven Agenten zurück, deren Spezialisierung den übergebenen
+     * Kategorie-Namen enthält (Aufgabe 15 – für Routing-Vorschlag).
+     * Agenten ohne Spezialisierung gelten als „Generalisten" und werden ebenfalls zurückgegeben.
+     */
+    public List<User> findActiveAgentsMatchingCategory(String categoryName) {
+        return userRepository.findByRoleAndIsActiveTrue(UserRole.AGENT).stream()
+                .filter(agent -> {
+                    String spec = agent.getSpecialization();
+                    if (!StringUtils.hasText(spec)) return true; // Generalist
+                    return Arrays.stream(spec.split(","))
+                            .map(String::trim)
+                            .anyMatch(s -> s.equalsIgnoreCase(categoryName));
+                })
+                .collect(Collectors.toList());
+    }
+
+    /** Workload: Anzahl offener Tickets pro Agent (wird von TicketService genutzt). */
+    public long countOpenTicketsForUser(UUID userId, List<com.ticketsystem.model.Ticket> allOpen) {
+        return allOpen.stream()
+                .filter(t -> t.getAssignedTo() != null && t.getAssignedTo().getId().equals(userId))
+                .count();
     }
 }

@@ -73,10 +73,6 @@
                         <TextField fx:id="attachmentNameField" promptText="Anhang-Dateiname, z.B. screenshot.png" HBox.hgrow="ALWAYS" />
                         <Button fx:id="attachBtn" text="Anhang speichern" onAction="#handleAddAttachment" styleClass="btn-ghost"/>
                     </HBox>
-                    <!-- Feature 38 – Ticket wiedereröffnen (nur für CUSTOMER bei RESOLVED/CLOSED) -->
-                    <Button fx:id="reopenTicketBtn" text="Ticket wieder öffnen" onAction="#handleReopenTicket"
-                            styleClass="btn-ghost" visible="false" managed="false"
-                            style="-fx-text-fill: #F59E0B; -fx-border-color: #F59E0B;" />
                 </VBox>
                 <Label text="Ticket-Historie" styleClass="section-title"/>
                 <ListView fx:id="historyList" prefHeight="150" styleClass="list-view" />
@@ -93,15 +89,8 @@
                     </HBox>
                     <Separator />
                     <Label text="Feedback nach Lösung" styleClass="section-title"/>
-                    <HBox spacing="6" alignment="CENTER_LEFT">
-                        <Label fx:id="star1" text="☆" style="-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #94A3B8;" onMouseClicked="#handleStar1" onMouseEntered="#hoverStar1" onMouseExited="#hoverStarReset"/>
-                        <Label fx:id="star2" text="☆" style="-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #94A3B8;" onMouseClicked="#handleStar2" onMouseEntered="#hoverStar2" onMouseExited="#hoverStarReset"/>
-                        <Label fx:id="star3" text="☆" style="-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #94A3B8;" onMouseClicked="#handleStar3" onMouseEntered="#hoverStar3" onMouseExited="#hoverStarReset"/>
-                        <Label fx:id="star4" text="☆" style="-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #94A3B8;" onMouseClicked="#handleStar4" onMouseEntered="#hoverStar4" onMouseExited="#hoverStarReset"/>
-                        <Label fx:id="star5" text="☆" style="-fx-font-size: 28px; -fx-cursor: hand; -fx-text-fill: #94A3B8;" onMouseClicked="#handleStar5" onMouseEntered="#hoverStar5" onMouseExited="#hoverStarReset"/>
-                        <Label fx:id="starValueLabel" text="" style="-fx-font-size: 12px; -fx-text-fill: #94A3B8; -fx-padding: 0 0 0 6;"/>
-                    </HBox>
                     <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Spinner fx:id="ratingSpinner" prefWidth="80"/>
                         <TextArea fx:id="feedbackArea" prefRowCount="2" promptText="Bewertung/Feedback..." HBox.hgrow="ALWAYS" wrapText="true"/>
                         <Button fx:id="sendFeedbackBtn" text="Feedback senden" onAction="#handleSendFeedback" styleClass="btn-primary"/>
                     </HBox>
