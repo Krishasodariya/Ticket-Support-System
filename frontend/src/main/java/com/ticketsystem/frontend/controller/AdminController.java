@@ -20,6 +20,7 @@ import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.WorkflowOptionApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
+import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -32,6 +33,7 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
@@ -59,6 +61,8 @@ public class AdminController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
+    @FXML private ImageView sidebarProfileImage, topbarProfileImage;
+    @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
 
     @FXML private Label statTotal, statOpen, statResolvedToday, statCritical;
     @FXML private Label statCreatedToday, statOverdue, statEscalated, statAvgResolution;
@@ -126,11 +130,17 @@ public class AdminController {
         topbarInitials.setText(initial);
         sidebarName.setText(username);
         greetingLabel.setText("Willkommen zurück, " + username + "!");
+        updateAvatarDisplay(SessionManager.getProfilePicture());
 
         initTable();
         initFiltersAndUserActions();
         loadUnreadNotifications();
         showDashboard();
+    }
+
+    private void updateAvatarDisplay(String profilePictureUrl) {
+        AvatarHelper.showAvatar(profilePictureUrl, sidebarProfileImage, sidebarAvatarBackground, sidebarInitials, 32);
+        AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
     private void initTable() {

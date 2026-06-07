@@ -7,6 +7,7 @@ import com.ticketsystem.frontend.service.KnowledgeBaseApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
+import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -21,6 +22,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -38,6 +40,8 @@ public class AgentController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, notificationCountLabel;
+    @FXML private ImageView sidebarProfileImage, topbarProfileImage;
+    @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
     @FXML private Label statAssigned;
     @FXML private Label statResolvedToday;
     @FXML private Label statOpenTotal;
@@ -74,11 +78,17 @@ public class AgentController {
         sidebarInitials.setText(initial);
         topbarInitials.setText(initial);
         sidebarName.setText(username);
+        updateAvatarDisplay(SessionManager.getProfilePicture());
 
         initTable();
         initFilters();
         loadUnreadNotifications();
         showMyTickets();
+    }
+
+    private void updateAvatarDisplay(String profilePictureUrl) {
+        AvatarHelper.showAvatar(profilePictureUrl, sidebarProfileImage, sidebarAvatarBackground, sidebarInitials, 32);
+        AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
     private void initTable() {

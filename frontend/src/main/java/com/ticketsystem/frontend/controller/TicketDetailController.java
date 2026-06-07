@@ -22,6 +22,7 @@ import javafx.scene.control.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class TicketDetailController {
     private static String currentTicketId;
@@ -422,6 +423,37 @@ public class TicketDetailController {
 
     @FXML
     public void handleBack() {
+        if (hasUnsavedChanges() && !AlertHelper.confirmDiscardUnsavedChanges()) {
+            return;
+        }
         Navigator.navigateAfterLogin(SessionManager.getRole());
+    }
+
+    private boolean hasUnsavedChanges() {
+        if (!text(newCommentArea).isBlank()) return true;
+        if (solutionReasonArea != null && solutionReasonArea.isVisible() && !text(solutionReasonArea).isBlank()) return true;
+        if (attachmentNameField != null && attachmentNameField.isVisible() && !text(attachmentNameField).isBlank()) return true;
+        if (feedbackArea != null && feedbackArea.isVisible() && !text(feedbackArea).isBlank()) return true;
+
+        if (currentTicket == null || SessionManager.getRole() == UserRole.CUSTOMER) return false;
+
+        if (statusCombo != null && statusCombo.isVisible() && statusCombo.getValue() != null
+                && !statusCombo.getValue().name().equals(currentTicket.getStatus())) {
+            return true;
+        }
+        if (priorityCombo != null && priorityCombo.isVisible() && priorityCombo.getValue() != null
+                && !priorityCombo.getValue().name().equals(currentTicket.getPriority())) {
+            return true;
+        }
+        if (agentCombo != null && agentCombo.isVisible() && agentCombo.getValue() != null) {
+            String selectedAgentId = agentCombo.getValue().getId();
+            String currentAgentId = currentTicket.getAssignedToUser() == null ? null : currentTicket.getAssignedToUser().getId();
+            return !Objects.equals(selectedAgentId, currentAgentId);
+        }
+        return false;
+    }
+
+    private String text(TextInputControl control) {
+        return control == null || control.getText() == null ? "" : control.getText().trim();
     }
 }
