@@ -366,6 +366,77 @@ public class TicketService {
         }
     }
 
+    // ── Feature 17: Ähnliche Tickets beim Erstellen anzeigen ──────────────────
+    public List<TicketResponse> findSimilarTickets(String title, String description) {
+        String query = ((title == null ? "" : title) + " " + (description == null ? "" : description))
+                .toLowerCase().trim();
+        if (query.isBlank()) return List.of();
+        String[] words = query.split("\\s+");
+        return ticketRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(t -> {
+                    String haystack = (t.getTitle() + " " + t.getDescription()).toLowerCase();
+                    long matches = 0;
+                    for (String w : words) {
+                        if (w.length() >= 4 && haystack.contains(w)) matches++;
+                    }
+                    return matches >= 2;
+                })
+                .limit(5)
+                .map(ticketMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ── Feature 18: Duplikat-Erkennung ────────────────────────────────────────
+    public List<TicketResponse> findDuplicates(String title, String description) {
+        String titleLc = title == null ? "" : title.toLowerCase().trim();
+        String descLc  = description == null ? "" : description.toLowerCase().trim();
+        return ticketRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(t -> {
+                    double titleSim  = jaccardSimilarity(titleLc, t.getTitle().toLowerCase());
+                    double descSim   = jaccardSimilarity(descLc,  t.getDescription().toLowerCase());
+                    return titleSim >= 0.6 || (titleSim >= 0.4 && descSim >= 0.4);
+                })
+                .limit(5)
+                .map(ticketMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /** Einfache Jaccard-Ähnlichkeit auf Wortebene */
+    private double jaccardSimilarity(String a, String b) {
+        if (a.isBlank() || b.isBlank()) return 0.0;
+        java.util.Set<String> setA = new java.util.HashSet<>(List.of(a.split("\\s+")));
+        java.util.Set<String> setB = new java.util.HashSet<>(List.of(b.split("\\s+")));
+        java.util.Set<String> intersection = new java.util.HashSet<>(setA);
+        intersection.retainAll(setB);
+        java.util.Set<String> union = new java.util.HashSet<>(setA);
+        union.addAll(setB);
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
+    }
+
+    // ── Feature 38: Ticket wiedereröffnen ─────────────────────────────────────
+    @Transactional
+    public TicketDetailResponse reopenTicket(UUID id, String username) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new TicketNotFoundException("Ticket not found"));
+        User user = userService.findUserEntityByUsername(username);
+
+        if (!ticket.getCreatedBy().getId().equals(user.getId())) {
+            throw new com.ticketsystem.exception.UnauthorizedException("Nur der Ersteller kann ein Ticket wieder öffnen");
+        }
+        if (ticket.getStatus() != TicketStatus.RESOLVED && ticket.getStatus() != TicketStatus.CLOSED) {
+            throw new IllegalArgumentException("Ticket kann nur aus Status RESOLVED oder CLOSED wiedereröffnet werden");
+        }
+
+        String oldStatus = ticket.getStatus().name();
+        ticket.setStatus(TicketStatus.OPEN);
+        ticket.setResolvedAt(null);
+        ticket.setEscalated(false);
+        createAuditLog(ticket, user, "TICKET_REOPENED", oldStatus, TicketStatus.OPEN.name());
+        notifyTicketPeople(ticket, user, "Ticket wiedereröffnet",
+                "Das Ticket '" + ticket.getTitle() + "' wurde vom Kunden wieder geöffnet.");
+        return ticketMapper.toDetailResponse(ticketRepository.save(ticket));
+    }
+
     private void createAuditLog(Ticket ticket, User user, String type, String oldVal, String newVal) {
         AuditLog log = AuditLog.builder()
                 .ticket(ticket)

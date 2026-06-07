@@ -8,6 +8,7 @@ import com.ticketsystem.frontend.service.CategoryApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
+import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
 
@@ -23,7 +24,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+
 import javafx.scene.input.MouseEvent;
+
+import javafx.scene.image.ImageView;
+
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -33,7 +38,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CustomerController {
-    
+
     @FXML private ScrollPane paneOverview;
     @FXML private VBox paneMyTickets;
     @FXML private ScrollPane paneNewTicket;
@@ -44,7 +49,9 @@ public class CustomerController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
-    
+    @FXML private ImageView sidebarProfileImage, topbarProfileImage;
+    @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
+
     @FXML private Label statTotal, statOpen, statProgress, statResolved;
     @FXML private VBox activeTicketsContainer;
 
@@ -71,6 +78,9 @@ public class CustomerController {
 
     @FXML
     public void initialize() {
+    	
+
+
     	String username = SessionManager.getUsername();
 
     	if (username == null || username.isBlank()) {
@@ -85,8 +95,25 @@ public class CustomerController {
 
     	greetingLabel.setText("Hallo, " + username + "! 👋");
 
+    	updateAvatarDisplay(SessionManager.getProfilePicture());
+
     	newFirstName.setText(username);
     	newEmail.setText("");
+
+    	quickPriorityCombo.getItems().setAll(TicketPriority.values());
+    	newPriorityCombo.getItems().setAll(TicketPriority.values());
+    	initFilters();
+
+    	initTable();
+    	showOverview();
+    	loadCategories();
+    	loadUnreadNotifications();
+
+    }
+
+    private void updateAvatarDisplay(String profilePictureUrl) {
+        AvatarHelper.showAvatar(profilePictureUrl, sidebarProfileImage, sidebarAvatarBackground, sidebarInitials, 32);
+        AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
     private void initTable() {
@@ -178,7 +205,7 @@ public class CustomerController {
             List<TicketFX> tickets = task.getValue();
             latestTickets = tickets;
             applyFilter();
-            
+
             // Dummy Stats
             statTotal.setText(String.valueOf(tickets.size()));
             statOpen.setText(String.valueOf(tickets.stream().filter(t -> "OPEN".equals(t.getStatus())).count()));
@@ -214,7 +241,7 @@ public class CustomerController {
             activeTickets.forEach(t -> {
                 VBox card = new VBox(5);
                 card.getStyleClass().add("ticket-card");
-                
+
                 String borderColor = switch(t.getPriority()) {
                     case "CRITICAL" -> "#EF4444";
                     case "HIGH" -> "#F59E0B";
@@ -240,7 +267,7 @@ public class CustomerController {
                     agentLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94A3B8;");
                     row3.getChildren().add(agentLabel);
                 }
-                
+
                 card.getChildren().addAll(row1, descLabel, row3);
                 card.setOnMouseClicked(ev -> {
                     TicketDetailController.setCurrentTicketId(t.getId());
@@ -250,7 +277,7 @@ public class CustomerController {
             });
         });
         task.setOnFailed(e -> {
-             // Handle softly
+            // Handle softly
         });
         new Thread(task).start();
     }
@@ -283,9 +310,45 @@ public class CustomerController {
 
     @FXML public void handleQuickCreate() {
         if (quickTitleField.getText().isEmpty() || quickPriorityCombo.getValue() == null) return;
+
+        String title = quickTitleField.getText().trim();
+        String desc  = "Schnell-Ticket: " + title;
+
+        // Feature 17 & 18 – auch beim Schnellticket prüfen
+        new Thread(() -> {
+            try {
+                List<TicketFX> duplicates = ticketService.findDuplicates(title, desc);
+                List<TicketFX> similar    = ticketService.findSimilar(title, desc);
+                Platform.runLater(() -> {
+                    if (!duplicates.isEmpty()) {
+                        String names = duplicates.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Mögliche Duplikate gefunden:\n" + names + "\n\nTrotzdem erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Duplikat erkannt");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) doQuickSubmit(title); });
+                    } else if (!similar.isEmpty()) {
+                        String names = similar.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Ähnliche Tickets gefunden:\n" + names + "\n\nTrotzdem ein neues Ticket erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Ähnliche Tickets");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) doQuickSubmit(title); });
+                    } else {
+                        doQuickSubmit(title);
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("[Feature17/18 DEBUG] Fehler: " + e.getMessage());
+                Platform.runLater(() -> doQuickSubmit(title));
+            }
+        }).start();
+    }
+
+    private void doQuickSubmit(String title) {
         CreateTicketRequest req = new CreateTicketRequest();
-        req.setTitle(quickTitleField.getText());
-        req.setDescription("Schnell-Ticket: " + quickTitleField.getText());
+        req.setTitle(title);
+        req.setDescription("Schnell-Ticket: " + title);
         req.setPriority(quickPriorityCombo.getValue());
         doCreateTicket(req);
     }
@@ -295,12 +358,52 @@ public class CustomerController {
             newErrorLabel.setVisible(true);
             return;
         }
+
+        String title = newTitleField.getText().trim();
+        String desc  = newDescField.getText().trim();
+
+        // Feature 17 & 18 – Ähnliche Tickets + Duplikat-Check VOR dem Erstellen
+        new Thread(() -> {
+            try {
+                List<TicketFX> duplicates = ticketService.findDuplicates(title, desc);
+                List<TicketFX> similar    = ticketService.findSimilar(title, desc);
+                Platform.runLater(() -> {
+                    if (!duplicates.isEmpty()) {
+                        String names = duplicates.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Mögliche Duplikate gefunden:\n" + names + "\n\nTrotzdem erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Duplikat erkannt");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) submitFullTicket(title, desc); });
+                    } else if (!similar.isEmpty()) {
+                        String names = similar.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Ähnliche Tickets gefunden:\n" + names + "\n\nTrotzdem ein neues Ticket erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Ähnliche Tickets");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) submitFullTicket(title, desc); });
+                    } else {
+                        submitFullTicket(title, desc);
+                    }
+                });
+            } catch (Exception e) {
+                // Bei Fehler einfach direkt erstellen
+                Platform.runLater(() -> {
+                    System.err.println("[Feature17/18 DEBUG] Fehler: " + e.getMessage());
+                    e.printStackTrace();
+                    submitFullTicket(title, desc);
+                });
+            }
+        }).start();
+    }
+
+    private void submitFullTicket(String title, String desc) {
         Map<String, Object> req = new HashMap<>();
-        req.put("title", newTitleField.getText());
-        req.put("description", newDescField.getText());
+        req.put("title", title);
+        req.put("description", desc);
         req.put("priority", newPriorityCombo.getValue());
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
-        if (newAttachmentNameField != null && newAttachmentNameField.getText() != null && !newAttachmentNameField.getText().trim().isBlank()) {
+        if (newAttachmentNameField != null && !newAttachmentNameField.getText().trim().isBlank()) {
             String attachmentName = newAttachmentNameField.getText().trim();
             req.put("attachmentName", attachmentName);
             req.put("attachmentPath", "demo-attachments/" + attachmentName);
@@ -318,7 +421,8 @@ public class CustomerController {
         };
         task.setOnSucceeded(e -> {
             AlertHelper.showInfo("Erfolg", "Ticket erfolgreich erstellt.");
-            quickTitleField.clear(); newTitleField.clear(); newDescField.clear(); if (newAttachmentNameField != null) newAttachmentNameField.clear();
+            quickTitleField.clear();
+            resetNewTicketForm();
             newErrorLabel.setVisible(false);
             showMyTickets();
         });
@@ -326,9 +430,50 @@ public class CustomerController {
         new Thread(task).start();
     }
 
-    @FXML public void showOverview() { switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht"); loadTickets(); }
-    @FXML public void showMyTickets() { switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets"); loadTickets(); }
+    @FXML public void showOverview() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht");
+        loadTickets();
+    }
+    @FXML public void showMyTickets() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets");
+        loadTickets();
+    }
     @FXML public void showNewTicket() { switchTab(paneNewTicket, navNewTicket, dotNewTicket, labelNewTicket, "Neues Ticket"); }
+
+    private boolean confirmDiscardNewTicketIfNeeded() {
+        if (paneNewTicket != null && paneNewTicket.isVisible() && hasUnsavedNewTicketInput()) {
+            return AlertHelper.confirmDiscardUnsavedChanges();
+        }
+        return true;
+    }
+
+    private boolean hasUnsavedNewTicketInput() {
+        return !text(newTitleField).isBlank()
+                || !text(newDescField).isBlank()
+                || newPriorityCombo.getValue() != null
+                || newCategoryCombo.getValue() != null
+                || !text(newAttachmentNameField).isBlank()
+                || !text(newLastName).isBlank()
+                || !text(newFirstName).equals(SessionManager.getUsername())
+                || !text(newEmail).equals("email@test.com");
+    }
+
+    private String text(TextInputControl control) {
+        return control == null || control.getText() == null ? "" : control.getText().trim();
+    }
+
+    private void resetNewTicketForm() {
+        if (newTitleField != null) newTitleField.clear();
+        if (newDescField != null) newDescField.clear();
+        if (newPriorityCombo != null) newPriorityCombo.setValue(null);
+        if (newCategoryCombo != null) newCategoryCombo.setValue(null);
+        if (newAttachmentNameField != null) newAttachmentNameField.clear();
+        if (newLastName != null) newLastName.clear();
+        if (newFirstName != null) newFirstName.setText(SessionManager.getUsername());
+        if (newEmail != null) newEmail.setText("email@test.com");
+    }
 
     private void switchTab(javafx.scene.Node paneToShow, HBox navActive, Circle dotActive, Label labelActive, String crumbTitle) {
         paneOverview.setVisible(false); paneMyTickets.setVisible(false); paneNewTicket.setVisible(false);
@@ -343,7 +488,7 @@ public class CustomerController {
         navActive.getStyleClass().add("nav-item-active");
         dotActive.setFill(javafx.scene.paint.Color.web("#0EA5E9"));
         labelActive.getStyleClass().remove("text-secondary"); labelActive.getStyleClass().add("text-primary");
-        
+
         breadcrumb.setText("Customer  /  " + crumbTitle);
     }
 
@@ -395,9 +540,22 @@ public class CustomerController {
         }, "mark-notifications-read").start();
     }
 
-    @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
-    @FXML public void handleLogout() { Navigator.logout(); }
-   
+    @FXML
+    public void handleProfile() {
+        if (!confirmDiscardNewTicketIfNeeded()) {
+            return;
+        }
+        Navigator.navigateTo("ProfileView.fxml");
+    }
+
+    @FXML
+    public void handleLogout() {
+        if (!confirmDiscardNewTicketIfNeeded()) {
+            return;
+        }
+        Navigator.logout();
+    }
+
     @FXML
     private void handleNotifications(MouseEvent event) {
         new Thread(() -> {
@@ -413,4 +571,5 @@ public class CustomerController {
             }
         }, "customer-load-notifications-popup").start();
     }
-}
+    }
+

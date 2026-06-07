@@ -76,7 +76,7 @@ class TicketServiceTest {
         ticketService.createTicket(request, "testuser");
 
         verify(ticketRepository, times(1)).save(any(Ticket.class));
-        verify(auditLogRepository, times(1)).save(any());
+        verify(auditLogRepository, times(2)).save(any());
     }
 
     @Test

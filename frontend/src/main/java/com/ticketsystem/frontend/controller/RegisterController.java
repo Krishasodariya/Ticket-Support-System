@@ -73,7 +73,17 @@ public class RegisterController {
 
     @FXML
     public void handleBackToLogin() {
+        if (hasUnsavedRegistrationInput() && !AlertHelper.confirmDiscardUnsavedChanges()) {
+            return;
+        }
         Navigator.navigateToLogin();
+    }
+
+    private boolean hasUnsavedRegistrationInput() {
+        return !usernameField.getText().trim().isBlank()
+                || !emailField.getText().trim().isBlank()
+                || !passwordField.getText().isBlank()
+                || !confirmPasswordField.getText().isBlank();
     }
 
     private void showError(String message) {
