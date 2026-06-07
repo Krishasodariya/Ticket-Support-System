@@ -12,14 +12,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "tickets")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Ticket {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)
@@ -56,6 +51,13 @@ public class Ticket {
 
     @Column(name = "is_escalated", nullable = false)
     private boolean escalated;
+
+    /**
+     * Aufgabe 39 – Ticket als kritisch markieren.
+     * Admin kann dieses Flag unabhängig von der normalen Priorität setzen.
+     */
+    @Column(name = "is_critical", nullable = false)
+    private boolean critical;
 
     @Column(name = "solution_reason", columnDefinition = "TEXT")
     private String solutionReason;
