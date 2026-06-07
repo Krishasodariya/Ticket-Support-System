@@ -8,7 +8,6 @@ import com.ticketsystem.frontend.service.CategoryApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
-import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -21,7 +20,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -42,8 +40,6 @@ public class CustomerController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
-    @FXML private ImageView sidebarProfileImage, topbarProfileImage;
-    @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
 
     @FXML private Label statTotal, statOpen, statProgress, statResolved;
     @FXML private VBox activeTicketsContainer;
@@ -82,24 +78,20 @@ public class CustomerController {
         topbarInitials.setText(initial);
         sidebarName.setText(username);
         greetingLabel.setText("Hallo, " + username + "!");
-        updateAvatarDisplay(SessionManager.getProfilePicture());
 
         newFirstName.setText(username);
-        newEmail.setText("email@test.com"); // Dummy for now
+        newEmail.setText("email@test.com");
 
         quickPriorityCombo.getItems().setAll(TicketPriority.values());
-        newPriorityCombo.getItems().setAll(TicketPriority.values());
+        newPriorityCombo.getItems().add(null);
+        newPriorityCombo.getItems().addAll(TicketPriority.values());
+        newPriorityCombo.setPromptText("Automatisch ermitteln");
         initFilters();
 
         initTable();
         showOverview();
         loadCategories();
         loadUnreadNotifications();
-    }
-
-    private void updateAvatarDisplay(String profilePictureUrl) {
-        AvatarHelper.showAvatar(profilePictureUrl, sidebarProfileImage, sidebarAvatarBackground, sidebarInitials, 32);
-        AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
     private void initTable() {
@@ -192,7 +184,6 @@ public class CustomerController {
             latestTickets = tickets;
             applyFilter();
 
-            // Dummy Stats
             statTotal.setText(String.valueOf(tickets.size()));
             statOpen.setText(String.valueOf(tickets.stream().filter(t -> "OPEN".equals(t.getStatus())).count()));
             statProgress.setText(String.valueOf(tickets.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus())).count()));
@@ -203,7 +194,7 @@ public class CustomerController {
                 VBox card = new VBox(5);
                 card.getStyleClass().add("ticket-card");
 
-                String borderColor = switch(t.getPriority()) {
+                String borderColor = switch (t.getPriority()) {
                     case "CRITICAL" -> "#EF4444";
                     case "HIGH" -> "#F59E0B";
                     case "MEDIUM" -> "#38BDF8";
@@ -212,9 +203,10 @@ public class CustomerController {
                 card.setStyle("-fx-border-color: transparent transparent transparent " + borderColor + "; -fx-border-width: 0 0 0 3;");
 
                 HBox row1 = new HBox(new Label(t.getTitle()));
-                ((Label)row1.getChildren().get(0)).setStyle("-fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: bold;");
-                Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
-                Label idLabel = new Label("#" + (t.getId().length() > 6 ? t.getId().substring(0,6) : t.getId()));
+                ((Label) row1.getChildren().get(0)).setStyle("-fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: bold;");
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                Label idLabel = new Label("#" + (t.getId().length() > 6 ? t.getId().substring(0, 6) : t.getId()));
                 idLabel.getStyleClass().add("text-muted");
                 row1.getChildren().addAll(spacer, idLabel);
 
@@ -271,100 +263,27 @@ public class CustomerController {
 
     @FXML public void handleQuickCreate() {
         if (quickTitleField.getText().isEmpty() || quickPriorityCombo.getValue() == null) return;
-
-        String title = quickTitleField.getText().trim();
-        String desc  = "Schnell-Ticket: " + title;
-
-        // Feature 17 & 18 – auch beim Schnellticket prüfen
-        new Thread(() -> {
-            try {
-                List<TicketFX> duplicates = ticketService.findDuplicates(title, desc);
-                List<TicketFX> similar    = ticketService.findSimilar(title, desc);
-                Platform.runLater(() -> {
-                    if (!duplicates.isEmpty()) {
-                        String names = duplicates.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                                "Mögliche Duplikate gefunden:\n" + names + "\n\nTrotzdem erstellen?",
-                                ButtonType.YES, ButtonType.NO);
-                        alert.setTitle("Duplikat erkannt");
-                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) doQuickSubmit(title); });
-                    } else if (!similar.isEmpty()) {
-                        String names = similar.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                                "Ähnliche Tickets gefunden:\n" + names + "\n\nTrotzdem ein neues Ticket erstellen?",
-                                ButtonType.YES, ButtonType.NO);
-                        alert.setTitle("Ähnliche Tickets");
-                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) doQuickSubmit(title); });
-                    } else {
-                        doQuickSubmit(title);
-                    }
-                });
-            } catch (Exception e) {
-                System.err.println("[Feature17/18 DEBUG] Fehler: " + e.getMessage());
-                Platform.runLater(() -> doQuickSubmit(title));
-            }
-        }).start();
-    }
-
-    private void doQuickSubmit(String title) {
         CreateTicketRequest req = new CreateTicketRequest();
-        req.setTitle(title);
-        req.setDescription("Schnell-Ticket: " + title);
+        req.setTitle(quickTitleField.getText());
+        req.setDescription("Schnell-Ticket: " + quickTitleField.getText());
         req.setPriority(quickPriorityCombo.getValue());
         doCreateTicket(req);
     }
 
     @FXML public void handleCreateFullTicket() {
-        if (newTitleField.getText().isEmpty() || newDescField.getText().isEmpty() || newPriorityCombo.getValue() == null) {
+        if (newTitleField.getText().isEmpty() || newDescField.getText().isEmpty()) {
             newErrorLabel.setVisible(true);
             return;
         }
-
-        String title = newTitleField.getText().trim();
-        String desc  = newDescField.getText().trim();
-
-        // Feature 17 & 18 – Ähnliche Tickets + Duplikat-Check VOR dem Erstellen
-        new Thread(() -> {
-            try {
-                List<TicketFX> duplicates = ticketService.findDuplicates(title, desc);
-                List<TicketFX> similar    = ticketService.findSimilar(title, desc);
-                Platform.runLater(() -> {
-                    if (!duplicates.isEmpty()) {
-                        String names = duplicates.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                                "Mögliche Duplikate gefunden:\n" + names + "\n\nTrotzdem erstellen?",
-                                ButtonType.YES, ButtonType.NO);
-                        alert.setTitle("Duplikat erkannt");
-                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) submitFullTicket(title, desc); });
-                    } else if (!similar.isEmpty()) {
-                        String names = similar.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
-                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
-                                "Ähnliche Tickets gefunden:\n" + names + "\n\nTrotzdem ein neues Ticket erstellen?",
-                                ButtonType.YES, ButtonType.NO);
-                        alert.setTitle("Ähnliche Tickets");
-                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) submitFullTicket(title, desc); });
-                    } else {
-                        submitFullTicket(title, desc);
-                    }
-                });
-            } catch (Exception e) {
-                // Bei Fehler einfach direkt erstellen
-                Platform.runLater(() -> {
-                    System.err.println("[Feature17/18 DEBUG] Fehler: " + e.getMessage());
-                    e.printStackTrace();
-                    submitFullTicket(title, desc);
-                });
-            }
-        }).start();
-    }
-
-    private void submitFullTicket(String title, String desc) {
         Map<String, Object> req = new HashMap<>();
-        req.put("title", title);
-        req.put("description", desc);
-        req.put("priority", newPriorityCombo.getValue());
+        req.put("title", newTitleField.getText());
+        req.put("description", newDescField.getText());
+        // Priorität nur setzen wenn explizit ausgewählt, sonst automatisch berechnen
+        if (newPriorityCombo.getValue() != null) {
+            req.put("priority", newPriorityCombo.getValue());
+        }
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
-        if (newAttachmentNameField != null && !newAttachmentNameField.getText().trim().isBlank()) {
+        if (newAttachmentNameField != null && newAttachmentNameField.getText() != null && !newAttachmentNameField.getText().trim().isBlank()) {
             String attachmentName = newAttachmentNameField.getText().trim();
             req.put("attachmentName", attachmentName);
             req.put("attachmentPath", "demo-attachments/" + attachmentName);
@@ -383,7 +302,9 @@ public class CustomerController {
         task.setOnSucceeded(e -> {
             AlertHelper.showInfo("Erfolg", "Ticket erfolgreich erstellt.");
             quickTitleField.clear();
-            resetNewTicketForm();
+            newTitleField.clear();
+            newDescField.clear();
+            if (newAttachmentNameField != null) newAttachmentNameField.clear();
             newErrorLabel.setVisible(false);
             showMyTickets();
         });
@@ -391,50 +312,9 @@ public class CustomerController {
         new Thread(task).start();
     }
 
-    @FXML public void showOverview() {
-        if (!confirmDiscardNewTicketIfNeeded()) return;
-        switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht");
-        loadTickets();
-    }
-    @FXML public void showMyTickets() {
-        if (!confirmDiscardNewTicketIfNeeded()) return;
-        switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets");
-        loadTickets();
-    }
+    @FXML public void showOverview() { switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht"); loadTickets(); }
+    @FXML public void showMyTickets() { switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets"); loadTickets(); }
     @FXML public void showNewTicket() { switchTab(paneNewTicket, navNewTicket, dotNewTicket, labelNewTicket, "Neues Ticket"); }
-
-    private boolean confirmDiscardNewTicketIfNeeded() {
-        if (paneNewTicket != null && paneNewTicket.isVisible() && hasUnsavedNewTicketInput()) {
-            return AlertHelper.confirmDiscardUnsavedChanges();
-        }
-        return true;
-    }
-
-    private boolean hasUnsavedNewTicketInput() {
-        return !text(newTitleField).isBlank()
-                || !text(newDescField).isBlank()
-                || newPriorityCombo.getValue() != null
-                || newCategoryCombo.getValue() != null
-                || !text(newAttachmentNameField).isBlank()
-                || !text(newLastName).isBlank()
-                || !text(newFirstName).equals(SessionManager.getUsername())
-                || !text(newEmail).equals("email@test.com");
-    }
-
-    private String text(TextInputControl control) {
-        return control == null || control.getText() == null ? "" : control.getText().trim();
-    }
-
-    private void resetNewTicketForm() {
-        if (newTitleField != null) newTitleField.clear();
-        if (newDescField != null) newDescField.clear();
-        if (newPriorityCombo != null) newPriorityCombo.setValue(null);
-        if (newCategoryCombo != null) newCategoryCombo.setValue(null);
-        if (newAttachmentNameField != null) newAttachmentNameField.clear();
-        if (newLastName != null) newLastName.clear();
-        if (newFirstName != null) newFirstName.setText(SessionManager.getUsername());
-        if (newEmail != null) newEmail.setText("email@test.com");
-    }
 
     private void switchTab(javafx.scene.Node paneToShow, HBox navActive, Circle dotActive, Label labelActive, String crumbTitle) {
         paneOverview.setVisible(false); paneMyTickets.setVisible(false); paneNewTicket.setVisible(false);
@@ -501,13 +381,6 @@ public class CustomerController {
         }, "mark-notifications-read").start();
     }
 
-    @FXML public void handleProfile() {
-        if (!confirmDiscardNewTicketIfNeeded()) return;
-        Navigator.navigateTo("ProfileView.fxml");
-    }
-
-    @FXML public void handleLogout() {
-        if (!confirmDiscardNewTicketIfNeeded()) return;
-        Navigator.logout();
-    }
+    @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
+    @FXML public void handleLogout() { Navigator.logout(); }
 }
