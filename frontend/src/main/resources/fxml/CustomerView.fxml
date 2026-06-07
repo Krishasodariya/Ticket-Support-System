@@ -72,10 +72,20 @@
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
                 <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
-                <StackPane styleClass="notification-pill" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand;">
-                    <Label text="🔔" style="-fx-font-size: 14px;" />
-                    <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
-                </StackPane>
+<StackPane fx:id="notificationButton"
+           styleClass="notification-pill"
+           onMouseClicked="#handleNotifications"
+           style="-fx-cursor: hand;">
+
+    <Label text="🔔"
+           style="-fx-font-size: 16px;" />
+
+    <Label fx:id="notificationCountLabel"
+           text="0"
+           styleClass="notification-count"
+           StackPane.alignment="TOP_RIGHT" />
+
+</StackPane>
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle radius="14" fill="#0EA5E9" />
                     <Label fx:id="topbarInitials" text="JD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
@@ -94,31 +104,56 @@
                     <VBox spacing="5">
                         <padding><Insets top="0" right="0" bottom="20" left="0"/></padding>
                         <Label fx:id="greetingLabel" text="Hallo, Customer!" styleClass="heading-lg" />
-                        <Label text="Was können wir heute für Sie tun?" styleClass="text-muted" style="-fx-font-size: 13px;" />
+                        <Label text="Hier ist die Übersicht Ihrer Tickets und Aktivitäten." styleClass="text-muted" style="-fx-font-size: 13px;" />
                     </VBox>
 
                     <!-- Stat Cards -->
-                    <HBox spacing="10">
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="MEINE TICKETS" styleClass="stat-label" />
-                            <Label fx:id="statTotal" text="-" styleClass="stat-value, text-accent" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="OFFEN" styleClass="stat-label" />
-                            <Label fx:id="statOpen" text="-" styleClass="stat-value, text-warning" />
-                            <Label text="warten auf Bearbeitung" styleClass="stat-sub, text-muted" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="IN BEARBEITUNG" styleClass="stat-label" />
-                            <Label fx:id="statProgress" text="-" styleClass="stat-value, text-accent" />
-                            <Label text="Agent zugewiesen" styleClass="stat-sub, text-muted" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="GELÖST" styleClass="stat-label" />
-                            <Label fx:id="statResolved" text="-" styleClass="stat-value, text-success" />
-                            <Label text="erfolgreich abgeschlossen" styleClass="stat-sub, text-muted" />
-                        </VBox>
-                    </HBox>
+                   <!-- Stat Cards -->
+<HBox spacing="12">
+    <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="🎫" styleClass="stat-icon stat-icon-blue" />
+            <VBox spacing="2">
+                <Label fx:id="statTotal" text="-" styleClass="stat-value" />
+                <Label text="Meine Tickets" styleClass="stat-label" />
+                <Label text="Gesamt" styleClass="stat-sub text-muted" />
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="📂" styleClass="stat-icon stat-icon-green" />
+            <VBox spacing="2">
+                <Label fx:id="statOpen" text="-" styleClass="stat-value" />
+                <Label text="Offen" styleClass="stat-label" />
+                <Label text="Warten auf Bearbeitung" styleClass="stat-sub text-muted" />
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="🛠" styleClass="stat-icon stat-icon-orange" />
+            <VBox spacing="2">
+                <Label fx:id="statProgress" text="-" styleClass="stat-value" />
+                <Label text="In Bearbeitung" styleClass="stat-label" />
+                <Label text="Agent zugewiesen" styleClass="stat-sub text-muted" />
+            </VBox>
+        </HBox>
+    </VBox>
+
+    <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="✅" styleClass="stat-icon stat-icon-cyan" />
+            <VBox spacing="2">
+                <Label fx:id="statResolved" text="-" styleClass="stat-value" />
+                <Label text="Gelöst" styleClass="stat-label" />
+                <Label text="Erfolgreich abgeschlossen" styleClass="stat-sub text-muted" />
+            </VBox>
+        </HBox>
+    </VBox>
+</HBox>
 
                     <HBox spacing="16">
                         <!-- Links: Aktive Tickets -->

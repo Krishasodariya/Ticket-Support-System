@@ -9,6 +9,8 @@ import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
+import com.ticketsystem.frontend.util.NotificationPopup;
+
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.UserRole;
@@ -18,8 +20,10 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -29,7 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CustomerController {
-
+    
     @FXML private ScrollPane paneOverview;
     @FXML private VBox paneMyTickets;
     @FXML private ScrollPane paneNewTicket;
@@ -40,7 +44,7 @@ public class CustomerController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
-
+    
     @FXML private Label statTotal, statOpen, statProgress, statResolved;
     @FXML private VBox activeTicketsContainer;
 
@@ -67,31 +71,22 @@ public class CustomerController {
 
     @FXML
     public void initialize() {
-        if (!SessionManager.isLoggedIn() || !SessionManager.hasRole(UserRole.CUSTOMER)) {
-            Navigator.navigateToLogin();
-            return;
-        }
+    	String username = SessionManager.getUsername();
 
-        String username = SessionManager.getUsername();
-        String initial = username.length() > 0 ? username.substring(0, 1).toUpperCase() : "U";
-        sidebarInitials.setText(initial);
-        topbarInitials.setText(initial);
-        sidebarName.setText(username);
-        greetingLabel.setText("Hallo, " + username + "!");
+    	if (username == null || username.isBlank()) {
+    	    username = "User";
+    	}
 
-        newFirstName.setText(username);
-        newEmail.setText("email@test.com");
+    	String initial = username.substring(0, 1).toUpperCase();
 
-        quickPriorityCombo.getItems().setAll(TicketPriority.values());
-        newPriorityCombo.getItems().add(null);
-        newPriorityCombo.getItems().addAll(TicketPriority.values());
-        newPriorityCombo.setPromptText("Automatisch ermitteln");
-        initFilters();
+    	sidebarInitials.setText(initial);
+    	topbarInitials.setText(initial);
+    	sidebarName.setText(username);
 
-        initTable();
-        showOverview();
-        loadCategories();
-        loadUnreadNotifications();
+    	greetingLabel.setText("Hallo, " + username + "! 👋");
+
+    	newFirstName.setText(username);
+    	newEmail.setText("");
     }
 
     private void initTable() {
@@ -183,18 +178,44 @@ public class CustomerController {
             List<TicketFX> tickets = task.getValue();
             latestTickets = tickets;
             applyFilter();
-
+            
+            // Dummy Stats
             statTotal.setText(String.valueOf(tickets.size()));
             statOpen.setText(String.valueOf(tickets.stream().filter(t -> "OPEN".equals(t.getStatus())).count()));
             statProgress.setText(String.valueOf(tickets.stream().filter(t -> "IN_PROGRESS".equals(t.getStatus())).count()));
             statResolved.setText(String.valueOf(tickets.stream().filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus())).count()));
 
             activeTicketsContainer.getChildren().clear();
-            tickets.stream().filter(t -> !"CLOSED".equals(t.getStatus())).limit(5).forEach(t -> {
+
+            List<TicketFX> activeTickets = tickets.stream()
+                    .filter(t -> !"CLOSED".equals(t.getStatus()))
+                    .limit(5)
+                    .toList();
+
+            if (activeTickets.isEmpty()) {
+                VBox emptyBox = new VBox(8);
+                emptyBox.setAlignment(Pos.CENTER);
+                emptyBox.getStyleClass().add("empty-state");
+
+                Label icon = new Label("📭");
+                icon.getStyleClass().add("empty-state-icon");
+
+                Label title = new Label("Noch keine aktiven Tickets");
+                title.getStyleClass().add("empty-state-title");
+
+                Label text = new Label("Erstellen Sie ein neues Ticket, wenn Sie Hilfe brauchen.");
+                text.getStyleClass().add("empty-state-text");
+
+                emptyBox.getChildren().addAll(icon, title, text);
+                activeTicketsContainer.getChildren().add(emptyBox);
+                return;
+            }
+
+            activeTickets.forEach(t -> {
                 VBox card = new VBox(5);
                 card.getStyleClass().add("ticket-card");
-
-                String borderColor = switch (t.getPriority()) {
+                
+                String borderColor = switch(t.getPriority()) {
                     case "CRITICAL" -> "#EF4444";
                     case "HIGH" -> "#F59E0B";
                     case "MEDIUM" -> "#38BDF8";
@@ -203,10 +224,9 @@ public class CustomerController {
                 card.setStyle("-fx-border-color: transparent transparent transparent " + borderColor + "; -fx-border-width: 0 0 0 3;");
 
                 HBox row1 = new HBox(new Label(t.getTitle()));
-                ((Label) row1.getChildren().get(0)).setStyle("-fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: bold;");
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-                Label idLabel = new Label("#" + (t.getId().length() > 6 ? t.getId().substring(0, 6) : t.getId()));
+                ((Label)row1.getChildren().get(0)).setStyle("-fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: bold;");
+                Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+                Label idLabel = new Label("#" + (t.getId().length() > 6 ? t.getId().substring(0,6) : t.getId()));
                 idLabel.getStyleClass().add("text-muted");
                 row1.getChildren().addAll(spacer, idLabel);
 
@@ -220,7 +240,7 @@ public class CustomerController {
                     agentLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94A3B8;");
                     row3.getChildren().add(agentLabel);
                 }
-
+                
                 card.getChildren().addAll(row1, descLabel, row3);
                 card.setOnMouseClicked(ev -> {
                     TicketDetailController.setCurrentTicketId(t.getId());
@@ -230,7 +250,7 @@ public class CustomerController {
             });
         });
         task.setOnFailed(e -> {
-            // Handle softly
+             // Handle softly
         });
         new Thread(task).start();
     }
@@ -271,17 +291,14 @@ public class CustomerController {
     }
 
     @FXML public void handleCreateFullTicket() {
-        if (newTitleField.getText().isEmpty() || newDescField.getText().isEmpty()) {
+        if (newTitleField.getText().isEmpty() || newDescField.getText().isEmpty() || newPriorityCombo.getValue() == null) {
             newErrorLabel.setVisible(true);
             return;
         }
         Map<String, Object> req = new HashMap<>();
         req.put("title", newTitleField.getText());
         req.put("description", newDescField.getText());
-        // Priorität nur setzen wenn explizit ausgewählt, sonst automatisch berechnen
-        if (newPriorityCombo.getValue() != null) {
-            req.put("priority", newPriorityCombo.getValue());
-        }
+        req.put("priority", newPriorityCombo.getValue());
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
         if (newAttachmentNameField != null && newAttachmentNameField.getText() != null && !newAttachmentNameField.getText().trim().isBlank()) {
             String attachmentName = newAttachmentNameField.getText().trim();
@@ -301,10 +318,7 @@ public class CustomerController {
         };
         task.setOnSucceeded(e -> {
             AlertHelper.showInfo("Erfolg", "Ticket erfolgreich erstellt.");
-            quickTitleField.clear();
-            newTitleField.clear();
-            newDescField.clear();
-            if (newAttachmentNameField != null) newAttachmentNameField.clear();
+            quickTitleField.clear(); newTitleField.clear(); newDescField.clear(); if (newAttachmentNameField != null) newAttachmentNameField.clear();
             newErrorLabel.setVisible(false);
             showMyTickets();
         });
@@ -329,7 +343,7 @@ public class CustomerController {
         navActive.getStyleClass().add("nav-item-active");
         dotActive.setFill(javafx.scene.paint.Color.web("#0EA5E9"));
         labelActive.getStyleClass().remove("text-secondary"); labelActive.getStyleClass().add("text-primary");
-
+        
         breadcrumb.setText("Customer  /  " + crumbTitle);
     }
 
@@ -383,4 +397,20 @@ public class CustomerController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
+   
+    @FXML
+    private void handleNotifications(MouseEvent event) {
+        new Thread(() -> {
+            try {
+                List<NotificationFX> notifications = notificationService.getMyNotifications();
+                Platform.runLater(() ->
+                        NotificationPopup.show((Node) event.getSource(), notifications)
+                );
+            } catch (Exception ex) {
+                Platform.runLater(() ->
+                        AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
+                );
+            }
+        }, "customer-load-notifications-popup").start();
+    }
 }
