@@ -40,9 +40,6 @@ public class TicketMapper {
         response.setSlaLabel(slaLabel(ticket));
         response.setAttachmentName(ticket.getAttachmentName());
         response.setCustomerRating(ticket.getCustomerRating());
-        response.setFeedbackRating(ticket.getCustomerRating()); // Alias für Frontend
-        response.setCustomerFeedback(ticket.getCustomerFeedback());
-        response.setResolvedAt(ticket.getResolvedAt());
         response.setCreatedAt(ticket.getCreatedAt());
         response.setUpdatedAt(ticket.getUpdatedAt());
         return response;
@@ -56,7 +53,7 @@ public class TicketMapper {
         response.setDescription(ticket.getDescription());
         response.setStatus(ticket.getStatus().name());
         response.setPriority(ticket.getPriority().name());
-
+        
         if (ticket.getCategory() != null) {
             response.setCategory(categoryMapper.toResponse(ticket.getCategory()));
         }

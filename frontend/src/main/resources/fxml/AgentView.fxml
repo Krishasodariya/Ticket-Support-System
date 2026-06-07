@@ -2,35 +2,34 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.AgentController" stylesheets="@../css/styles.css" styleClass="root">
-
+    
     <!-- LEFT SIDEBAR -->
     <left>
         <VBox styleClass="sidebar" prefWidth="210">
             <VBox>
                 <padding><Insets top="20" right="16" bottom="16" left="16"/></padding>
-                <Label text="Ticket Support System" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0EA5E9;" />
+              <Label text="Ticket Support System" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0EA5E9;" />
             </VBox>
-
+            
             <Label text="TICKETS" styleClass="nav-section-label" />
-
+            
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showMyTickets" fx:id="navMyTickets" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#0EA5E9" fx:id="dotMyTickets" />
                 <Label text="Meine Tickets" styleClass="text-secondary" fx:id="labelMyTickets" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Label text="0" styleClass="badge" fx:id="sidebarBadge" style="-fx-background-color: #0EA5E9; -fx-text-fill: white;" />
+                <Label text="0" styleClass="badge" style="-fx-background-color: #0EA5E9; -fx-text-fill: white;" />
             </HBox>
-
+            
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showAllTickets" fx:id="navAllTickets" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#475569" fx:id="dotAllTickets" />
                 <Label text="Alle offenen Tickets" styleClass="text-secondary" fx:id="labelAllTickets" />
             </HBox>
-
+            
             <Label text="TOOLS" styleClass="nav-section-label" />
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showKnowledgeBase" fx:id="navKnowledgeBase" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
@@ -40,12 +39,11 @@
 
             <VBox VBox.vgrow="ALWAYS" />
             <Separator styleClass="separator" />
-
+            
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
                 <StackPane>
-                    <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9" />
-                    <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false" />
+                    <Circle radius="16" fill="#0EA5E9" />
                     <Label fx:id="sidebarInitials" text="AG" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
                 </StackPane>
                 <VBox>
@@ -56,7 +54,7 @@
                     </HBox>
                 </VBox>
             </HBox>
-
+            
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleLogout" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#EF4444" />
@@ -78,8 +76,7 @@
                     <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
                 </StackPane>
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
-                    <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9" />
-                    <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false" />
+                    <Circle radius="14" fill="#0EA5E9" />
                     <Label fx:id="topbarInitials" text="AG" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
                 </StackPane>
             </HBox>
@@ -102,18 +99,15 @@
                         </VBox>
                         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
                             <Label text="HEUTE GELÖST" styleClass="stat-label" />
-                            <Label fx:id="statResolvedToday" text="-" styleClass="stat-value, text-success" />
-                            <Label text="Tickets heute" styleClass="stat-sub, text-muted" />
+                            <Label text="-" styleClass="stat-value, text-success" />
                         </VBox>
                         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="OFFEN GESAMT" styleClass="stat-label" />
-                            <Label fx:id="statOpenTotal" text="-" styleClass="stat-value, text-warning" />
-                            <Label text="noch offen" styleClass="stat-sub, text-muted" />
+                            <Label text="Ø LÖSUNGSZEIT (30T)" styleClass="stat-label" />
+                            <Label text="-" styleClass="stat-value, text-primary" />
                         </VBox>
                         <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
                             <Label text="KUNDENZUFRIEDENHEIT" styleClass="stat-label" />
-                            <Label fx:id="statAvgRating" text="-" styleClass="stat-value, text-success" />
-                            <Label text="Ø Bewertung" styleClass="stat-sub, text-muted" />
+                            <Label text="-" styleClass="stat-value, text-success" />
                         </VBox>
                     </HBox>
 
@@ -133,21 +127,22 @@
                         <VBox spacing="16" minWidth="300" prefWidth="350">
                             <VBox styleClass="card" spacing="12">
                                 <Label text="PERFORMANCE (30 TAGE)" styleClass="label-uppercase" />
+                                <!-- Dummy Progress Bars -->
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label text="Gelöst" prefWidth="90" styleClass="text-secondary" />
-                                    <ProgressBar fx:id="perfResolvedBar" progress="0" styleClass="progress-success" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6" />
-                                    <Label fx:id="perfResolvedLabel" text="0%" styleClass="text-success" />
+                                    <ProgressBar progress="0.7" styleClass="progress-success" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6" />
+                                    <Label text="70%" styleClass="text-success" />
                                 </HBox>
                                 <HBox alignment="CENTER_LEFT" spacing="10">
                                     <Label text="Offen geblieben" prefWidth="90" styleClass="text-secondary" />
-                                    <ProgressBar fx:id="perfOpenBar" progress="0" styleClass="progress-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6" />
-                                    <Label fx:id="perfOpenLabel" text="0%" styleClass="text-danger" />
+                                    <ProgressBar progress="0.2" styleClass="progress-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6" />
+                                    <Label text="20%" styleClass="text-danger" />
                                 </HBox>
                             </VBox>
-
+                            
                             <VBox styleClass="card" spacing="12" VBox.vgrow="ALWAYS">
                                 <Label text="SCHNELLANTWORT-VORLAGEN" styleClass="label-uppercase" />
-
+                                
                                 <VBox styleClass="ticket-card" onMouseClicked="#copyTemplate1">
                                     <Label text="Vielen Dank für Ihre Anfrage. Wir arbeiten aktiv an einer Lösung." wrapText="true" styleClass="text-secondary" />
                                 </VBox>

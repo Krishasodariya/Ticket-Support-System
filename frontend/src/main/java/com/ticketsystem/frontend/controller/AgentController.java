@@ -7,7 +7,6 @@ import com.ticketsystem.frontend.service.KnowledgeBaseApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
-import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -22,7 +21,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -40,17 +38,7 @@ public class AgentController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, notificationCountLabel;
-    @FXML private ImageView sidebarProfileImage, topbarProfileImage;
-    @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
     @FXML private Label statAssigned;
-    @FXML private Label statResolvedToday;
-    @FXML private Label statOpenTotal;
-    @FXML private Label statAvgRating;
-    @FXML private Label sidebarBadge;
-    @FXML private ProgressBar perfResolvedBar;
-    @FXML private ProgressBar perfOpenBar;
-    @FXML private Label perfResolvedLabel;
-    @FXML private Label perfOpenLabel;
     @FXML private VBox assignedTicketsContainer;
 
     @FXML private TableView<TicketFX> ticketTable;
@@ -78,17 +66,11 @@ public class AgentController {
         sidebarInitials.setText(initial);
         topbarInitials.setText(initial);
         sidebarName.setText(username);
-        updateAvatarDisplay(SessionManager.getProfilePicture());
 
         initTable();
         initFilters();
         loadUnreadNotifications();
         showMyTickets();
-    }
-
-    private void updateAvatarDisplay(String profilePictureUrl) {
-        AvatarHelper.showAvatar(profilePictureUrl, sidebarProfileImage, sidebarAvatarBackground, sidebarInitials, 32);
-        AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
     private void initTable() {
@@ -166,64 +148,11 @@ public class AgentController {
 
     private void updateAssignedCards(List<TicketFX> tickets) {
         String me = SessionManager.getUsername();
-        String today = java.time.LocalDate.now().toString(); // "yyyy-MM-dd"
-
-        // ── Stat 1: Mir zugewiesen (aktiv, nicht CLOSED/RESOLVED) ──────────────
         List<TicketFX> assigned = tickets.stream()
-                .filter(t -> me.equals(t.getAssignedTo()))
-                .filter(t -> !"CLOSED".equals(t.getStatus()) && !"RESOLVED".equals(t.getStatus()))
+                .filter(t -> me.equals(t.getAssignedTo()) && !"CLOSED".equals(t.getStatus()))
                 .collect(Collectors.toList());
         statAssigned.setText(String.valueOf(assigned.size()));
-        if (sidebarBadge != null) sidebarBadge.setText(String.valueOf(assigned.size()));
 
-        // ── Stat 2: Heute von mir gelöst ───────────────────────────────────────
-        long resolvedToday = tickets.stream()
-                .filter(t -> me.equals(t.getAssignedTo()))
-                .filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus()))
-                .filter(t -> t.getResolvedAt() != null && t.getResolvedAt().startsWith(today))
-                .count();
-        if (statResolvedToday != null) statResolvedToday.setText(String.valueOf(resolvedToday));
-
-        // ── Stat 3: Alle offenen Tickets (systemweit, nicht nur meine) ─────────
-        long openTotal = tickets.stream()
-                .filter(t -> "OPEN".equals(t.getStatus()) || "IN_PROGRESS".equals(t.getStatus()) || "WAITING".equals(t.getStatus()))
-                .count();
-        if (statOpenTotal != null) statOpenTotal.setText(String.valueOf(openTotal));
-
-        // ── Stat 4: Ø Kundenzufriedenheit meiner gelösten Tickets ──────────────
-        java.util.OptionalDouble avgRating = tickets.stream()
-                .filter(t -> me.equals(t.getAssignedTo()))
-                .filter(t -> t.getFeedbackRating() != null && t.getFeedbackRating() > 0)
-                .mapToInt(TicketFX::getFeedbackRating)
-                .average();
-        if (statAvgRating != null) {
-            statAvgRating.setText(avgRating.isPresent()
-                    ? String.format("%.1f ★", avgRating.getAsDouble())
-                    : "–");
-        }
-
-        // ── Performance-Bars: meine Tickets (alle, inkl. gelöste) ──────────────
-        long myTotal = tickets.stream().filter(t -> me.equals(t.getAssignedTo())).count();
-        if (myTotal > 0) {
-            long myResolved = tickets.stream()
-                    .filter(t -> me.equals(t.getAssignedTo()))
-                    .filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus()))
-                    .count();
-            long myOpen = myTotal - myResolved;
-            double resolvedPct = (double) myResolved / myTotal;
-            double openPct     = (double) myOpen / myTotal;
-            if (perfResolvedBar   != null) perfResolvedBar.setProgress(resolvedPct);
-            if (perfOpenBar       != null) perfOpenBar.setProgress(openPct);
-            if (perfResolvedLabel != null) perfResolvedLabel.setText(String.format("%.0f%%", resolvedPct * 100));
-            if (perfOpenLabel     != null) perfOpenLabel.setText(String.format("%.0f%%", openPct * 100));
-        } else {
-            if (perfResolvedBar   != null) perfResolvedBar.setProgress(0);
-            if (perfOpenBar       != null) perfOpenBar.setProgress(0);
-            if (perfResolvedLabel != null) perfResolvedLabel.setText("0%");
-            if (perfOpenLabel     != null) perfOpenLabel.setText("0%");
-        }
-
-        // ── Ticket-Karten ──────────────────────────────────────────────────────
         assignedTicketsContainer.getChildren().clear();
         if (assigned.isEmpty()) {
             Label empty = new Label("Keine offenen Tickets — Gut gemacht! 🎉");
@@ -237,9 +166,9 @@ public class AgentController {
             card.getStyleClass().add("ticket-card");
             String borderColor = switch (t.getPriority()) {
                 case "CRITICAL" -> "#EF4444";
-                case "HIGH"     -> "#F59E0B";
-                case "MEDIUM"   -> "#38BDF8";
-                default         -> "#22C55E";
+                case "HIGH" -> "#F59E0B";
+                case "MEDIUM" -> "#38BDF8";
+                default -> "#22C55E";
             };
             card.setStyle("-fx-border-color: transparent transparent transparent " + borderColor + "; -fx-border-width: 0 0 0 3;");
 
@@ -250,8 +179,7 @@ public class AgentController {
             idLabel.getStyleClass().add("text-muted");
             row1.getChildren().addAll(spacer, idLabel);
 
-            Label descLabel = new Label(t.getDescription() != null && t.getDescription().length() > 80
-                    ? t.getDescription().substring(0, 80) + "..." : safe(t.getDescription()));
+            Label descLabel = new Label(t.getDescription() != null && t.getDescription().length() > 80 ? t.getDescription().substring(0, 80) + "..." : safe(t.getDescription()));
             descLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
 
             HBox row3 = new HBox(8);
