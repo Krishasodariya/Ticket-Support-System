@@ -93,29 +93,6 @@ public class TicketController {
         return ResponseEntity.ok(Map.of("escalated", ticketService.escalateOverdueTickets(authentication.getName())));
     }
 
-    // ── Feature 17: Ähnliche Tickets ──────────────────────────────────────────
-    @GetMapping("/search/similar")
-    public ResponseEntity<List<TicketResponse>> findSimilar(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String description) {
-        return ResponseEntity.ok(ticketService.findSimilarTickets(title, description));
-    }
-
-    // ── Feature 18: Duplikat-Erkennung ────────────────────────────────────────
-    @GetMapping("/search/duplicates")
-    public ResponseEntity<List<TicketResponse>> findDuplicates(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String description) {
-        return ResponseEntity.ok(ticketService.findDuplicates(title, description));
-    }
-
-    // ── Feature 38: Ticket wiedereröffnen ─────────────────────────────────────
-    @PatchMapping("/{id}/reopen")
-    @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<TicketDetailResponse> reopenTicket(@PathVariable UUID id, Authentication authentication) {
-        return ResponseEntity.ok(ticketService.reopenTicket(id, authentication.getName()));
-    }
-
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTicket(@PathVariable UUID id) {

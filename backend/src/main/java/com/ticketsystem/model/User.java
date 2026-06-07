@@ -11,14 +11,9 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(unique = true, nullable = false)
@@ -42,6 +37,14 @@ public class User {
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
+
+    /**
+     * Aufgabe 15 – Agent-Spezialisierung.
+     * Komma-separierte Kategorie-Namen (z. B. "Software,Netzwerk").
+     * Null / leer = kein Fachbereich, Agent kann alle Tickets empfangen.
+     */
+    @Column(name = "specialization")
+    private String specialization;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
