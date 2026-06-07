@@ -5,6 +5,7 @@ import com.ticketsystem.frontend.model.CategoryFX;
 import com.ticketsystem.frontend.model.DashboardStatsFX;
 import com.ticketsystem.frontend.model.KnowledgeBaseFX;
 import com.ticketsystem.frontend.model.NotificationFX;
+import com.ticketsystem.frontend.model.SystemAuditLogFX;
 import com.ticketsystem.frontend.model.TicketFX;
 import com.ticketsystem.frontend.model.UserFX;
 import com.ticketsystem.frontend.model.WorkflowOptionFX;
@@ -14,13 +15,12 @@ import com.ticketsystem.frontend.service.DashboardApiService;
 import com.ticketsystem.frontend.service.DemoDataApiService;
 import com.ticketsystem.frontend.service.KnowledgeBaseApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
+import com.ticketsystem.frontend.service.SystemAuditLogApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.WorkflowOptionApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
-import com.ticketsystem.frontend.util.NotificationPopup;
-
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
@@ -30,10 +30,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
@@ -47,21 +45,22 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     @FXML private ScrollPane paneDashboard;
-    @FXML private VBox paneTickets, paneUsers, paneCategories, paneReports, paneAuditLog;
+    @FXML private ScrollPane paneReports;
+    @FXML private VBox paneTickets, paneUsers, paneCategories, paneAuditLog;
+    // Feature 32 – System-Aktivitätsprotokoll
+    @FXML private VBox paneSystemAuditLog;
 
     @FXML private HBox navDashboard, navTickets, navUsers, navCategories, navReports, navAuditLog;
+    @FXML private HBox navSystemAuditLog; // Feature 32
     @FXML private Circle dotDashboard, dotTickets, dotUsers, dotCategories, dotReports, dotAuditLog;
+    @FXML private Circle dotSystemAuditLog; // Feature 32
     @FXML private Label labelDashboard, labelTickets, labelUsers, labelCategories, labelReports, labelAuditLog;
+    @FXML private Label labelSystemAuditLog; // Feature 32
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
 
     @FXML private Label statTotal, statOpen, statResolvedToday, statCritical;
-    @FXML private Label adminTotalTicketsLabel;
-    @FXML private Label adminOpenTicketsLabel;
-    @FXML private Label adminProgressTicketsLabel;
-    @FXML private Label adminWaitingTicketsLabel;
-    @FXML private Label adminResolvedTicketsLabel;
     @FXML private Label statCreatedToday, statOverdue, statEscalated, statAvgResolution;
     @FXML private Label lblCriticalCount, lblHighCount, lblMediumCount, lblLowCount;
     @FXML private ProgressBar progressCritical, progressHigh, progressMedium, progressLow;
@@ -85,6 +84,11 @@ public class AdminController {
     @FXML private TableView<AuditLogFX> auditLogTable;
     @FXML private TableColumn<AuditLogFX, String> auditColTicket, auditColUser, auditColType, auditColOld, auditColNew, auditColTime;
 
+    // Feature 32 – System-Aktivitätsprotokoll
+    @FXML private TableView<SystemAuditLogFX> sysAuditTable;
+    @FXML private TableColumn<SystemAuditLogFX, String> sysColActor, sysColEventType, sysColDetail, sysColTarget, sysColTime;
+    @FXML private ComboBox<String> sysAuditTypeFilter;
+
     @FXML private ListView<KnowledgeBaseFX> kbAdminList;
     @FXML private TextField kbTitleField, kbCategoryField, kbKeywordsField;
     @FXML private TextArea kbSolutionArea, kbTemplateArea;
@@ -99,6 +103,8 @@ public class AdminController {
     private final CategoryApiService categoryService = new CategoryApiService();
     private final DashboardApiService dashboardService = new DashboardApiService();
     private final AuditLogApiService auditLogService = new AuditLogApiService();
+    // Feature 32 – System-Aktivitätsprotokoll
+    private final SystemAuditLogApiService systemAuditLogService = new SystemAuditLogApiService();
     private final NotificationApiService notificationService = new NotificationApiService();
     private final KnowledgeBaseApiService knowledgeBaseService = new KnowledgeBaseApiService();
     private final WorkflowOptionApiService workflowOptionService = new WorkflowOptionApiService();
@@ -156,6 +162,21 @@ public class AdminController {
         auditColNew.setCellValueFactory(new PropertyValueFactory<>("newValue"));
         auditColTime.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
 
+        // Feature 32 – System-Aktivitätsprotokoll
+        if (sysAuditTable != null) {
+            if (sysColActor != null)     sysColActor.setCellValueFactory(new PropertyValueFactory<>("actor"));
+            if (sysColEventType != null) sysColEventType.setCellValueFactory(new PropertyValueFactory<>("eventType"));
+            if (sysColDetail != null)    sysColDetail.setCellValueFactory(new PropertyValueFactory<>("detail"));
+            if (sysColTarget != null)    sysColTarget.setCellValueFactory(new PropertyValueFactory<>("targetUserId"));
+            if (sysColTime != null)      sysColTime.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
+        }
+        if (sysAuditTypeFilter != null) {
+            sysAuditTypeFilter.getItems().setAll("Alle", "LOGIN_SUCCESS", "LOGIN_FAILURE",
+                    "USER_CREATED", "USER_ACTIVATED", "USER_DEACTIVATED",
+                    "ROLE_CHANGED", "EXPORT_CSV", "EXPORT_PDF");
+            sysAuditTypeFilter.setValue("Alle");
+        }
+
         ticketTable.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2 && ticketTable.getSelectionModel().getSelectedItem() != null) {
                 TicketDetailController.setCurrentTicketId(ticketTable.getSelectionModel().getSelectedItem().getId());
@@ -199,83 +220,31 @@ public class AdminController {
 
     private <T> TableCell<T, String> badgeCell() {
         return new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
+            @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-
                 setText(null);
-                setGraphic(null);
-
-                if (empty || item == null || item.isBlank()) {
-                    return;
-                }
-
-                setGraphic(createBadge(item));
+                setGraphic(empty || item == null ? null : createBadge(item));
             }
         };
     }
 
     private Label createBadge(String type) {
-        String value = type == null ? "" : type.trim().toUpperCase();
-
-        Label badge = new Label();
+        Label badge = new Label(type);
         badge.getStyleClass().add("badge");
-
-        switch (value) {
-            case "OPEN" -> {
-                badge.getStyleClass().add("badge-open");
-                badge.setText("● Offen");
-            }
-            case "IN_PROGRESS" -> {
-                badge.getStyleClass().add("badge-progress");
-                badge.setText("● In Bearbeitung");
-            }
-            case "WAITING" -> {
-                badge.getStyleClass().add("badge-waiting");
-                badge.setText("● Wartend");
-            }
-            case "RESOLVED" -> {
-                badge.getStyleClass().add("badge-resolved");
-                badge.setText("● Gelöst");
-            }
-            case "CLOSED" -> {
-                badge.getStyleClass().add("badge-closed");
-                badge.setText("● Geschlossen");
-            }
-            case "CRITICAL" -> {
-                badge.getStyleClass().add("badge-critical");
-                badge.setText("● Kritisch");
-            }
-            case "HIGH" -> {
-                badge.getStyleClass().add("badge-high");
-                badge.setText("● Hoch");
-            }
-            case "MEDIUM" -> {
-                badge.getStyleClass().add("badge-medium");
-                badge.setText("● Mittel");
-            }
-            case "LOW" -> {
-                badge.getStyleClass().add("badge-low");
-                badge.setText("● Niedrig");
-            }
-            case "ADMIN" -> {
-                badge.getStyleClass().add("badge-admin");
-                badge.setText("Admin");
-            }
-            case "AGENT" -> {
-                badge.getStyleClass().add("badge-agent");
-                badge.setText("Agent");
-            }
-            case "CUSTOMER" -> {
-                badge.getStyleClass().add("badge-customer");
-                badge.setText("Customer");
-            }
-            default -> {
-                badge.getStyleClass().add("badge-customer");
-                badge.setText(type);
-            }
+        switch (type.toUpperCase()) {
+            case "OPEN" -> { badge.getStyleClass().add("badge-open"); badge.setText("Offen"); }
+            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress"); badge.setText("In Bearbeitung"); }
+            case "WAITING" -> { badge.getStyleClass().add("badge-waiting"); badge.setText("Wartend"); }
+            case "RESOLVED" -> { badge.getStyleClass().add("badge-resolved"); badge.setText("Gelöst"); }
+            case "CLOSED" -> { badge.getStyleClass().add("badge-closed"); badge.setText("Geschlossen"); }
+            case "CRITICAL" -> { badge.getStyleClass().add("badge-critical"); badge.setText("Kritisch"); }
+            case "HIGH" -> { badge.getStyleClass().add("badge-high"); badge.setText("Hoch"); }
+            case "MEDIUM" -> { badge.getStyleClass().add("badge-medium"); badge.setText("Mittel"); }
+            case "LOW" -> { badge.getStyleClass().add("badge-low"); badge.setText("Niedrig"); }
+            case "ADMIN" -> badge.getStyleClass().add("badge-admin");
+            case "AGENT" -> badge.getStyleClass().add("badge-agent");
+            default -> badge.getStyleClass().add("badge-customer");
         }
-
         return badge;
     }
 
@@ -330,20 +299,13 @@ public class AdminController {
 
     private void loadTickets() {
         Task<List<TicketFX>> task = new Task<>() {
-            @Override
-            protected List<TicketFX> call() throws Exception {
-                return ticketService.getAllTickets();
-            }
+            @Override protected List<TicketFX> call() throws Exception { return ticketService.getAllTickets(); }
         };
-
         task.setOnSucceeded(e -> {
             allTickets.setAll(task.getValue());
-            updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
         });
-
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden."));
-
         new Thread(task, "admin-load-tickets").start();
     }
 
@@ -468,7 +430,27 @@ public class AdminController {
         task.setOnSucceeded(e -> auditLogTable.setItems(FXCollections.observableArrayList(task.getValue())));
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Audit-Log konnte nicht geladen werden."));
         new Thread(task, "admin-load-audit").start();
+
+        // Feature 32 – System-Audit-Log parallel laden
+        loadSystemAuditLogs();
     }
+
+    // Feature 32
+    private void loadSystemAuditLogs() {
+        if (sysAuditTable == null) return;
+        String type = sysAuditTypeFilter != null ? sysAuditTypeFilter.getValue() : "Alle";
+        Task<List<SystemAuditLogFX>> task = new Task<>() {
+            @Override protected List<SystemAuditLogFX> call() throws Exception {
+                if (type == null || "Alle".equals(type)) return systemAuditLogService.getAll();
+                return systemAuditLogService.getByType(type);
+            }
+        };
+        task.setOnSucceeded(e -> sysAuditTable.setItems(FXCollections.observableArrayList(task.getValue())));
+        task.setOnFailed(e -> AlertHelper.showError("Fehler", "System-Protokoll konnte nicht geladen werden."));
+        new Thread(task, "admin-load-sys-audit").start();
+    }
+
+    @FXML public void handleFilterSystemAuditLog() { loadSystemAuditLogs(); }
 
     private void loadUnreadNotifications() {
         Task<Long> task = new Task<>() {
@@ -524,6 +506,8 @@ public class AdminController {
     @FXML public void showCategories() { switchTab(paneCategories, navCategories, dotCategories, labelCategories, "Kategorien"); loadCategories(); }
     @FXML public void showReports() { switchTab(paneReports, navReports, dotReports, labelReports, "Berichte"); loadKnowledgeBaseAdmin(); loadWorkflowOptionsAdmin(); }
     @FXML public void showAuditLog() { switchTab(paneAuditLog, navAuditLog, dotAuditLog, labelAuditLog, "Audit-Log"); loadAuditLogs(); }
+    // Feature 32 – System-Aktivitätsprotokoll
+    @FXML public void showSystemAuditLog() { switchTab(paneSystemAuditLog, navSystemAuditLog, dotSystemAuditLog, labelSystemAuditLog, "Aktivitätsprotokoll"); loadSystemAuditLogs(); }
     @FXML public void handleRefreshDashboard() { loadDashboardData(); loadUnreadNotifications(); }
 
     @FXML public void handleGenerateDemoData() {
@@ -549,18 +533,18 @@ public class AdminController {
     }
 
     private void switchTab(javafx.scene.Node paneToShow, HBox navActive, Circle dotActive, Label labelActive, String crumbTitle) {
-        List<javafx.scene.Node> panes = List.of(paneDashboard, paneTickets, paneUsers, paneCategories, paneReports, paneAuditLog);
+        List<javafx.scene.Node> panes = List.of(paneDashboard, paneTickets, paneUsers, paneCategories, paneReports, paneAuditLog, paneSystemAuditLog);
         panes.forEach(p -> { p.setVisible(false); p.setManaged(false); });
         paneToShow.setVisible(true);
         paneToShow.setManaged(true);
 
-        List<HBox> navs = List.of(navDashboard, navTickets, navUsers, navCategories, navReports, navAuditLog);
+        List<HBox> navs = List.of(navDashboard, navTickets, navUsers, navCategories, navReports, navAuditLog, navSystemAuditLog);
         navs.forEach(n -> n.getStyleClass().remove("nav-item-active"));
 
-        List<Circle> dots = List.of(dotDashboard, dotTickets, dotUsers, dotCategories, dotReports, dotAuditLog);
+        List<Circle> dots = List.of(dotDashboard, dotTickets, dotUsers, dotCategories, dotReports, dotAuditLog, dotSystemAuditLog);
         dots.forEach(d -> d.setFill(javafx.scene.paint.Color.web("#475569")));
 
-        List<Label> labels = List.of(labelDashboard, labelTickets, labelUsers, labelCategories, labelReports, labelAuditLog);
+        List<Label> labels = List.of(labelDashboard, labelTickets, labelUsers, labelCategories, labelReports, labelAuditLog, labelSystemAuditLog);
         labels.forEach(l -> { l.getStyleClass().remove("text-primary"); if (!l.getStyleClass().contains("text-secondary")) l.getStyleClass().add("text-secondary"); });
 
         navActive.getStyleClass().add("nav-item-active");
@@ -705,19 +689,4 @@ public class AdminController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
-    
-    @FXML
-    private void handleNotifications(MouseEvent event) {
-        new Thread(() -> {
-            try {
-                List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() ->
-                        NotificationPopup.show((Node) event.getSource(), notifications)
-                );
-            } catch (Exception ex) {
-                Platform.runLater(() ->
-                        AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
-                );
-            }
-        }, "admin-load-notifications-popup").start(
 }

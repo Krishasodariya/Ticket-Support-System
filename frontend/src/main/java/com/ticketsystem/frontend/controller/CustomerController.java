@@ -9,8 +9,6 @@ import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
-import com.ticketsystem.frontend.util.NotificationPopup;
-
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.UserRole;
@@ -20,10 +18,8 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
@@ -33,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CustomerController {
-    
+
     @FXML private ScrollPane paneOverview;
     @FXML private VBox paneMyTickets;
     @FXML private ScrollPane paneNewTicket;
@@ -44,7 +40,7 @@ public class CustomerController {
     @FXML private Label breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
-    
+
     @FXML private Label statTotal, statOpen, statProgress, statResolved;
     @FXML private VBox activeTicketsContainer;
 
@@ -71,22 +67,29 @@ public class CustomerController {
 
     @FXML
     public void initialize() {
-    	String username = SessionManager.getUsername();
+        if (!SessionManager.isLoggedIn() || !SessionManager.hasRole(UserRole.CUSTOMER)) {
+            Navigator.navigateToLogin();
+            return;
+        }
 
-    	if (username == null || username.isBlank()) {
-    	    username = "User";
-    	}
+        String username = SessionManager.getUsername();
+        String initial = username.length() > 0 ? username.substring(0, 1).toUpperCase() : "U";
+        sidebarInitials.setText(initial);
+        topbarInitials.setText(initial);
+        sidebarName.setText(username);
+        greetingLabel.setText("Hallo, " + username + "!");
 
-    	String initial = username.substring(0, 1).toUpperCase();
+        newFirstName.setText(username);
+        newEmail.setText("email@test.com"); // Dummy for now
 
-    	sidebarInitials.setText(initial);
-    	topbarInitials.setText(initial);
-    	sidebarName.setText(username);
+        quickPriorityCombo.getItems().setAll(TicketPriority.values());
+        newPriorityCombo.getItems().setAll(TicketPriority.values());
+        initFilters();
 
-    	greetingLabel.setText("Hallo, " + username + "! 👋");
-
-    	newFirstName.setText(username);
-    	newEmail.setText("");
+        initTable();
+        showOverview();
+        loadCategories();
+        loadUnreadNotifications();
     }
 
     private void initTable() {
@@ -178,7 +181,7 @@ public class CustomerController {
             List<TicketFX> tickets = task.getValue();
             latestTickets = tickets;
             applyFilter();
-            
+
             // Dummy Stats
             statTotal.setText(String.valueOf(tickets.size()));
             statOpen.setText(String.valueOf(tickets.stream().filter(t -> "OPEN".equals(t.getStatus())).count()));
@@ -186,35 +189,10 @@ public class CustomerController {
             statResolved.setText(String.valueOf(tickets.stream().filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus())).count()));
 
             activeTicketsContainer.getChildren().clear();
-
-            List<TicketFX> activeTickets = tickets.stream()
-                    .filter(t -> !"CLOSED".equals(t.getStatus()))
-                    .limit(5)
-                    .toList();
-
-            if (activeTickets.isEmpty()) {
-                VBox emptyBox = new VBox(8);
-                emptyBox.setAlignment(Pos.CENTER);
-                emptyBox.getStyleClass().add("empty-state");
-
-                Label icon = new Label("📭");
-                icon.getStyleClass().add("empty-state-icon");
-
-                Label title = new Label("Noch keine aktiven Tickets");
-                title.getStyleClass().add("empty-state-title");
-
-                Label text = new Label("Erstellen Sie ein neues Ticket, wenn Sie Hilfe brauchen.");
-                text.getStyleClass().add("empty-state-text");
-
-                emptyBox.getChildren().addAll(icon, title, text);
-                activeTicketsContainer.getChildren().add(emptyBox);
-                return;
-            }
-
-            activeTickets.forEach(t -> {
+            tickets.stream().filter(t -> !"CLOSED".equals(t.getStatus())).limit(5).forEach(t -> {
                 VBox card = new VBox(5);
                 card.getStyleClass().add("ticket-card");
-                
+
                 String borderColor = switch(t.getPriority()) {
                     case "CRITICAL" -> "#EF4444";
                     case "HIGH" -> "#F59E0B";
@@ -240,7 +218,7 @@ public class CustomerController {
                     agentLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #94A3B8;");
                     row3.getChildren().add(agentLabel);
                 }
-                
+
                 card.getChildren().addAll(row1, descLabel, row3);
                 card.setOnMouseClicked(ev -> {
                     TicketDetailController.setCurrentTicketId(t.getId());
@@ -250,7 +228,7 @@ public class CustomerController {
             });
         });
         task.setOnFailed(e -> {
-             // Handle softly
+            // Handle softly
         });
         new Thread(task).start();
     }
@@ -283,9 +261,45 @@ public class CustomerController {
 
     @FXML public void handleQuickCreate() {
         if (quickTitleField.getText().isEmpty() || quickPriorityCombo.getValue() == null) return;
+
+        String title = quickTitleField.getText().trim();
+        String desc  = "Schnell-Ticket: " + title;
+
+        // Feature 17 & 18 – auch beim Schnellticket prüfen
+        new Thread(() -> {
+            try {
+                List<TicketFX> duplicates = ticketService.findDuplicates(title, desc);
+                List<TicketFX> similar    = ticketService.findSimilar(title, desc);
+                Platform.runLater(() -> {
+                    if (!duplicates.isEmpty()) {
+                        String names = duplicates.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Mögliche Duplikate gefunden:\n" + names + "\n\nTrotzdem erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Duplikat erkannt");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) doQuickSubmit(title); });
+                    } else if (!similar.isEmpty()) {
+                        String names = similar.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Ähnliche Tickets gefunden:\n" + names + "\n\nTrotzdem ein neues Ticket erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Ähnliche Tickets");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) doQuickSubmit(title); });
+                    } else {
+                        doQuickSubmit(title);
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("[Feature17/18 DEBUG] Fehler: " + e.getMessage());
+                Platform.runLater(() -> doQuickSubmit(title));
+            }
+        }).start();
+    }
+
+    private void doQuickSubmit(String title) {
         CreateTicketRequest req = new CreateTicketRequest();
-        req.setTitle(quickTitleField.getText());
-        req.setDescription("Schnell-Ticket: " + quickTitleField.getText());
+        req.setTitle(title);
+        req.setDescription("Schnell-Ticket: " + title);
         req.setPriority(quickPriorityCombo.getValue());
         doCreateTicket(req);
     }
@@ -295,12 +309,52 @@ public class CustomerController {
             newErrorLabel.setVisible(true);
             return;
         }
+
+        String title = newTitleField.getText().trim();
+        String desc  = newDescField.getText().trim();
+
+        // Feature 17 & 18 – Ähnliche Tickets + Duplikat-Check VOR dem Erstellen
+        new Thread(() -> {
+            try {
+                List<TicketFX> duplicates = ticketService.findDuplicates(title, desc);
+                List<TicketFX> similar    = ticketService.findSimilar(title, desc);
+                Platform.runLater(() -> {
+                    if (!duplicates.isEmpty()) {
+                        String names = duplicates.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Mögliche Duplikate gefunden:\n" + names + "\n\nTrotzdem erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Duplikat erkannt");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) submitFullTicket(title, desc); });
+                    } else if (!similar.isEmpty()) {
+                        String names = similar.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                                "Ähnliche Tickets gefunden:\n" + names + "\n\nTrotzdem ein neues Ticket erstellen?",
+                                ButtonType.YES, ButtonType.NO);
+                        alert.setTitle("Ähnliche Tickets");
+                        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) submitFullTicket(title, desc); });
+                    } else {
+                        submitFullTicket(title, desc);
+                    }
+                });
+            } catch (Exception e) {
+                // Bei Fehler einfach direkt erstellen
+                Platform.runLater(() -> {
+                    System.err.println("[Feature17/18 DEBUG] Fehler: " + e.getMessage());
+                    e.printStackTrace();
+                    submitFullTicket(title, desc);
+                });
+            }
+        }).start();
+    }
+
+    private void submitFullTicket(String title, String desc) {
         Map<String, Object> req = new HashMap<>();
-        req.put("title", newTitleField.getText());
-        req.put("description", newDescField.getText());
+        req.put("title", title);
+        req.put("description", desc);
         req.put("priority", newPriorityCombo.getValue());
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
-        if (newAttachmentNameField != null && newAttachmentNameField.getText() != null && !newAttachmentNameField.getText().trim().isBlank()) {
+        if (newAttachmentNameField != null && !newAttachmentNameField.getText().trim().isBlank()) {
             String attachmentName = newAttachmentNameField.getText().trim();
             req.put("attachmentName", attachmentName);
             req.put("attachmentPath", "demo-attachments/" + attachmentName);
@@ -343,7 +397,7 @@ public class CustomerController {
         navActive.getStyleClass().add("nav-item-active");
         dotActive.setFill(javafx.scene.paint.Color.web("#0EA5E9"));
         labelActive.getStyleClass().remove("text-secondary"); labelActive.getStyleClass().add("text-primary");
-        
+
         breadcrumb.setText("Customer  /  " + crumbTitle);
     }
 
@@ -397,20 +451,4 @@ public class CustomerController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
-   
-    @FXML
-    private void handleNotifications(MouseEvent event) {
-        new Thread(() -> {
-            try {
-                List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() ->
-                        NotificationPopup.show((Node) event.getSource(), notifications)
-                );
-            } catch (Exception ex) {
-                Platform.runLater(() ->
-                        AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
-                );
-            }
-        }, "customer-load-notifications-popup").start();
-    }
 }

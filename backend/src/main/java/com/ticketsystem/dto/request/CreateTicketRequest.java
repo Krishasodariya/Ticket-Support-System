@@ -11,6 +11,7 @@ public class CreateTicketRequest {
     @NotBlank(message = "Description is required")
     private String description;
 
+    @NotNull(message = "Priority is required")
     private TicketPriority priority;
 
     private Long categoryId;
