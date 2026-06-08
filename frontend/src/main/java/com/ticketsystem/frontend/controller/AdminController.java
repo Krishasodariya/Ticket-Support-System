@@ -22,6 +22,8 @@ import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
+import com.ticketsystem.frontend.util.NotificationPopup;
+
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
@@ -31,9 +33,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+
+import javafx.scene.input.MouseEvent;
 import javafx.scene.image.ImageView;
+
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
@@ -65,6 +71,11 @@ public class AdminController {
     @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
 
     @FXML private Label statTotal, statOpen, statResolvedToday, statCritical;
+    @FXML private Label adminTotalTicketsLabel;
+    @FXML private Label adminOpenTicketsLabel;
+    @FXML private Label adminProgressTicketsLabel;
+    @FXML private Label adminWaitingTicketsLabel;
+    @FXML private Label adminResolvedTicketsLabel;
     @FXML private Label statCreatedToday, statOverdue, statEscalated, statAvgResolution;
     @FXML private Label lblCriticalCount, lblHighCount, lblMediumCount, lblLowCount;
     @FXML private ProgressBar progressCritical, progressHigh, progressMedium, progressLow;
@@ -230,31 +241,83 @@ public class AdminController {
 
     private <T> TableCell<T, String> badgeCell() {
         return new TableCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+
                 setText(null);
-                setGraphic(empty || item == null ? null : createBadge(item));
+                setGraphic(null);
+
+                if (empty || item == null || item.isBlank()) {
+                    return;
+                }
+
+                setGraphic(createBadge(item));
             }
         };
     }
 
     private Label createBadge(String type) {
-        Label badge = new Label(type);
+        String value = type == null ? "" : type.trim().toUpperCase();
+
+        Label badge = new Label();
         badge.getStyleClass().add("badge");
-        switch (type.toUpperCase()) {
-            case "OPEN" -> { badge.getStyleClass().add("badge-open"); badge.setText("Offen"); }
-            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress"); badge.setText("In Bearbeitung"); }
-            case "WAITING" -> { badge.getStyleClass().add("badge-waiting"); badge.setText("Wartend"); }
-            case "RESOLVED" -> { badge.getStyleClass().add("badge-resolved"); badge.setText("Gelöst"); }
-            case "CLOSED" -> { badge.getStyleClass().add("badge-closed"); badge.setText("Geschlossen"); }
-            case "CRITICAL" -> { badge.getStyleClass().add("badge-critical"); badge.setText("Kritisch"); }
-            case "HIGH" -> { badge.getStyleClass().add("badge-high"); badge.setText("Hoch"); }
-            case "MEDIUM" -> { badge.getStyleClass().add("badge-medium"); badge.setText("Mittel"); }
-            case "LOW" -> { badge.getStyleClass().add("badge-low"); badge.setText("Niedrig"); }
-            case "ADMIN" -> badge.getStyleClass().add("badge-admin");
-            case "AGENT" -> badge.getStyleClass().add("badge-agent");
-            default -> badge.getStyleClass().add("badge-customer");
+
+        switch (value) {
+            case "OPEN" -> {
+                badge.getStyleClass().add("badge-open");
+                badge.setText("● Offen");
+            }
+            case "IN_PROGRESS" -> {
+                badge.getStyleClass().add("badge-progress");
+                badge.setText("● In Bearbeitung");
+            }
+            case "WAITING" -> {
+                badge.getStyleClass().add("badge-waiting");
+                badge.setText("● Wartend");
+            }
+            case "RESOLVED" -> {
+                badge.getStyleClass().add("badge-resolved");
+                badge.setText("● Gelöst");
+            }
+            case "CLOSED" -> {
+                badge.getStyleClass().add("badge-closed");
+                badge.setText("● Geschlossen");
+            }
+            case "CRITICAL" -> {
+                badge.getStyleClass().add("badge-critical");
+                badge.setText("● Kritisch");
+            }
+            case "HIGH" -> {
+                badge.getStyleClass().add("badge-high");
+                badge.setText("● Hoch");
+            }
+            case "MEDIUM" -> {
+                badge.getStyleClass().add("badge-medium");
+                badge.setText("● Mittel");
+            }
+            case "LOW" -> {
+                badge.getStyleClass().add("badge-low");
+                badge.setText("● Niedrig");
+            }
+            case "ADMIN" -> {
+                badge.getStyleClass().add("badge-admin");
+                badge.setText("Admin");
+            }
+            case "AGENT" -> {
+                badge.getStyleClass().add("badge-agent");
+                badge.setText("Agent");
+            }
+            case "CUSTOMER" -> {
+                badge.getStyleClass().add("badge-customer");
+                badge.setText("Customer");
+            }
+            default -> {
+                badge.getStyleClass().add("badge-customer");
+                badge.setText(type);
+            }
         }
+
         return badge;
     }
 
@@ -309,13 +372,20 @@ public class AdminController {
 
     private void loadTickets() {
         Task<List<TicketFX>> task = new Task<>() {
-            @Override protected List<TicketFX> call() throws Exception { return ticketService.getAllTickets(); }
+            @Override
+            protected List<TicketFX> call() throws Exception {
+                return ticketService.getAllTickets();
+            }
         };
+
         task.setOnSucceeded(e -> {
             allTickets.setAll(task.getValue());
+            updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
         });
+
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden."));
+
         new Thread(task, "admin-load-tickets").start();
     }
 
@@ -514,7 +584,17 @@ public class AdminController {
     @FXML public void showTickets() { switchTab(paneTickets, navTickets, dotTickets, labelTickets, "Alle Tickets"); loadTickets(); }
     @FXML public void showUsers() { switchTab(paneUsers, navUsers, dotUsers, labelUsers, "Benutzer"); loadUsers(); }
     @FXML public void showCategories() { switchTab(paneCategories, navCategories, dotCategories, labelCategories, "Kategorien"); loadCategories(); }
-    @FXML public void showReports() { switchTab(paneReports, navReports, dotReports, labelReports, "Berichte"); loadKnowledgeBaseAdmin(); loadWorkflowOptionsAdmin(); }
+    @FXML 
+    public void showReports() {
+        switchTab(paneReports, navReports, dotReports, labelReports, "Berichte");
+
+        if (paneReports != null) {
+            paneReports.setVvalue(0.0);
+        }
+
+        loadKnowledgeBaseAdmin();
+        loadWorkflowOptionsAdmin();
+    }
     @FXML public void showAuditLog() { switchTab(paneAuditLog, navAuditLog, dotAuditLog, labelAuditLog, "Audit-Log"); loadAuditLogs(); }
     // Feature 32 – System-Aktivitätsprotokoll
     @FXML public void showSystemAuditLog() { switchTab(paneSystemAuditLog, navSystemAuditLog, dotSystemAuditLog, labelSystemAuditLog, "Aktivitätsprotokoll"); loadSystemAuditLogs(); }
@@ -699,4 +779,54 @@ public class AdminController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
+    
+    @FXML
+    private void handleNotifications(MouseEvent event) {
+        new Thread(() -> {
+            try {
+                List<NotificationFX> notifications = notificationService.getMyNotifications();
+                Platform.runLater(() ->
+                        NotificationPopup.show((Node) event.getSource(), notifications)
+                );
+            } catch (Exception ex) {
+                Platform.runLater(() ->
+                        AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden.")
+                );
+            }
+        }, "admin-load-notifications-popup").start();
+    }
+    private void updateAdminTicketStatistics(List<TicketFX> tickets) {
+        if (tickets == null) {
+            adminTotalTicketsLabel.setText("0");
+            adminOpenTicketsLabel.setText("0");
+            adminProgressTicketsLabel.setText("0");
+            adminWaitingTicketsLabel.setText("0");
+            adminResolvedTicketsLabel.setText("0");
+            return;
+        }
+
+        long total = tickets.size();
+
+        long open = tickets.stream()
+                .filter(t -> "OPEN".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        long progress = tickets.stream()
+                .filter(t -> "IN_PROGRESS".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        long waiting = tickets.stream()
+                .filter(t -> "WAITING".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        long resolved = tickets.stream()
+                .filter(t -> "RESOLVED".equalsIgnoreCase(t.getStatus()))
+                .count();
+
+        adminTotalTicketsLabel.setText(String.valueOf(total));
+        adminOpenTicketsLabel.setText(String.valueOf(open));
+        adminProgressTicketsLabel.setText(String.valueOf(progress));
+        adminWaitingTicketsLabel.setText(String.valueOf(waiting));
+        adminResolvedTicketsLabel.setText(String.valueOf(resolved));
+    }
 }

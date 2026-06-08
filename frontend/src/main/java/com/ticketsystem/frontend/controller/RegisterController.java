@@ -105,4 +105,8 @@ public class RegisterController {
         if (passwordField.getText().isBlank()) passwordField.getStyleClass().add("text-field-error");
         if (confirmPasswordField.getText().isBlank()) confirmPasswordField.getStyleClass().add("text-field-error");
     }
+    @FXML
+    private void handleBackToHome() {
+        Navigator.navigateToHome();
+    }
 }

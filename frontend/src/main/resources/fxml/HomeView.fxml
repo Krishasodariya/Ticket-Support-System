@@ -1,16 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.HomeController" style="-fx-background-color: linear-gradient(to bottom right, #1E3A8A, #3B82F6);">
-    <VBox alignment="CENTER" spacing="20.0" styleClass="form-container" maxWidth="500" style="-fx-padding: 50;">
-        <Label text="♾️" style="-fx-font-size: 64px; -fx-text-fill: #2563EB;" />
-       <Label text="Ticket Support System" styleClass="title-label" />
-        <Label text="Ihr professionelles Support-Ticket-System" styleClass="subtitle-label" />
-        <HBox alignment="CENTER" spacing="20.0" style="-fx-padding: 30 0 0 0;">
-            <Button text="Anmelden" onAction="#handleLogin" styleClass="primary-btn" style="-fx-pref-width: 150; -fx-pref-height: 45;" />
-            <Button text="Registrieren" onAction="#handleRegister" styleClass="secondary-btn" style="-fx-pref-width: 150; -fx-pref-height: 45;" />
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ticketsystem.frontend.controller.HomeController"
+            stylesheets="@../css/styles.css"
+            styleClass="start-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="28" styleClass="start-navbar">
+            <padding>
+                <Insets top="14" right="48" bottom="14" left="48"/>
+            </padding>
+
+            <Label text="💬 Ticket Support System" styleClass="start-logo"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button text="Startseite" onAction="#scrollToHome" styleClass="start-nav-button"/>
+            <Button text="Funktionen" onAction="#scrollToFeatures" styleClass="start-nav-button"/>
+            <Button text="Über uns" onAction="#scrollToAbout" styleClass="start-nav-button"/>
+            <Button text="Kontakt" onAction="#scrollToContact" styleClass="start-nav-button"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button text="☀ / 🌙" onAction="#handleToggle" styleClass="start-theme-button"/>
+            <Button text="Anmelden" onAction="#handleLogin" styleClass="start-btn-outline"/>
+            <Button text="Registrieren" onAction="#handleRegister" styleClass="start-btn-primary"/>
         </HBox>
-    </VBox>
-</VBox>
+    </top>
+
+    <center>
+        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" styleClass="start-scroll">
+            <VBox spacing="42" styleClass="start-content">
+                <padding>
+                    <Insets top="60" right="70" bottom="50" left="70"/>
+                </padding>
+
+                <!-- Hero -->
+                <HBox fx:id="homeSection" spacing="60" alignment="CENTER">
+                    <VBox spacing="22" HBox.hgrow="ALWAYS">
+                        <Label text="Schneller Support.&#10;Bessere Lösungen."
+                               styleClass="start-hero-title"/>
+
+                        <Label text="Unser Ticket-System hilft Ihnen, Probleme schnell zu melden, den Status zu verfolgen und passende Lösungen zu erhalten."
+                               wrapText="true"
+                               styleClass="start-hero-subtitle"/>
+
+                        <HBox spacing="16">
+                            <Button text="Ticket erstellen  +" onAction="#handleCreateTicket" styleClass="start-btn-primary start-btn-large"/>
+                            <Button text="Meine Tickets  ☰" onAction="#handleMyTickets" styleClass="start-btn-outline start-btn-large"/>
+                        </HBox>
+
+                        <Label text="🛡 Sicher. Zuverlässig. Immer für Sie da." styleClass="start-small-info"/>
+                    </VBox>
+
+                    <!-- Mockup Card -->
+                    <VBox spacing="14" styleClass="start-mockup" prefWidth="430">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Ticket #1234" styleClass="start-mockup-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="In Bearbeitung" styleClass="badge badge-progress"/>
+                        </HBox>
+
+                        <Separator/>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Label text="👤" styleClass="start-avatar-small"/>
+                            <VBox spacing="4">
+                                <Label text="Problem wurde aufgenommen" styleClass="start-mockup-line-title"/>
+                                <Label text="vor 10 min" styleClass="start-mockup-muted"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Label text="👨‍💻" styleClass="start-avatar-small"/>
+                            <VBox spacing="4">
+                                <Label text="Agent prüft die Anfrage" styleClass="start-mockup-line-title"/>
+                                <Label text="vor 5 min" styleClass="start-mockup-muted"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="10">
+                            <TextField promptText="Antwort schreiben..." HBox.hgrow="ALWAYS" styleClass="text-field"/>
+                            <Button text="➜" styleClass="start-btn-primary"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- Features -->
+                <VBox fx:id="featuresSection" spacing="22" alignment="CENTER">
+                    <Label text="Warum unser Ticket-System?" styleClass="start-section-title"/>
+
+                    <HBox spacing="22">
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS">
+                            <Label text="⏱" styleClass="start-feature-icon"/>
+                            <Label text="Schnell &amp; Effizient" styleClass="start-feature-title"/>
+                            <Label text="Erstellen Sie Tickets in wenigen Sekunden und erhalten Sie schnelle Hilfe."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS">
+                            <Label text="🛡" styleClass="start-feature-icon"/>
+                            <Label text="Sicher &amp; Verlässlich" styleClass="start-feature-title"/>
+                            <Label text="Ihre Daten werden geschützt und strukturiert verarbeitet."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS">
+                            <Label text="👥" styleClass="start-feature-icon"/>
+                            <Label text="Transparenter Prozess" styleClass="start-feature-title"/>
+                            <Label text="Verfolgen Sie den Status Ihrer Tickets jederzeit übersichtlich."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS">
+                            <Label text="📘" styleClass="start-feature-icon"/>
+                            <Label text="Wissensdatenbank" styleClass="start-feature-title"/>
+                            <Label text="Finden Sie schnelle Antworten in der Knowledge Base."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- About / Stats -->
+                <HBox fx:id="aboutSection" spacing="24" styleClass="start-stats-box">
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="1.250+" styleClass="start-stat-value"/>
+                        <Label text="Zufriedene Kunden" styleClass="start-stat-label"/>
+                    </VBox>
+
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="4.320+" styleClass="start-stat-value"/>
+                        <Label text="Gelöste Tickets" styleClass="start-stat-label"/>
+                    </VBox>
+
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="98%" styleClass="start-stat-value"/>
+                        <Label text="Zufriedenheitsrate" styleClass="start-stat-label"/>
+                    </VBox>
+
+                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                        <Label text="24/7" styleClass="start-stat-value"/>
+                        <Label text="Support verfügbar" styleClass="start-stat-label"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Contact -->
+                <VBox fx:id="contactSection" spacing="12" alignment="CENTER" styleClass="start-contact-box">
+                    <Label text="Kontakt" styleClass="start-section-title"/>
+                    <Label text="Bei Fragen zum Ticket Support System können Sie sich an das Projektteam wenden."
+                           wrapText="true"
+                           styleClass="start-feature-text"/>
+                    <Button text="Kontakt aufnehmen" onAction="#handleLogin" styleClass="start-btn-primary start-btn-large"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

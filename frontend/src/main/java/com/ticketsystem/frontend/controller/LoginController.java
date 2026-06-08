@@ -63,4 +63,8 @@ public class LoginController {
         errorLabel.setText(message);
         errorLabel.setVisible(true);
     }
+    @FXML
+    private void handleBackToHome() {
+        Navigator.navigateToHome();
+    }
 }
