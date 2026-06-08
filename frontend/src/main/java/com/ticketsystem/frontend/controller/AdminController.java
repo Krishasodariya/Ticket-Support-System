@@ -584,7 +584,17 @@ public class AdminController {
     @FXML public void showTickets() { switchTab(paneTickets, navTickets, dotTickets, labelTickets, "Alle Tickets"); loadTickets(); }
     @FXML public void showUsers() { switchTab(paneUsers, navUsers, dotUsers, labelUsers, "Benutzer"); loadUsers(); }
     @FXML public void showCategories() { switchTab(paneCategories, navCategories, dotCategories, labelCategories, "Kategorien"); loadCategories(); }
-    @FXML public void showReports() { switchTab(paneReports, navReports, dotReports, labelReports, "Berichte"); loadKnowledgeBaseAdmin(); loadWorkflowOptionsAdmin(); }
+    @FXML 
+    public void showReports() {
+        switchTab(paneReports, navReports, dotReports, labelReports, "Berichte");
+
+        if (paneReports != null) {
+            paneReports.setVvalue(0.0);
+        }
+
+        loadKnowledgeBaseAdmin();
+        loadWorkflowOptionsAdmin();
+    }
     @FXML public void showAuditLog() { switchTab(paneAuditLog, navAuditLog, dotAuditLog, labelAuditLog, "Audit-Log"); loadAuditLogs(); }
     // Feature 32 – System-Aktivitätsprotokoll
     @FXML public void showSystemAuditLog() { switchTab(paneSystemAuditLog, navSystemAuditLog, dotSystemAuditLog, labelSystemAuditLog, "Aktivitätsprotokoll"); loadSystemAuditLogs(); }

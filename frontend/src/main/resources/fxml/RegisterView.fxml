@@ -18,5 +18,6 @@
             <Button text="Registrieren" onAction="#handleRegister" styleClass="btn-primary, register-button" maxWidth="Infinity" />
         </VBox>
         <Hyperlink text="Bereits ein Konto? Anmelden" onAction="#handleBackToLogin" styleClass="register-link" />
+   <Button text="← Zurück" onAction="#handleBackToHome" styleClass="btn-ghost"/>
     </VBox>
 </StackPane>
