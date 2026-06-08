@@ -1426,3 +1426,231 @@
     -fx-text-fill: #F8FAFC;
     -fx-border-color: #334155;
 }
+/* =========================================================
+   CUSTOMER UI REDESIGN
+   Add this block at the end of styles.css
+   ========================================================= */
+
+.sidebar-logo {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0EA5E9;
+}
+
+.sidebar-user-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.sidebar-user-role {
+    -fx-font-size: 11px;
+}
+
+.sidebar-counter {
+    -fx-background-color: #0EA5E9;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 7;
+    -fx-background-radius: 12;
+}
+
+.theme-toggle-button {
+    -fx-min-width: 38;
+    -fx-min-height: 34;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.theme-light .theme-toggle-button {
+    -fx-background-color: #EFF6FF;
+    -fx-border-color: #CBD5E1;
+    -fx-text-fill: #0F172A;
+}
+
+.theme-dark .theme-toggle-button {
+    -fx-background-color: #111827;
+    -fx-border-color: #334155;
+    -fx-text-fill: #F8FAFC;
+}
+
+.topbar-search {
+    -fx-padding: 6 10;
+}
+
+.customer-content {
+    -fx-background-color: transparent;
+}
+
+.customer-card,
+.customer-stat-card,
+.customer-ticket-card {
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+}
+
+.customer-card {
+    -fx-padding: 18;
+}
+
+.customer-stat-card {
+    -fx-padding: 18;
+}
+
+.customer-ticket-card {
+    -fx-padding: 14;
+    -fx-cursor: hand;
+}
+
+.theme-light .customer-card,
+.theme-light .customer-stat-card,
+.theme-light .customer-ticket-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D8E1EE;
+}
+
+.theme-dark .customer-card,
+.theme-dark .customer-stat-card,
+.theme-dark .customer-ticket-card {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+}
+
+.customer-card:hover,
+.customer-stat-card:hover,
+.customer-ticket-card:hover {
+    -fx-border-color: #0EA5E9;
+}
+
+.customer-stat-icon {
+    -fx-min-width: 46;
+    -fx-min-height: 46;
+    -fx-alignment: center;
+    -fx-font-size: 22px;
+    -fx-background-radius: 23;
+}
+
+.stat-icon-blue {
+    -fx-background-color: rgba(14, 165, 233, 0.18);
+    -fx-text-fill: #0EA5E9;
+}
+
+.stat-icon-green {
+    -fx-background-color: rgba(34, 197, 94, 0.18);
+    -fx-text-fill: #22C55E;
+}
+
+.stat-icon-orange {
+    -fx-background-color: rgba(245, 158, 11, 0.18);
+    -fx-text-fill: #F59E0B;
+}
+
+.customer-stat-value {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.customer-stat-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.customer-stat-subtitle {
+    -fx-font-size: 12px;
+}
+
+.theme-light .customer-stat-value,
+.theme-light .customer-stat-label,
+.theme-light .customer-ticket-title,
+.theme-light .activity-title {
+    -fx-text-fill: #0F172A;
+}
+
+.theme-light .customer-stat-subtitle,
+.theme-light .customer-ticket-description,
+.theme-light .activity-time,
+.theme-light .sidebar-user-role {
+    -fx-text-fill: #64748B;
+}
+
+.theme-light .sidebar-user-name {
+    -fx-text-fill: #0F172A;
+}
+
+.theme-dark .customer-stat-value,
+.theme-dark .customer-stat-label,
+.theme-dark .customer-ticket-title,
+.theme-dark .activity-title,
+.theme-dark .sidebar-user-name {
+    -fx-text-fill: #F8FAFC;
+}
+
+.theme-dark .customer-stat-subtitle,
+.theme-dark .customer-ticket-description,
+.theme-dark .activity-time,
+.theme-dark .sidebar-user-role {
+    -fx-text-fill: #94A3B8;
+}
+
+.customer-ticket-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.customer-ticket-description {
+    -fx-font-size: 12px;
+}
+
+.activity-row {
+    -fx-padding: 8 0;
+}
+
+.activity-icon {
+    -fx-min-width: 26;
+    -fx-min-height: 26;
+    -fx-alignment: center;
+    -fx-background-radius: 13;
+    -fx-background-color: rgba(14, 165, 233, 0.16);
+    -fx-text-fill: #0EA5E9;
+    -fx-font-weight: bold;
+}
+
+.activity-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.activity-time {
+    -fx-font-size: 11px;
+}
+
+.link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #0EA5E9;
+    -fx-padding: 4 6;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.link-button:hover {
+    -fx-text-fill: #0284C7;
+}
+
+.new-ticket-card {
+    -fx-padding: 22;
+}
+
+.theme-light.root,
+.theme-light .scroll-pane,
+.theme-light .scroll-pane .viewport {
+    -fx-background-color: #F6F8FB;
+}
+
+.theme-dark.root,
+.theme-dark .scroll-pane,
+.theme-dark .scroll-pane .viewport {
+    -fx-background-color: #020617;
+}

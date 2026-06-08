@@ -10,22 +10,57 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class Navigator {
+
     private static Stage primaryStage;
+
+    private static final double DEFAULT_WIDTH = 1000;
+    private static final double DEFAULT_HEIGHT = 700;
 
     public static void setPrimaryStage(Stage stage) {
         primaryStage = stage;
+
+        primaryStage.setMinWidth(1000);
+        primaryStage.setMinHeight(700);
     }
 
     public static void navigateTo(String fxmlFile) {
         try {
-            FXMLLoader loader = new FXMLLoader(FrontendApplication.class.getResource("/fxml/" + fxmlFile));
+            if (primaryStage == null) {
+                AlertHelper.showError("Navigation Error", "Primary stage is not initialized.");
+                return;
+            }
+
+            // Поточний стан вікна перед переходом
+            boolean wasMaximized = primaryStage.isMaximized();
+            double width = primaryStage.getWidth() > 0 ? primaryStage.getWidth() : DEFAULT_WIDTH;
+            double height = primaryStage.getHeight() > 0 ? primaryStage.getHeight() : DEFAULT_HEIGHT;
+            double x = primaryStage.getX();
+            double y = primaryStage.getY();
+
+            FXMLLoader loader = new FXMLLoader(
+                    FrontendApplication.class.getResource("/fxml/" + fxmlFile)
+            );
+
             Parent root = loader.load();
+
             ThemeManager.apply(root);
-            Scene scene = new Scene(root, 1000, 700);
-            scene.getStylesheets().add(FrontendApplication.class.getResource("/css/styles.css").toExternalForm());
+
+            Scene scene = new Scene(root, width, height);
+            scene.getStylesheets().add(
+                    FrontendApplication.class.getResource("/css/styles.css").toExternalForm()
+            );
+
             primaryStage.setScene(scene);
-            primaryStage.centerOnScreen();
+
+            // Відновлення розміру після переходу
+            primaryStage.setWidth(width);
+            primaryStage.setHeight(height);
+            primaryStage.setX(x);
+            primaryStage.setY(y);
+            primaryStage.setMaximized(wasMaximized);
+
             primaryStage.show();
+
         } catch (IOException e) {
             e.printStackTrace();
             AlertHelper.showError("Navigation Error", "Could not load view: " + fxmlFile);
