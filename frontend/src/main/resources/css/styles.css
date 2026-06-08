@@ -1426,3 +1426,375 @@
     -fx-text-fill: #F8FAFC;
     -fx-border-color: #334155;
 }
+/* =========================================================
+   ADMIN DASHBOARD DONUT DESIGN
+   ========================================================= */
+
+.dashboard-scroll,
+.dashboard-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.dashboard-content {
+    -fx-background-color: transparent;
+}
+
+.dashboard-metric-card,
+.dashboard-chart-card {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+    -fx-padding: 18;
+}
+
+.dashboard-metric-card:hover,
+.dashboard-chart-card:hover {
+    -fx-border-color: #0EA5E9;
+}
+
+.metric-icon {
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-alignment: center;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 24;
+}
+
+.metric-blue {
+    -fx-background-color: rgba(14, 165, 233, 0.22);
+    -fx-text-fill: #38BDF8;
+}
+
+.metric-green {
+    -fx-background-color: rgba(34, 197, 94, 0.22);
+    -fx-text-fill: #4ADE80;
+}
+
+.metric-yellow {
+    -fx-background-color: rgba(250, 204, 21, 0.22);
+    -fx-text-fill: #FACC15;
+}
+
+.metric-red {
+    -fx-background-color: rgba(239, 68, 68, 0.22);
+    -fx-text-fill: #F87171;
+}
+
+.metric-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #CBD5E1;
+}
+
+.metric-value {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F8FAFC;
+}
+
+.metric-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #94A3B8;
+}
+
+.dashboard-chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #CBD5E1;
+}
+
+.chart-center-value {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F8FAFC;
+}
+
+.chart-center-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #CBD5E1;
+}
+
+.chart-legend-row {
+    -fx-padding: 8 0;
+    -fx-border-color: transparent transparent #1E293B transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.chart-legend-total {
+    -fx-padding: 10 12;
+    -fx-border-color: #243244;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.chart-legend-name {
+    -fx-font-size: 14px;
+    -fx-text-fill: #F8FAFC;
+}
+
+.chart-legend-value {
+    -fx-font-size: 14px;
+    -fx-text-fill: #CBD5E1;
+}
+
+/* JavaFX PieChart cleanup */
+.chart-pie-label {
+    -fx-fill: transparent;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart {
+    -fx-background-color: transparent;
+}
+
+.chart-content {
+    -fx-background-color: transparent;
+}
+
+/* Status Chart Colors */
+.status-chart .default-color0.chart-pie {
+    -fx-pie-color: #22C55E;
+}
+
+.status-chart .default-color1.chart-pie {
+    -fx-pie-color: #FACC15;
+}
+
+.status-chart .default-color2.chart-pie {
+    -fx-pie-color: #EF4444;
+}
+
+/* Priority Chart Colors */
+.priority-chart .default-color0.chart-pie {
+    -fx-pie-color: #EF4444;
+}
+
+.priority-chart .default-color1.chart-pie {
+    -fx-pie-color: #F97316;
+}
+
+.priority-chart .default-color2.chart-pie {
+    -fx-pie-color: #0EA5E9;
+}
+
+.priority-chart .default-color3.chart-pie {
+    -fx-pie-color: #84CC16;
+}
+/* =========================================================
+   ADMIN DASHBOARD - LIGHT / DARK
+   ========================================================= */
+
+.dashboard-scroll,
+.dashboard-scroll .viewport,
+.dashboard-content {
+    -fx-background-color: transparent;
+}
+
+/* ---------- LIGHT MODE ---------- */
+
+.theme-light .dashboard-metric-card,
+.theme-light .dashboard-chart-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #CBD5E1;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+    -fx-padding: 18;
+}
+
+.theme-light .metric-title,
+.theme-light .dashboard-chart-title {
+    -fx-text-fill: #0F172A;
+}
+
+.theme-light .metric-value,
+.theme-light .chart-center-value {
+    -fx-text-fill: #0F172A;
+}
+
+.theme-light .metric-subtitle,
+.theme-light .chart-center-label,
+.theme-light .chart-legend-value {
+    -fx-text-fill: #475569;
+}
+
+.theme-light .chart-legend-name {
+    -fx-text-fill: #111827;
+}
+
+.theme-light .chart-legend-row {
+    -fx-border-color: transparent transparent #E5E7EB transparent;
+}
+
+.theme-light .chart-legend-total {
+    -fx-border-color: #CBD5E1;
+}
+
+/* ---------- DARK MODE ---------- */
+
+.theme-dark .dashboard-metric-card,
+.theme-dark .dashboard-chart-card {
+    -fx-background-color: #0B1220;
+    -fx-border-color: #243244;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+    -fx-background-radius: 14;
+    -fx-padding: 18;
+}
+
+.theme-dark .metric-title,
+.theme-dark .dashboard-chart-title {
+    -fx-text-fill: #CBD5E1;
+}
+
+.theme-dark .metric-value,
+.theme-dark .chart-center-value {
+    -fx-text-fill: #F8FAFC;
+}
+
+.theme-dark .metric-subtitle,
+.theme-dark .chart-center-label,
+.theme-dark .chart-legend-value {
+    -fx-text-fill: #CBD5E1;
+}
+
+.theme-dark .chart-legend-name {
+    -fx-text-fill: #F8FAFC;
+}
+
+.theme-dark .chart-legend-row {
+    -fx-border-color: transparent transparent #1E293B transparent;
+}
+
+.theme-dark .chart-legend-total {
+    -fx-border-color: #243244;
+}
+
+/* ---------- COMMON ---------- */
+
+.dashboard-metric-card:hover,
+.dashboard-chart-card:hover {
+    -fx-border-color: #0EA5E9;
+}
+
+.metric-icon {
+    -fx-min-width: 48;
+    -fx-min-height: 48;
+    -fx-alignment: center;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 24;
+}
+
+.metric-blue {
+    -fx-background-color: rgba(14, 165, 233, 0.22);
+    -fx-text-fill: #38BDF8;
+}
+
+.metric-green {
+    -fx-background-color: rgba(34, 197, 94, 0.22);
+    -fx-text-fill: #22C55E;
+}
+
+.metric-yellow {
+    -fx-background-color: rgba(250, 204, 21, 0.22);
+    -fx-text-fill: #FACC15;
+}
+
+.metric-red {
+    -fx-background-color: rgba(239, 68, 68, 0.22);
+    -fx-text-fill: #EF4444;
+}
+
+.metric-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.metric-value {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.metric-subtitle {
+    -fx-font-size: 13px;
+}
+
+.dashboard-chart-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.chart-center-value {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.chart-center-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.chart-legend-row {
+    -fx-padding: 8 0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.chart-legend-total {
+    -fx-padding: 10 12;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.chart-legend-name,
+.chart-legend-value {
+    -fx-font-size: 14px;
+}
+
+/* PieChart */
+.chart,
+.chart-content,
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-pie-label {
+    -fx-fill: transparent;
+}
+
+.status-chart .default-color0.chart-pie {
+    -fx-pie-color: #22C55E;
+}
+
+.status-chart .default-color1.chart-pie {
+    -fx-pie-color: #FACC15;
+}
+
+.status-chart .default-color2.chart-pie {
+    -fx-pie-color: #EF4444;
+}
+
+.priority-chart .default-color0.chart-pie {
+    -fx-pie-color: #EF4444;
+}
+
+.priority-chart .default-color1.chart-pie {
+    -fx-pie-color: #F97316;
+}
+
+.priority-chart .default-color2.chart-pie {
+    -fx-pie-color: #0EA5E9;
+}
+
+.priority-chart .default-color3.chart-pie {
+    -fx-pie-color: #84CC16;
+}
