@@ -4,6 +4,7 @@
 <?import javafx.scene.shape.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.AdminController" stylesheets="@../css/styles.css" styleClass="root">
     <left>
@@ -94,6 +95,8 @@
            StackPane.alignment="TOP_RIGHT" />
 
 </StackPane>
+
+
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9" />
                     <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false" />
@@ -105,81 +108,222 @@
 
     <center>
         <StackPane>
-            <ScrollPane fx:id="paneDashboard" fitToWidth="true" styleClass="scroll-pane">
-                <VBox spacing="20">
-                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                    <VBox spacing="5">
-                        <padding><Insets top="0" right="0" bottom="20" left="0"/></padding>
-                        <Label fx:id="greetingLabel" text="Willkommen zurück, Admin!" styleClass="heading-lg" />
-                        <Label text="Live-Überblick über Tickets, Prioritäten und offene Aufgaben." styleClass="text-muted" style="-fx-font-size: 13px;" />
-                        <Button text="Dashboard aktualisieren" onAction="#handleRefreshDashboard" styleClass="btn-ghost" />
-                    </VBox>
+            <ScrollPane fx:id="paneDashboard" fitToWidth="true" styleClass="scroll-pane dashboard-scroll">
+    <VBox spacing="18" styleClass="dashboard-content">
+        <padding>
+            <Insets top="22" right="28" bottom="28" left="28"/>
+        </padding>
 
-                    <HBox spacing="10">
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="GESAMT TICKETS" styleClass="stat-label" />
-                            <Label fx:id="statTotal" text="-" styleClass="stat-value, text-accent" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="OFFEN" styleClass="stat-label" />
-                            <Label fx:id="statOpen" text="-" styleClass="stat-value, text-warning" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="GELÖST HEUTE" styleClass="stat-label" />
-                            <Label fx:id="statResolvedToday" text="-" styleClass="stat-value, text-success" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="KRITISCH" styleClass="stat-label" />
-                            <Label fx:id="statCritical" text="-" styleClass="stat-value, text-danger" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="HEUTE ERSTELLT" styleClass="stat-label" />
-                            <Label fx:id="statCreatedToday" text="-" styleClass="stat-value, text-accent" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="ÜBERFÄLLIG" styleClass="stat-label" />
-                            <Label fx:id="statOverdue" text="-" styleClass="stat-value, text-warning" />
-                        </VBox>
-                    </HBox>
+        <!-- HEADER -->
+        <VBox spacing="6">
+            <Label fx:id="greetingLabel"
+                   text="Willkommen zurück, admin!"
+                   styleClass="heading-lg"/>
 
-                    <HBox spacing="16">
-                        <VBox HBox.hgrow="ALWAYS" spacing="16" minWidth="400">
-                            <VBox styleClass="card" spacing="10">
-                                <Label text="TICKETS NACH PRIORITÄT" styleClass="label-uppercase" />
-                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Kritisch"/><ProgressBar fx:id="progressCritical" progress="0" styleClass="progress-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblCriticalCount" text="0"/></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Hoch"/><ProgressBar fx:id="progressHigh" progress="0" styleClass="progress-warning" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblHighCount" text="0"/></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Mittel"/><ProgressBar fx:id="progressMedium" progress="0" styleClass="progress-info" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblMediumCount" text="0"/></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Niedrig"/><ProgressBar fx:id="progressLow" progress="0" styleClass="progress-success" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblLowCount" text="0"/></HBox>
-                            </VBox>
-                            <VBox styleClass="card">
-                                <Label text="AGENT-ZUWEISUNG" styleClass="label-uppercase" />
-                                <Label text="Tickets können in der Detailansicht direkt an Agenten zugewiesen werden." styleClass="text-muted" style="-fx-padding: 20 0;" />
-                                <Label text="Durchschnittliche Bearbeitungszeit" styleClass="text-muted" />
-                                <Label fx:id="statAvgResolution" text="-" styleClass="heading-md" />
-                                <Label text="Eskalierte Tickets" styleClass="text-muted" />
-                                <Label fx:id="statEscalated" text="-" styleClass="heading-md" />
-                                <HBox spacing="10">
-                                    <Button text="Überfällige eskalieren" onAction="#handleEscalateOverdue" styleClass="btn-ghost" />
-                                    <Button text="Demo-Daten erstellen" onAction="#handleGenerateDemoData" styleClass="btn-primary" />
-                                </HBox>
-                            </VBox>
-                        </VBox>
-                        <VBox prefWidth="420" spacing="16">
-                            <VBox styleClass="card" VBox.vgrow="ALWAYS">
-                                <Label text="LETZTE TICKETS" styleClass="label-uppercase" />
-                                <Region minHeight="10" />
-                                <TableView fx:id="dashTicketTable" VBox.vgrow="ALWAYS" styleClass="table-view">
-                                    <columns>
-                                        <TableColumn fx:id="dashColId" text="#" prefWidth="60" />
-                                        <TableColumn fx:id="dashColTitle" text="Titel" prefWidth="210" />
-                                        <TableColumn fx:id="dashColStatus" text="Status" prefWidth="120" />
-                                    </columns>
-                                </TableView>
-                            </VBox>
-                        </VBox>
-                    </HBox>
+            <Label text="Live-Überblick über Tickets, Prioritäten und offene Aufgaben."
+                   styleClass="text-muted"/>
+
+            <Button text="↻  Dashboard aktualisieren"
+                    onAction="#handleRefreshDashboard"
+                    styleClass="btn-ghost"/>
+        </VBox>
+
+        <!-- KPI CARDS -->
+        <HBox spacing="16">
+            <HBox styleClass="dashboard-metric-card" HBox.hgrow="ALWAYS" spacing="14" alignment="CENTER_LEFT">
+                <Label text="📋" styleClass="metric-icon metric-blue"/>
+                <VBox spacing="3">
+                    <Label text="GESAMT TICKETS" styleClass="metric-title"/>
+                    <Label fx:id="statTotal" text="0" styleClass="metric-value"/>
+                    <Label text="Alle Tickets" styleClass="metric-subtitle"/>
                 </VBox>
-            </ScrollPane>
+            </HBox>
+
+            <HBox styleClass="dashboard-metric-card" HBox.hgrow="ALWAYS" spacing="14" alignment="CENTER_LEFT">
+                <Label text="✓" styleClass="metric-icon metric-green"/>
+                <VBox spacing="3">
+                    <Label text="GELÖST" styleClass="metric-title"/>
+                    <Label fx:id="statResolvedToday" text="0" styleClass="metric-value"/>
+                    <Label text="Gelöste Tickets" styleClass="metric-subtitle"/>
+                </VBox>
+            </HBox>
+
+            <HBox styleClass="dashboard-metric-card" HBox.hgrow="ALWAYS" spacing="14" alignment="CENTER_LEFT">
+                <Label text="⏱" styleClass="metric-icon metric-yellow"/>
+                <VBox spacing="3">
+                    <Label text="OFFEN" styleClass="metric-title"/>
+                    <Label fx:id="statOpen" text="0" styleClass="metric-value"/>
+                    <Label text="Offene Tickets" styleClass="metric-subtitle"/>
+                </VBox>
+            </HBox>
+
+            <HBox styleClass="dashboard-metric-card" HBox.hgrow="ALWAYS" spacing="14" alignment="CENTER_LEFT">
+                <Label text="!" styleClass="metric-icon metric-red"/>
+                <VBox spacing="3">
+                    <Label text="ÜBERFÄLLIG" styleClass="metric-title"/>
+                    <Label fx:id="statOverdue" text="0" styleClass="metric-value"/>
+                    <Label text="Überfällige Tickets" styleClass="metric-subtitle"/>
+                </VBox>
+            </HBox>
+        </HBox>
+
+        <!-- CHARTS -->
+        <HBox spacing="16">
+            <!-- STATUS CHART -->
+            <VBox styleClass="dashboard-chart-card" spacing="14" HBox.hgrow="ALWAYS">
+                <Label text="TICKETS – ÜBERSICHT" styleClass="dashboard-chart-title"/>
+
+                <HBox spacing="26" alignment="CENTER_LEFT">
+                    <StackPane minWidth="260" minHeight="260">
+                        <PieChart fx:id="statusPieChart"
+                                  labelsVisible="false"
+                                  legendVisible="false"
+                                  prefWidth="250"
+                                  prefHeight="250"/>
+
+                        <VBox alignment="CENTER" spacing="2">
+                            <Label fx:id="statusChartTotalLabel" text="0" styleClass="chart-center-value"/>
+                            <Label text="Gesamt" styleClass="chart-center-label"/>
+                        </VBox>
+                    </StackPane>
+
+                    <VBox spacing="14" HBox.hgrow="ALWAYS">
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#22C55E"/>
+                            <Label text="Gelöst" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendResolved" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#FACC15"/>
+                            <Label text="Offen" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendOpen" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#EF4444"/>
+                            <Label text="Überfällig" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendOverdue" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-total">
+                            <Label text="Gesamt" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendTotal" text="0 (100%)" styleClass="chart-legend-value"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <Label text="Zeigt den aktuellen Status aller Tickets im System."
+                       styleClass="text-muted"/>
+            </VBox>
+
+            <!-- PRIORITY CHART -->
+            <VBox styleClass="dashboard-chart-card" spacing="14" HBox.hgrow="ALWAYS">
+                <Label text="TICKETS NACH PRIORITÄT" styleClass="dashboard-chart-title"/>
+
+                <HBox spacing="26" alignment="CENTER_LEFT">
+                    <StackPane minWidth="260" minHeight="260">
+                        <PieChart fx:id="priorityPieChart"
+                                  labelsVisible="false"
+                                  legendVisible="false"
+                                  prefWidth="250"
+                                  prefHeight="250"/>
+
+                        <VBox alignment="CENTER" spacing="2">
+                            <Label fx:id="priorityChartTotalLabel" text="0" styleClass="chart-center-value"/>
+                            <Label text="Gesamt" styleClass="chart-center-label"/>
+                        </VBox>
+                    </StackPane>
+
+                    <VBox spacing="14" HBox.hgrow="ALWAYS">
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#EF4444"/>
+                            <Label text="Kritisch" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendCritical" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#F97316"/>
+                            <Label text="Hoch" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendHigh" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#0EA5E9"/>
+                            <Label text="Mittel" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendMedium" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+
+                        <HBox spacing="10" alignment="CENTER_LEFT" styleClass="chart-legend-row">
+                            <Circle radius="6" fill="#84CC16"/>
+                            <Label text="Niedrig" styleClass="chart-legend-name"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="legendLow" text="0 (0%)" styleClass="chart-legend-value"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <Label text="Verteilung der Tickets nach Prioritätsstufe."
+                       styleClass="text-muted"/>
+            </VBox>
+        </HBox>
+
+        <!-- LOWER AREA -->
+        <HBox spacing="16">
+            <VBox styleClass="dashboard-chart-card" spacing="12" HBox.hgrow="ALWAYS">
+                <Label text="LETZTE TICKETS" styleClass="dashboard-chart-title"/>
+
+                <TableView fx:id="dashTicketTable"
+                           prefHeight="260"
+                           styleClass="table-view modern-table">
+                    <columns>
+                        <TableColumn fx:id="dashColId" text="#" prefWidth="70"/>
+                        <TableColumn fx:id="dashColTitle" text="Titel" prefWidth="260"/>
+                        <TableColumn fx:id="dashColStatus" text="Status" prefWidth="130"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <VBox styleClass="dashboard-chart-card" spacing="14" prefWidth="430">
+                <Label text="AGENT-ZUWEISUNG" styleClass="dashboard-chart-title"/>
+
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <Label text="👥" styleClass="metric-icon metric-blue"/>
+                    <Label text="Tickets können in der Detailansicht direkt an Agenten zugewiesen werden."
+                           wrapText="true"
+                           styleClass="text-muted"/>
+                </HBox>
+
+                <VBox spacing="4">
+                    <Label text="Durchschnittliche Bearbeitungszeit" styleClass="text-muted"/>
+                    <Label fx:id="statAvgResolution" text="0.0 h" styleClass="heading-md"/>
+                </VBox>
+
+                <VBox spacing="4">
+                    <Label text="Eskalierte Tickets" styleClass="text-muted"/>
+                    <Label fx:id="statEscalated" text="0" styleClass="heading-md"/>
+                </VBox>
+
+                <HBox spacing="10">
+                    <Button text="Überfällige eskalieren"
+                            onAction="#handleEscalateOverdue"
+                            styleClass="btn-ghost"/>
+
+                    <Button text="Demo-Daten erstellen"
+                            onAction="#handleGenerateDemoData"
+                            styleClass="btn-primary"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</ScrollPane>
 
            <VBox fx:id="paneTickets" spacing="18" visible="false">
     <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>

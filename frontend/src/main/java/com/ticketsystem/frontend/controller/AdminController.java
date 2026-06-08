@@ -34,6 +34,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
@@ -345,21 +346,86 @@ public class AdminController {
     }
 
     private void applyStats(DashboardStatsFX stats) {
-        statTotal.setText(String.valueOf(stats.getTotalTickets()));
-        statOpen.setText(String.valueOf(stats.getOpenTickets()));
-        statResolvedToday.setText(String.valueOf(stats.getResolvedToday()));
+        long total = stats.getTotalTickets();
+        long open = stats.getOpenTickets();
+        long resolved = stats.getResolvedToday();
+        long overdue = stats.getOverdueTickets();
+
+        long critical = value(stats.getTicketsByPriority(), "CRITICAL");
+        long high = value(stats.getTicketsByPriority(), "HIGH");
+        long medium = value(stats.getTicketsByPriority(), "MEDIUM");
+        long low = value(stats.getTicketsByPriority(), "LOW");
+
+        statTotal.setText(String.valueOf(total));
+        statOpen.setText(String.valueOf(open));
+        statResolvedToday.setText(String.valueOf(resolved));
+
+        if (statCritical != null) statCritical.setText(String.valueOf(critical));
         if (statCreatedToday != null) statCreatedToday.setText(String.valueOf(stats.getCreatedToday()));
-        if (statOverdue != null) statOverdue.setText(String.valueOf(stats.getOverdueTickets()));
+        if (statOverdue != null) statOverdue.setText(String.valueOf(overdue));
         if (statEscalated != null) statEscalated.setText(String.valueOf(stats.getEscalatedTickets()));
         if (statAvgResolution != null) statAvgResolution.setText(stats.getAverageResolutionHours() + " h");
-        long critical = value(stats.getTicketsByPriority(), "CRITICAL");
-        statCritical.setText(String.valueOf(critical));
-        setPriorityBar(stats.getTicketsByPriority(), "CRITICAL", lblCriticalCount, progressCritical, stats.getTotalTickets());
-        setPriorityBar(stats.getTicketsByPriority(), "HIGH", lblHighCount, progressHigh, stats.getTotalTickets());
-        setPriorityBar(stats.getTicketsByPriority(), "MEDIUM", lblMediumCount, progressMedium, stats.getTotalTickets());
-        setPriorityBar(stats.getTicketsByPriority(), "LOW", lblLowCount, progressLow, stats.getTotalTickets());
+
+        updateStatusChart(total, resolved, open, overdue);
+        updatePriorityChart(total, critical, high, medium, low);
+    }
+    private void updateStatusChart(long total, long resolved, long open, long overdue) {
+        if (statusPieChart == null) {
+            return;
+        }
+
+        statusPieChart.getData().clear();
+
+        if (!statusPieChart.getStyleClass().contains("status-chart")) {
+            statusPieChart.getStyleClass().add("status-chart");
+        }
+
+        statusPieChart.getData().addAll(
+                new PieChart.Data("Gelöst", resolved),
+                new PieChart.Data("Offen", open),
+                new PieChart.Data("Überfällig", overdue)
+        );
+
+        if (statusChartTotalLabel != null) statusChartTotalLabel.setText(String.valueOf(total));
+        if (legendResolved != null) legendResolved.setText(formatLegend(resolved, total));
+        if (legendOpen != null) legendOpen.setText(formatLegend(open, total));
+        if (legendOverdue != null) legendOverdue.setText(formatLegend(overdue, total));
+        if (legendTotal != null) legendTotal.setText(total + " (100%)");
     }
 
+    private void updatePriorityChart(long total, long critical, long high, long medium, long low) {
+        if (priorityPieChart == null) {
+            return;
+        }
+
+        priorityPieChart.getData().clear();
+
+        if (!priorityPieChart.getStyleClass().contains("priority-chart")) {
+            priorityPieChart.getStyleClass().add("priority-chart");
+        }
+
+        priorityPieChart.getData().addAll(
+                new PieChart.Data("Kritisch", critical),
+                new PieChart.Data("Hoch", high),
+                new PieChart.Data("Mittel", medium),
+                new PieChart.Data("Niedrig", low)
+        );
+
+        if (priorityChartTotalLabel != null) priorityChartTotalLabel.setText(String.valueOf(total));
+        if (legendCritical != null) legendCritical.setText(formatLegend(critical, total));
+        if (legendHigh != null) legendHigh.setText(formatLegend(high, total));
+        if (legendMedium != null) legendMedium.setText(formatLegend(medium, total));
+        if (legendLow != null) legendLow.setText(formatLegend(low, total));
+    }
+
+    private String formatLegend(long value, long total) {
+        if (total == 0) {
+            return value + " (0%)";
+        }
+
+        long percent = Math.round((value * 100.0) / total);
+        return value + " (" + percent + "%)";
+    }
     private void setPriorityBar(Map<String, Long> map, String key, Label label, ProgressBar progressBar, long total) {
         long count = value(map, key);
         label.setText(String.valueOf(count));
@@ -774,6 +840,7 @@ public class AdminController {
 
     private String text(TextField field) { return field == null || field.getText() == null ? "" : field.getText().trim(); }
     private String area(TextArea field) { return field == null || field.getText() == null ? "" : field.getText().trim(); }
+    @FXML private StackPane notificationButton;
 
     private interface ExportSupplier { byte[] get() throws Exception; }
 
@@ -829,4 +896,19 @@ public class AdminController {
         adminWaitingTicketsLabel.setText(String.valueOf(waiting));
         adminResolvedTicketsLabel.setText(String.valueOf(resolved));
     }
+    @FXML private PieChart statusPieChart;
+    @FXML private PieChart priorityPieChart;
+
+    @FXML private Label statusChartTotalLabel;
+    @FXML private Label priorityChartTotalLabel;
+
+    @FXML private Label legendResolved;
+    @FXML private Label legendOpen;
+    @FXML private Label legendOverdue;
+    @FXML private Label legendTotal;
+
+    @FXML private Label legendCritical;
+    @FXML private Label legendHigh;
+    @FXML private Label legendMedium;
+    @FXML private Label legendLow;
 }
