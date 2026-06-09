@@ -17,5 +17,6 @@
         </VBox>
         <Hyperlink text="Noch kein Konto? Registrieren" onAction="#handleRegisterLink" styleClass="register-link" />
         <Label text="Demo: admin/admin123 · agent/agent123 · customer/customer123" styleClass="register-subtitle" wrapText="true" textAlignment="CENTER" />
+    <Button text="← Zurück" onAction="#handleBackToHome" styleClass="btn-ghost"/>
     </VBox>
 </StackPane>

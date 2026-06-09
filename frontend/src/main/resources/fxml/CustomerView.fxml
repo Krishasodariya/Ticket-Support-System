@@ -1,227 +1,183 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.geometry.Insets?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.CustomerController" stylesheets="@../css/styles.css" styleClass="root">
-    
-    <!-- LEFT SIDEBAR -->
+<BorderPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ticketsystem.frontend.controller.CustomerController"
+            stylesheets="@../css/styles.css"
+            styleClass="root">
+
     <left>
         <VBox styleClass="sidebar" prefWidth="210">
             <VBox>
                 <padding><Insets top="20" right="16" bottom="16" left="16"/></padding>
-              <Label text="Ticket Support System" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0EA5E9;" />
+                <Label text="Ticket Support System" styleClass="sidebar-logo"/>
             </VBox>
-            
-            <Label text="MEIN BEREICH" styleClass="nav-section-label" />
-            
-            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showOverview" fx:id="navOverview" styleClass="nav-item">
+
+            <Label text="MEIN BEREICH" styleClass="nav-section-label"/>
+
+            <HBox fx:id="navOverview" spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showOverview" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
-                <Circle radius="4" fill="#0EA5E9" fx:id="dotOverview" />
-                <Label text="Übersicht" styleClass="text-secondary" fx:id="labelOverview" />
-            </HBox>
-            
-            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showMyTickets" fx:id="navMyTickets" styleClass="nav-item">
-                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
-                <Circle radius="4" fill="#475569" fx:id="dotMyTickets" />
-                <Label text="Meine Tickets" styleClass="text-secondary" fx:id="labelMyTickets" />
-            </HBox>
-            
-            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showNewTicket" fx:id="navNewTicket" styleClass="nav-item">
-                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
-                <Circle radius="4" fill="#475569" fx:id="dotNewTicket" />
-                <Label text="Neues Ticket erstellen" styleClass="text-secondary" fx:id="labelNewTicket" />
+                <Circle fx:id="dotOverview" radius="4" fill="#0EA5E9"/>
+                <Label fx:id="labelOverview" text="Übersicht" styleClass="text-secondary"/>
             </HBox>
 
-            <Label text="KONTO" styleClass="nav-section-label" />
+            <HBox fx:id="navMyTickets" spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showMyTickets" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle fx:id="dotMyTickets" radius="4" fill="#475569"/>
+                <Label fx:id="labelMyTickets" text="Meine Tickets" styleClass="text-secondary"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="ticketCounterLabel" text="0" styleClass="sidebar-counter"/>
+            </HBox>
+
+            <HBox fx:id="navNewTicket" spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showNewTicket" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle fx:id="dotNewTicket" radius="4" fill="#475569"/>
+                <Label fx:id="labelNewTicket" text="Neues Ticket erstellen" styleClass="text-secondary"/>
+            </HBox>
+
+            <Label text="KONTO" styleClass="nav-section-label"/>
+
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleProfile" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
-                <Circle radius="4" fill="#475569" />
-                <Label text="Mein Profil" styleClass="text-secondary" />
+                <Circle radius="4" fill="#475569"/>
+                <Label text="Mein Profil" styleClass="text-secondary"/>
             </HBox>
 
-            <VBox VBox.vgrow="ALWAYS" />
-            <Separator styleClass="separator" />
-            
+            <VBox VBox.vgrow="ALWAYS"/>
+            <Separator styleClass="separator"/>
+
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
                 <StackPane>
-                    <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9" />
-                    <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false" />
-                    <Label fx:id="sidebarInitials" text="JD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
+                    <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9"/>
+                    <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false"/>
+                    <Label fx:id="sidebarInitials" text="C" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 </StackPane>
                 <VBox>
-                    <Label fx:id="sidebarName" text="Customer" style="-fx-font-size: 13px; -fx-text-fill: #F1F5F9;" />
-                    <Label text="Customer" style="-fx-font-size: 11px; -fx-text-fill: #475569;" />
+                    <Label fx:id="sidebarName" text="customer" styleClass="sidebar-user-name"/>
+                    <Label text="Customer" styleClass="sidebar-user-role"/>
                 </VBox>
             </HBox>
-            
-            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleLogout" styleClass="nav-item">
+
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleLogout" styleClass="nav-item logout-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
-                <Circle radius="4" fill="#EF4444" />
-                <Label text="Abmelden" styleClass="text-danger" />
+                <Circle radius="4" fill="#EF4444"/>
+                <Label text="Abmelden" styleClass="text-danger"/>
             </HBox>
         </VBox>
     </left>
 
-    <!-- TOPBAR -->
     <top>
-        <HBox styleClass="topbar" prefHeight="48" alignment="CENTER_LEFT">
+        <HBox styleClass="topbar" prefHeight="52" alignment="CENTER_LEFT">
             <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
-            <Label fx:id="breadcrumb" text="Customer  /  Übersicht" styleClass="text-muted" style="-fx-font-size: 12px;" />
-            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="breadcrumb" text="Customer  /  Übersicht" styleClass="text-muted" style="-fx-font-size: 12px;"/>
+            <Region HBox.hgrow="ALWAYS"/>
             <HBox spacing="12" alignment="CENTER">
-                <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
-                <StackPane styleClass="notification-pill" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand;">
-                    <Label text="🔔" style="-fx-font-size: 14px;" />
-                    <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
+                <TextField promptText="Suche..." styleClass="text-field topbar-search" prefWidth="190"/>
+                <Button fx:id="themeToggleButton" text="🌙" onAction="#handleToggleTheme" styleClass="theme-toggle-button"/>
+                <StackPane fx:id="notificationButton" styleClass="notification-pill" onMouseClicked="#handleNotifications" style="-fx-cursor: hand;">
+                    <Label text="🔔" style="-fx-font-size: 16px;"/>
+                    <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT"/>
                 </StackPane>
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
-                    <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9" />
-                    <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false" />
-                    <Label fx:id="topbarInitials" text="JD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
+                    <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9"/>
+                    <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false"/>
+                    <Label fx:id="topbarInitials" text="C" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;"/>
                 </StackPane>
             </HBox>
         </HBox>
     </top>
 
-    <!-- CENTER CONTENT -->
     <center>
         <StackPane>
-            <!-- PANE: ÜBERSICHT -->
             <ScrollPane fx:id="paneOverview" fitToWidth="true" styleClass="scroll-pane">
-                <VBox spacing="20">
-                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <VBox spacing="20" styleClass="customer-content">
+                    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
                     <VBox spacing="5">
-                        <padding><Insets top="0" right="0" bottom="20" left="0"/></padding>
-                        <Label fx:id="greetingLabel" text="Hallo, Customer!" styleClass="heading-lg" />
-                        <Label text="Was können wir heute für Sie tun?" styleClass="text-muted" style="-fx-font-size: 13px;" />
+                        <Label fx:id="greetingLabel" text="Hallo, customer! 👋" styleClass="heading-lg"/>
+                        <Label text="Hier ist die Übersicht Ihrer Tickets und Aktivitäten." styleClass="text-muted"/>
                     </VBox>
 
-                    <!-- Stat Cards -->
-                    <HBox spacing="10">
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="MEINE TICKETS" styleClass="stat-label" />
-                            <Label fx:id="statTotal" text="-" styleClass="stat-value, text-accent" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="OFFEN" styleClass="stat-label" />
-                            <Label fx:id="statOpen" text="-" styleClass="stat-value, text-warning" />
-                            <Label text="warten auf Bearbeitung" styleClass="stat-sub, text-muted" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="IN BEARBEITUNG" styleClass="stat-label" />
-                            <Label fx:id="statProgress" text="-" styleClass="stat-value, text-accent" />
-                            <Label text="Agent zugewiesen" styleClass="stat-sub, text-muted" />
-                        </VBox>
-                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
-                            <Label text="GELÖST" styleClass="stat-label" />
-                            <Label fx:id="statResolved" text="-" styleClass="stat-value, text-success" />
-                            <Label text="erfolgreich abgeschlossen" styleClass="stat-sub, text-muted" />
-                        </VBox>
+                    <HBox spacing="12">
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="📋" styleClass="customer-stat-icon stat-icon-blue"/><VBox spacing="2"><Label fx:id="statTotal" text="0" styleClass="customer-stat-value"/><Label text="Alle Tickets" styleClass="customer-stat-label"/><Label text="Gesamt" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="🕘" styleClass="customer-stat-icon stat-icon-orange"/><VBox spacing="2"><Label fx:id="statOpen" text="0" styleClass="customer-stat-value"/><Label text="Offen" styleClass="customer-stat-label"/><Label text="Warten auf Bearbeitung" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="👤" styleClass="customer-stat-icon stat-icon-blue"/><VBox spacing="2"><Label fx:id="statProgress" text="0" styleClass="customer-stat-value"/><Label text="In Bearbeitung" styleClass="customer-stat-label"/><Label text="Agent zugewiesen" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="✓" styleClass="customer-stat-icon stat-icon-green"/><VBox spacing="2"><Label fx:id="statResolved" text="0" styleClass="customer-stat-value"/><Label text="Gelöst" styleClass="customer-stat-label"/><Label text="Erfolgreich abgeschlossen" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
                     </HBox>
 
                     <HBox spacing="16">
-                        <!-- Links: Aktive Tickets -->
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="12">
-                            <HBox alignment="CENTER_LEFT">
-                                <Label text="MEINE AKTIVEN TICKETS" styleClass="label-uppercase" />
-                                <Region HBox.hgrow="ALWAYS" />
-                            </HBox>
-                            <VBox fx:id="activeTicketsContainer" spacing="10">
-                                <!-- Dynamically populated Ticket Cards -->
-                            </VBox>
-                            <HBox alignment="CENTER_RIGHT">
-                                <Button text="Alle Tickets anzeigen →" onAction="#showMyTickets" style="-fx-background-color: transparent; -fx-text-fill: #0EA5E9; -fx-cursor: hand;" />
-                            </HBox>
+                        <VBox styleClass="customer-card" HBox.hgrow="ALWAYS" spacing="14">
+                            <HBox alignment="CENTER_LEFT"><Label text="MEINE AKTIVEN TICKETS" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button text="Alle Tickets anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>
+                            <VBox fx:id="activeTicketsContainer" spacing="10"/>
                         </VBox>
 
-                        <!-- Rechts: Schnell-Erstellung & Aktivität -->
-                        <VBox spacing="16" minWidth="300" prefWidth="350">
-                            <VBox styleClass="card" spacing="12">
-                                <Label text="SCHNELL-TICKET ERSTELLEN" styleClass="label-uppercase" />
-                                <TextField fx:id="quickTitleField" promptText="Kurzbeschreibung des Problems..." styleClass="text-field" />
-                                <ComboBox fx:id="quickPriorityCombo" promptText="Priorität" styleClass="combo-box" maxWidth="Infinity" />
-                                <Button text="Ticket erstellen" onAction="#handleQuickCreate" styleClass="btn-primary" maxWidth="Infinity" />
+                        <VBox spacing="16" minWidth="330" prefWidth="370">
+                            <VBox styleClass="customer-card" spacing="12">
+                                <Label text="SCHNELL-TICKET ERSTELLEN" styleClass="label-uppercase"/>
+                                <TextField fx:id="quickTitleField" promptText="Kurzbeschreibung des Problems..." styleClass="text-field"/>
+                                <ComboBox fx:id="quickPriorityCombo" promptText="Priorität" styleClass="combo-box" maxWidth="Infinity"/>
+                                <Button text="Ticket erstellen" onAction="#handleQuickCreate" styleClass="btn-primary" maxWidth="Infinity"/>
                             </VBox>
-                            
-                            <VBox styleClass="card" spacing="12" VBox.vgrow="ALWAYS">
-                                <Label text="LETZTE AKTIVITÄTEN" styleClass="label-uppercase" />
-                                <VBox fx:id="activityContainer" spacing="10">
-                                    <!-- Dynamically populated activities -->
-                                    <Label text="Keine Aktivitäten verfügbar" styleClass="text-muted" />
-                                </VBox>
+                            <VBox styleClass="customer-card" spacing="12" VBox.vgrow="ALWAYS">
+                                <HBox alignment="CENTER_LEFT"><Label text="LETZTE AKTIVITÄTEN" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button text="Alle anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>
+                                <VBox fx:id="activityContainer" spacing="10"/>
                             </VBox>
                         </VBox>
                     </HBox>
                 </VBox>
             </ScrollPane>
 
-            <!-- PANE: MEINE TICKETS -->
-            <VBox fx:id="paneMyTickets" spacing="20" visible="false">
+            <VBox fx:id="paneMyTickets" spacing="18" visible="false" managed="false">
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                    <ComboBox fx:id="filterStatusCombo" promptText="Status" prefWidth="120" styleClass="combo-box" />
-                    <ComboBox fx:id="filterPriorityCombo" promptText="Priorität" prefWidth="120" styleClass="combo-box" />
-                    <TextField fx:id="searchField" promptText="Titel suchen..." prefWidth="200" styleClass="text-field" />
-                    <Button text="Filtern" onAction="#handleApplyFilter" styleClass="btn-primary" />
-                    <Button text="Zurücksetzen" onAction="#handleClearFilter" styleClass="btn-ghost" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="filterStatusCombo" promptText="Alle Status" prefWidth="150" styleClass="combo-box"/>
+                    <ComboBox fx:id="filterPriorityCombo" promptText="Alle Prioritäten" prefWidth="160" styleClass="combo-box"/>
+                    <TextField fx:id="searchField" promptText="Titel suchen..." prefWidth="260" styleClass="text-field"/>
+                    <Button text="Filtern" onAction="#handleApplyFilter" styleClass="btn-primary"/>
+                    <Button text="Zurücksetzen" onAction="#handleClearFilter" styleClass="btn-ghost"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Doppelklick öffnet die Ticketdetails." styleClass="text-muted"/>
                 </HBox>
 
-                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view modern-table customer-ticket-table">
+                    <placeholder><VBox alignment="CENTER" spacing="8"><Label text="📭" styleClass="empty-state-icon"/><Label text="Keine Tickets gefunden" styleClass="empty-state-title"/><Label text="Ändern Sie die Filter oder erstellen Sie ein neues Ticket." styleClass="empty-state-text"/></VBox></placeholder>
                     <columns>
-                        <TableColumn fx:id="colId" text="#" prefWidth="60" />
-                        <TableColumn fx:id="colTitle" text="Titel" prefWidth="350" />
-                        <TableColumn fx:id="colPriority" text="Priorität" prefWidth="100" />
-                        <TableColumn fx:id="colStatus" text="Status" prefWidth="130" />
-                        <TableColumn fx:id="colAgent" text="Agent" prefWidth="120" />
-                        <TableColumn fx:id="colCreatedAt" text="Erstellt" prefWidth="100" />
-                        <TableColumn fx:id="colUpdatedAt" text="Geändert" prefWidth="100" />
+                        <TableColumn fx:id="colId" text="#" prefWidth="70"/>
+                        <TableColumn fx:id="colTitle" text="Titel" prefWidth="350"/>
+                        <TableColumn fx:id="colPriority" text="Priorität" prefWidth="120"/>
+                        <TableColumn fx:id="colStatus" text="Status" prefWidth="140"/>
+                        <TableColumn fx:id="colAgent" text="Agent" prefWidth="130"/>
+                        <TableColumn fx:id="colCreatedAt" text="Erstellt" prefWidth="130"/>
+                        <TableColumn fx:id="colUpdatedAt" text="Geändert" prefWidth="130"/>
                     </columns>
                 </TableView>
             </VBox>
 
-            <!-- PANE: NEUES TICKET -->
-            <ScrollPane fx:id="paneNewTicket" fitToWidth="true" styleClass="scroll-pane" visible="false">
+            <ScrollPane fx:id="paneNewTicket" fitToWidth="true" styleClass="scroll-pane" visible="false" managed="false">
                 <VBox alignment="TOP_CENTER">
                     <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                    <VBox styleClass="card" maxWidth="620" spacing="15">
-                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                        <Label text="Neues Support-Ticket" styleClass="heading-md" />
-                        <Label text="Beschreiben Sie Ihr Problem so genau wie möglich" styleClass="text-muted" style="-fx-font-size: 12px;" />
-                        <Separator styleClass="separator" />
-
-                        <Label text="TICKET-DETAILS" styleClass="label-uppercase" />
-                        <TextField fx:id="newTitleField" promptText="Kurze Zusammenfassung..." styleClass="text-field" />
-                        <TextArea fx:id="newDescField" promptText="Beschreiben Sie das Problem im Detail..." styleClass="text-area" prefRowCount="5" wrapText="true" />
-                        
-                        <HBox spacing="12">
-                            <ComboBox fx:id="newPriorityCombo" promptText="Priorität *" styleClass="combo-box" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                            <ComboBox fx:id="newCategoryCombo" promptText="Kategorie *" styleClass="combo-box" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
-                        </HBox>
-                        <TextField fx:id="newAttachmentNameField" promptText="Anhang-Dateiname optional, z.B. screenshot.png" styleClass="text-field" />
-                        
-                        <Label fx:id="newErrorLabel" text="Pflichtfeld" styleClass="text-danger" visible="false" />
-
-                        <Region minHeight="10" />
-                        <Separator styleClass="separator" />
-                        <Label text="IHRE KONTAKTDATEN" styleClass="label-uppercase" />
-                        
-                        <HBox spacing="12">
-                            <TextField fx:id="newFirstName" promptText="Vorname" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="newLastName" promptText="Nachname" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                        </HBox>
-                        <HBox spacing="12">
-                            <TextField fx:id="newEmail" promptText="E-Mail" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <TextField promptText="Telefon (optional)" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                        </HBox>
-
-                        <HBox alignment="CENTER_RIGHT" spacing="10" style="-fx-padding: 20 0 0 0;">
-                            <Button text="Abbrechen" onAction="#showOverview" styleClass="btn-ghost" />
-                            <Button text="Ticket erstellen" onAction="#handleCreateFullTicket" styleClass="btn-primary" />
-                        </HBox>
+                    <VBox styleClass="customer-card new-ticket-card" maxWidth="620" spacing="15">
+                        <Label text="Neues Support-Ticket" styleClass="heading-md"/>
+                        <Label text="Beschreiben Sie Ihr Problem so genau wie möglich." styleClass="text-muted"/>
+                        <Separator styleClass="separator"/>
+                        <Label text="TICKET-DETAILS" styleClass="label-uppercase"/>
+                        <TextField fx:id="newTitleField" promptText="Titel" styleClass="text-field"/>
+                        <TextArea fx:id="newDescField" promptText="Beschreibung" styleClass="text-area" prefRowCount="5" wrapText="true"/>
+                        <HBox spacing="12"><ComboBox fx:id="newPriorityCombo" promptText="Priorität *" styleClass="combo-box" maxWidth="Infinity" HBox.hgrow="ALWAYS"/><ComboBox fx:id="newCategoryCombo" promptText="Kategorie *" styleClass="combo-box" maxWidth="Infinity" HBox.hgrow="ALWAYS"/></HBox>
+                        <TextField fx:id="newAttachmentNameField" promptText="Anhang-Dateiname optional, z. B. screenshot.png" styleClass="text-field"/>
+                        <Label fx:id="newErrorLabel" text="Bitte Titel, Beschreibung und Priorität ausfüllen." styleClass="text-danger" visible="false"/>
+                        <Separator styleClass="separator"/>
+                        <Label text="IHRE KONTAKTDATEN" styleClass="label-uppercase"/>
+                        <HBox spacing="12"><TextField fx:id="newFirstName" promptText="Vorname" styleClass="text-field" HBox.hgrow="ALWAYS"/><TextField fx:id="newLastName" promptText="Nachname" styleClass="text-field" HBox.hgrow="ALWAYS"/></HBox>
+                        <HBox spacing="12"><TextField fx:id="newEmail" promptText="E-Mail" styleClass="text-field" HBox.hgrow="ALWAYS"/><TextField promptText="Telefon optional" styleClass="text-field" HBox.hgrow="ALWAYS"/></HBox>
+                        <HBox alignment="CENTER_RIGHT" spacing="10"><Button text="Abbrechen" onAction="#showOverview" styleClass="btn-ghost"/><Button text="Ticket erstellen" onAction="#handleCreateFullTicket" styleClass="btn-primary"/></HBox>
                     </VBox>
                 </VBox>
             </ScrollPane>
