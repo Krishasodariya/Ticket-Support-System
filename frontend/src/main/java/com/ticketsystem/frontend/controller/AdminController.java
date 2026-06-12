@@ -92,6 +92,7 @@ public class AdminController {
     @FXML private TableColumn<UserFX, String> colUsername, colEmail, colRole;
     @FXML private ComboBox<String> roleCombo;
     @FXML private Label selectedUserLabel;
+    @FXML private TextField specializationField;
 
     @FXML private ListView<CategoryFX> categoryList;
     @FXML private TextField categoryNameField;
@@ -522,6 +523,26 @@ public class AdminController {
         }, "admin-toggle-active").start();
     }
 
+    @FXML public void handleUpdateSpecialization() {
+        UserFX selected = userTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            AlertHelper.showError("Fehler", "Bitte zuerst einen Agenten auswählen.");
+            return;
+        }
+        String spec = specializationField != null ? specializationField.getText() : "";
+        new Thread(() -> {
+            try {
+                userService.updateSpecialization(selected.getId(), spec);
+                Platform.runLater(() -> {
+                    AlertHelper.showInfo("Erfolg", "Spezialisierung wurde gesetzt: " + (spec.isBlank() ? "Generalist" : spec));
+                    loadUsers();
+                });
+            } catch (Exception ex) {
+                Platform.runLater(() -> AlertHelper.showError("Fehler", "Spezialisierung konnte nicht gesetzt werden.\n" + ex.getMessage()));
+            }
+        }, "admin-update-specialization").start();
+    }
+
     private void loadCategories() {
         Task<List<CategoryFX>> task = new Task<>() {
             @Override protected List<CategoryFX> call() throws Exception { return categoryService.getAllCategories(); }
@@ -650,7 +671,7 @@ public class AdminController {
     @FXML public void showTickets() { switchTab(paneTickets, navTickets, dotTickets, labelTickets, "Alle Tickets"); loadTickets(); }
     @FXML public void showUsers() { switchTab(paneUsers, navUsers, dotUsers, labelUsers, "Benutzer"); loadUsers(); }
     @FXML public void showCategories() { switchTab(paneCategories, navCategories, dotCategories, labelCategories, "Kategorien"); loadCategories(); }
-    @FXML 
+    @FXML
     public void showReports() {
         switchTab(paneReports, navReports, dotReports, labelReports, "Berichte");
 
@@ -846,7 +867,7 @@ public class AdminController {
 
     @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
     @FXML public void handleLogout() { Navigator.logout(); }
-    
+
     @FXML
     private void handleNotifications(MouseEvent event) {
         new Thread(() -> {

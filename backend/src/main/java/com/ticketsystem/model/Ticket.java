@@ -78,6 +78,10 @@ public class Ticket {
     @Column(name = "custom_status_label")
     private String customStatusLabel;
 
+    /** Aufgabe 39 - Admin kann Ticket unabhaengig von Prioritaet als kritisch markieren */
+    @Column(name = "is_critical", nullable = false)
+    private boolean critical;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

@@ -5,10 +5,10 @@ import com.ticketsystem.dto.request.ProfileUpdateRequest;
 import com.ticketsystem.dto.response.UserResponse;
 import com.ticketsystem.exception.ResourceNotFoundException;
 import com.ticketsystem.mapper.UserMapper;
+import com.ticketsystem.model.Ticket;
 import com.ticketsystem.model.User;
 import com.ticketsystem.model.enums.UserRole;
 import com.ticketsystem.repository.UserRepository;
-import com.ticketsystem.service.SystemAuditLogService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    // Feature 32 – System-Aktivitätsprotokoll
     private final SystemAuditLogService systemAuditLogService;
 
     public UserService(UserRepository userRepository, UserMapper userMapper,
@@ -65,7 +64,6 @@ public class UserService {
     public UserResponse updateUserActiveStatus(UUID id, boolean isActive) {
         User user = findUserEntityById(id);
         user.setActive(isActive);
-        // Feature 32 – Benutzeraktivierung/-deaktivierung protokollieren
         systemAuditLogService.log("admin", isActive ? "USER_ACTIVATED" : "USER_DEACTIVATED",
                 "Benutzer " + user.getUsername() + " wurde " + (isActive ? "aktiviert" : "deaktiviert"),
                 user.getId(), null);
@@ -77,11 +75,57 @@ public class UserService {
         User user = findUserEntityById(id);
         String oldRole = user.getRole().name();
         user.setRole(newRole);
-        // Feature 32 – Rollenänderung protokollieren
         systemAuditLogService.log("admin", "ROLE_CHANGED",
-                "Rolle von " + user.getUsername() + " geändert: " + oldRole + " → " + newRole.name(),
+                "Rolle von " + user.getUsername() + " geaendert: " + oldRole + " -> " + newRole.name(),
                 user.getId(), null);
         return userMapper.toResponse(userRepository.save(user));
+    }
+
+    /**
+     * Aufgabe 15 - Agent-Spezialisierung setzen.
+     * Nur fuer Agenten. Komma-separierte Kategorienamen oder leer fuer Generalist.
+     */
+    @Transactional
+    public UserResponse updateSpecialization(UUID id, String specialization) {
+        User agent = findUserEntityById(id);
+        if (agent.getRole() != UserRole.AGENT) {
+            throw new IllegalArgumentException("Spezialisierung kann nur fuer Agenten gesetzt werden.");
+        }
+        String old = agent.getSpecialization();
+        agent.setSpecialization(specialization == null || specialization.isBlank() ? null : specialization.trim());
+        systemAuditLogService.log("admin", "SPECIALIZATION_CHANGED",
+                "Spezialisierung von " + agent.getUsername() + " geaendert: "
+                        + (old == null ? "Generalist" : old) + " -> "
+                        + (agent.getSpecialization() == null ? "Generalist" : agent.getSpecialization()),
+                agent.getId(), null);
+        return userMapper.toResponse(userRepository.save(agent));
+    }
+
+    /**
+     * Aufgabe 14/15 - Aktive Agenten finden, die auf eine Kategorie spezialisiert sind.
+     * Agenten ohne Spezialisierung (Generalisten) werden immer eingeschlossen.
+     */
+    public List<User> findActiveAgentsMatchingCategory(String categoryName) {
+        List<User> allAgents = userRepository.findByRoleAndIsActiveTrue(UserRole.AGENT);
+        return allAgents.stream()
+                .filter(agent -> {
+                    String spec = agent.getSpecialization();
+                    if (!StringUtils.hasText(spec)) return true; // Generalist
+                    for (String s : spec.split(",")) {
+                        if (s.trim().equalsIgnoreCase(categoryName)) return true;
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Aufgabe 25 - Anzahl offener Tickets fuer Workload-Balancing zaehlen.
+     */
+    public long countOpenTicketsForUser(UUID agentId, List<Ticket> openTickets) {
+        return openTickets.stream()
+                .filter(t -> t.getAssignedTo() != null && t.getAssignedTo().getId().equals(agentId))
+                .count();
     }
 
     @Transactional

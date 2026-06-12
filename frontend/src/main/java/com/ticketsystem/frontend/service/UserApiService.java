@@ -30,7 +30,13 @@ public class UserApiService {
     public UserFX updateRole(String id, String role) throws Exception {
         return ApiClient.patch("/users/" + id + "/role", Map.of("role", role), UserFX.class);
     }
-    
+
+    /** Aufgabe 15 - Spezialisierung eines Agenten setzen */
+    public UserFX updateSpecialization(String id, String specialization) throws Exception {
+        return ApiClient.patch("/users/" + id + "/specialization",
+                Map.of("specialization", specialization == null ? "" : specialization), UserFX.class);
+    }
+
     public UserFX updateProfile(ProfileUpdateRequest request) throws Exception {
         return ApiClient.put("/users/me/profile", request, UserFX.class);
     }
