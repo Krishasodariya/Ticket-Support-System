@@ -55,4 +55,3 @@ public class TicketFX {
     private String customStatusLabel;
     private Long resolutionTimeHours;
 }
-
