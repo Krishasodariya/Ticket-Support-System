@@ -35,11 +35,12 @@ public class TicketController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<TicketResponse>> searchTickets(@RequestParam(required = false) String q,
-                                                              @RequestParam(required = false) TicketStatus status,
-                                                              @RequestParam(required = false) TicketPriority priority,
-                                                              @RequestParam(required = false) Long categoryId,
-                                                              Authentication authentication) {
+    public ResponseEntity<List<TicketResponse>> searchTickets(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false) TicketPriority priority,
+            @RequestParam(required = false) Long categoryId,
+            Authentication authentication) {
         return ResponseEntity.ok(ticketService.searchTickets(authentication.getName(), q, status, priority, categoryId));
     }
 
@@ -50,18 +51,22 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TicketDetailResponse> getTicketById(@PathVariable UUID id, Authentication authentication) {
+    public ResponseEntity<TicketDetailResponse> getTicketById(@PathVariable UUID id,
+                                                              Authentication authentication) {
         return ResponseEntity.ok(ticketService.getTicketById(id, authentication.getName()));
     }
 
     @PostMapping
-    public ResponseEntity<TicketDetailResponse> createTicket(@Valid @RequestBody CreateTicketRequest request, Authentication authentication) {
+    public ResponseEntity<TicketDetailResponse> createTicket(@Valid @RequestBody CreateTicketRequest request,
+                                                             Authentication authentication) {
         return ResponseEntity.ok(ticketService.createTicket(request, authentication.getName()));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
-    public ResponseEntity<TicketDetailResponse> updateTicket(@PathVariable UUID id, @RequestBody UpdateTicketRequest request, Authentication authentication) {
+    public ResponseEntity<TicketDetailResponse> updateTicket(@PathVariable UUID id,
+                                                             @RequestBody UpdateTicketRequest request,
+                                                             Authentication authentication) {
         return ResponseEntity.ok(ticketService.updateTicket(id, request, authentication.getName()));
     }
 
@@ -75,7 +80,8 @@ public class TicketController {
 
     @PatchMapping("/{id}/take")
     @PreAuthorize("hasAnyRole('ADMIN','AGENT')")
-    public ResponseEntity<TicketDetailResponse> takeTicket(@PathVariable UUID id, Authentication authentication) {
+    public ResponseEntity<TicketDetailResponse> takeTicket(@PathVariable UUID id,
+                                                           Authentication authentication) {
         return ResponseEntity.ok(ticketService.takeTicket(id, authentication.getName()));
     }
 
@@ -93,7 +99,16 @@ public class TicketController {
         return ResponseEntity.ok(Map.of("escalated", ticketService.escalateOverdueTickets(authentication.getName())));
     }
 
-    // ── Feature 17: Ähnliche Tickets ──────────────────────────────────────────
+    // Aufgabe 39: Ticket als kritisch markieren
+    @PatchMapping("/{id}/critical")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TicketDetailResponse> markAsCritical(@PathVariable UUID id,
+                                                               @RequestParam boolean critical,
+                                                               Authentication authentication) {
+        return ResponseEntity.ok(ticketService.markAsCritical(id, critical, authentication.getName()));
+    }
+
+    // Feature 17: Aehnliche Tickets
     @GetMapping("/search/similar")
     public ResponseEntity<List<TicketResponse>> findSimilar(
             @RequestParam(required = false) String title,
@@ -101,7 +116,7 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.findSimilarTickets(title, description));
     }
 
-    // ── Feature 18: Duplikat-Erkennung ────────────────────────────────────────
+    // Feature 18: Duplikat-Erkennung
     @GetMapping("/search/duplicates")
     public ResponseEntity<List<TicketResponse>> findDuplicates(
             @RequestParam(required = false) String title,
@@ -109,10 +124,11 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.findDuplicates(title, description));
     }
 
-    // ── Feature 38: Ticket wiedereröffnen ─────────────────────────────────────
+    // Feature 38: Ticket wiedereroeffnen
     @PatchMapping("/{id}/reopen")
     @PreAuthorize("hasRole('CUSTOMER')")
-    public ResponseEntity<TicketDetailResponse> reopenTicket(@PathVariable UUID id, Authentication authentication) {
+    public ResponseEntity<TicketDetailResponse> reopenTicket(@PathVariable UUID id,
+                                                             Authentication authentication) {
         return ResponseEntity.ok(ticketService.reopenTicket(id, authentication.getName()));
     }
 

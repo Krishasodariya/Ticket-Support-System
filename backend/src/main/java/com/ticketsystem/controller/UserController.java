@@ -50,24 +50,40 @@ public class UserController {
 
     @PatchMapping("/{id}/active")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> updateActiveStatus(@PathVariable UUID id, @RequestBody Map<String, Boolean> body) {
+    public ResponseEntity<UserResponse> updateActiveStatus(@PathVariable UUID id,
+                                                           @RequestBody Map<String, Boolean> body) {
         return ResponseEntity.ok(userService.updateUserActiveStatus(id, body.get("isActive")));
     }
 
     @PatchMapping("/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponse> updateRole(@PathVariable UUID id, @RequestBody Map<String, String> body) {
+    public ResponseEntity<UserResponse> updateRole(@PathVariable UUID id,
+                                                   @RequestBody Map<String, String> body) {
         UserRole newRole = UserRole.valueOf(body.get("role"));
         return ResponseEntity.ok(userService.updateUserRole(id, newRole));
     }
 
+    /**
+     * Aufgabe 15 - Spezialisierung eines Agenten setzen (nur Admin).
+     * Body: { "specialization": "Software,Netzwerk" } oder leer fuer Generalist.
+     */
+    @PatchMapping("/{id}/specialization")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> updateSpecialization(@PathVariable UUID id,
+                                                             @RequestBody Map<String, String> body) {
+        String spec = body.getOrDefault("specialization", "");
+        return ResponseEntity.ok(userService.updateSpecialization(id, spec));
+    }
+
     @PutMapping("/me/profile")
-    public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody ProfileUpdateRequest request, Authentication authentication) {
+    public ResponseEntity<UserResponse> updateProfile(@Valid @RequestBody ProfileUpdateRequest request,
+                                                      Authentication authentication) {
         return ResponseEntity.ok(userService.updateProfile(authentication.getName(), request));
     }
 
     @PutMapping("/me/password")
-    public ResponseEntity<Void> changePassword(@Valid @RequestBody PasswordChangeRequest request, Authentication authentication) {
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody PasswordChangeRequest request,
+                                               Authentication authentication) {
         userService.changePassword(authentication.getName(), request);
         return ResponseEntity.noContent().build();
     }
