@@ -119,13 +119,9 @@ public class CustomerController {
     @FXML
     public void initialize() {
         String username = SessionManager.getUsername();
-
-        if (username == null || username.isBlank()) {
-            username = "customer";
-        }
+        if (username == null || username.isBlank()) username = "customer";
 
         String initial = username.substring(0, 1).toUpperCase();
-
         sidebarInitials.setText(initial);
         topbarInitials.setText(initial);
         sidebarName.setText(username);
@@ -133,16 +129,30 @@ public class CustomerController {
 
         updateAvatarDisplay(SessionManager.getProfilePicture());
 
-        if (newFirstName != null) {
-            newFirstName.setText(username);
-        }
-
-        if (newEmail != null) {
-            newEmail.setText("");
-        }
+        if (newFirstName != null) newFirstName.setText(username);
+        if (newEmail != null) newEmail.setText("");
 
         quickPriorityCombo.getItems().setAll(TicketPriority.values());
-        newPriorityCombo.getItems().setAll(TicketPriority.values());
+
+        // Aufgabe 16: "Automatisch ermitteln" als erste Option in der Priority-ComboBox
+        newPriorityCombo.getItems().clear();
+        newPriorityCombo.getItems().add(null); // null = automatisch ermitteln
+        newPriorityCombo.getItems().addAll(TicketPriority.values());
+        newPriorityCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(TicketPriority item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item == null ? "Automatisch ermitteln" : item.name());
+            }
+        });
+        newPriorityCombo.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(TicketPriority item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item == null ? "Automatisch ermitteln" : item.name());
+            }
+        });
+        newPriorityCombo.setValue(null); // Standard: automatisch
 
         initTheme();
         initFilters();
@@ -169,7 +179,6 @@ public class CustomerController {
     @FXML
     public void handleToggleTheme() {
         if (rootPane == null) return;
-
         darkMode = !darkMode;
         rootPane.getStyleClass().removeAll("theme-light", "theme-dark");
         rootPane.getStyleClass().add(darkMode ? "theme-dark" : "theme-light");
@@ -177,9 +186,7 @@ public class CustomerController {
     }
 
     private void updateThemeButton() {
-        if (themeToggleButton != null) {
-            themeToggleButton.setText(darkMode ? "☀" : "🌙");
-        }
+        if (themeToggleButton != null) themeToggleButton.setText(darkMode ? "☀" : "🌙");
     }
 
     private void initTable() {
@@ -213,7 +220,6 @@ public class CustomerController {
             filterStatusCombo.getItems().setAll("Alle", "OPEN", "IN_PROGRESS", "WAITING", "RESOLVED", "CLOSED");
             filterStatusCombo.setValue("Alle");
         }
-
         if (filterPriorityCombo != null) {
             filterPriorityCombo.getItems().setAll("Alle", "CRITICAL", "HIGH", "MEDIUM", "LOW");
             filterPriorityCombo.setValue("Alle");
@@ -227,9 +233,7 @@ public class CustomerController {
                 super.updateItem(item, empty);
                 setText(null);
                 setGraphic(null);
-                if (!empty && item != null && !item.isBlank()) {
-                    setGraphic(createBadge(item));
-                }
+                if (!empty && item != null && !item.isBlank()) setGraphic(createBadge(item));
             }
         };
     }
@@ -238,7 +242,6 @@ public class CustomerController {
         String value = type == null ? "" : type.trim().toUpperCase();
         Label badge = new Label();
         badge.getStyleClass().add("badge");
-
         switch (value) {
             case "OPEN" -> { badge.getStyleClass().add("badge-open"); badge.setText("• Offen"); }
             case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress"); badge.setText("• In Bearbeitung"); }
@@ -256,29 +259,16 @@ public class CustomerController {
 
     private void loadCategories() {
         Task<List<CategoryFX>> task = new Task<>() {
-            @Override
-            protected List<CategoryFX> call() throws Exception {
-                return categoryService.getAllCategories();
-            }
+            @Override protected List<CategoryFX> call() throws Exception { return categoryService.getAllCategories(); }
         };
-
-        task.setOnSucceeded(e -> {
-            if (newCategoryCombo != null) {
-                newCategoryCombo.getItems().setAll(task.getValue());
-            }
-        });
-
+        task.setOnSucceeded(e -> { if (newCategoryCombo != null) newCategoryCombo.getItems().setAll(task.getValue()); });
         new Thread(task, "customer-load-categories").start();
     }
 
     private void loadTickets() {
         Task<List<TicketFX>> task = new Task<>() {
-            @Override
-            protected List<TicketFX> call() throws Exception {
-                return ticketService.getAllTickets();
-            }
+            @Override protected List<TicketFX> call() throws Exception { return ticketService.getAllTickets(); }
         };
-
         task.setOnSucceeded(e -> {
             latestTickets = task.getValue() == null ? List.of() : task.getValue();
             updateDashboardStats(latestTickets);
@@ -287,7 +277,6 @@ public class CustomerController {
             updateActivities(latestTickets);
             applyFilter();
         });
-
         task.setOnFailed(e -> {
             latestTickets = List.of();
             updateDashboardStats(latestTickets);
@@ -295,7 +284,6 @@ public class CustomerController {
             updateActiveTickets(latestTickets);
             updateActivities(latestTickets);
         });
-
         new Thread(task, "customer-load-tickets").start();
     }
 
@@ -304,7 +292,6 @@ public class CustomerController {
         long open = tickets.stream().filter(t -> "OPEN".equalsIgnoreCase(t.getStatus())).count();
         long progress = tickets.stream().filter(t -> "IN_PROGRESS".equalsIgnoreCase(t.getStatus())).count();
         long resolved = tickets.stream().filter(t -> "RESOLVED".equalsIgnoreCase(t.getStatus()) || "CLOSED".equalsIgnoreCase(t.getStatus())).count();
-
         statTotal.setText(String.valueOf(total));
         statOpen.setText(String.valueOf(open));
         statProgress.setText(String.valueOf(progress));
@@ -321,40 +308,21 @@ public class CustomerController {
     private void updateActiveTickets(List<TicketFX> tickets) {
         if (activeTicketsContainer == null) return;
         activeTicketsContainer.getChildren().clear();
-
         List<TicketFX> activeTickets = tickets.stream()
                 .filter(t -> !"CLOSED".equalsIgnoreCase(t.getStatus()))
-                .limit(5)
-                .toList();
-
-        if (activeTickets.isEmpty()) {
-            activeTicketsContainer.getChildren().add(createEmptyState());
-            return;
-        }
-
-        for (TicketFX ticket : activeTickets) {
-            activeTicketsContainer.getChildren().add(createTicketCard(ticket));
-        }
+                .limit(5).toList();
+        if (activeTickets.isEmpty()) { activeTicketsContainer.getChildren().add(createEmptyState()); return; }
+        for (TicketFX ticket : activeTickets) activeTicketsContainer.getChildren().add(createTicketCard(ticket));
     }
 
     private Node createEmptyState() {
         VBox emptyBox = new VBox(8);
         emptyBox.setAlignment(Pos.CENTER);
         emptyBox.getStyleClass().add("empty-state");
-
-        Label icon = new Label("📭");
-        icon.getStyleClass().add("empty-state-icon");
-
-        Label title = new Label("Noch keine aktiven Tickets");
-        title.getStyleClass().add("empty-state-title");
-
-        Label text = new Label("Erstellen Sie ein neues Ticket, wenn Sie Hilfe brauchen.");
-        text.getStyleClass().add("empty-state-text");
-
-        Button button = new Button("Ticket erstellen");
-        button.getStyleClass().add("btn-primary");
-        button.setOnAction(e -> showNewTicket());
-
+        Label icon = new Label("📭"); icon.getStyleClass().add("empty-state-icon");
+        Label title = new Label("Noch keine aktiven Tickets"); title.getStyleClass().add("empty-state-title");
+        Label text = new Label("Erstellen Sie ein neues Ticket, wenn Sie Hilfe brauchen."); text.getStyleClass().add("empty-state-text");
+        Button button = new Button("Ticket erstellen"); button.getStyleClass().add("btn-primary"); button.setOnAction(e -> showNewTicket());
         emptyBox.getChildren().addAll(icon, title, text, button);
         return emptyBox;
     }
@@ -362,68 +330,37 @@ public class CustomerController {
     private Node createTicketCard(TicketFX ticket) {
         VBox card = new VBox(6);
         card.getStyleClass().add("customer-ticket-card");
-
-        HBox titleRow = new HBox(8);
-        titleRow.setAlignment(Pos.CENTER_LEFT);
-
-        Label title = new Label(nullSafe(ticket.getTitle()));
-        title.getStyleClass().add("customer-ticket-title");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label idLabel = new Label(shortId(ticket.getId()));
-        idLabel.getStyleClass().add("text-muted");
-
+        HBox titleRow = new HBox(8); titleRow.setAlignment(Pos.CENTER_LEFT);
+        Label title = new Label(nullSafe(ticket.getTitle())); title.getStyleClass().add("customer-ticket-title");
+        Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label idLabel = new Label(shortId(ticket.getId())); idLabel.getStyleClass().add("text-muted");
         titleRow.getChildren().addAll(title, spacer, idLabel);
-
         Label description = new Label(shortText(ticket.getDescription(), 90));
-        description.getStyleClass().add("customer-ticket-description");
-        description.setWrapText(true);
-
+        description.getStyleClass().add("customer-ticket-description"); description.setWrapText(true);
         HBox badgeRow = new HBox(8);
         badgeRow.getChildren().addAll(createBadge(ticket.getStatus()), createBadge(ticket.getPriority()));
-
         if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().isBlank()) {
-            Label agent = new Label("Agent: " + ticket.getAssignedTo());
-            agent.getStyleClass().add("text-muted");
+            Label agent = new Label("Agent: " + ticket.getAssignedTo()); agent.getStyleClass().add("text-muted");
             badgeRow.getChildren().add(agent);
         }
-
         card.getChildren().addAll(titleRow, description, badgeRow);
-        card.setOnMouseClicked(e -> {
-            TicketDetailController.setCurrentTicketId(ticket.getId());
-            Navigator.navigateTo("TicketDetailView.fxml");
-        });
+        card.setOnMouseClicked(e -> { TicketDetailController.setCurrentTicketId(ticket.getId()); Navigator.navigateTo("TicketDetailView.fxml"); });
         return card;
     }
 
     private void updateActivities(List<TicketFX> tickets) {
         if (activityContainer == null) return;
         activityContainer.getChildren().clear();
-
         if (tickets.isEmpty()) {
-            Label empty = new Label("Keine Aktivitäten verfügbar");
-            empty.getStyleClass().add("text-muted");
-            activityContainer.getChildren().add(empty);
-            return;
+            Label empty = new Label("Keine Aktivitäten verfügbar"); empty.getStyleClass().add("text-muted");
+            activityContainer.getChildren().add(empty); return;
         }
-
         tickets.stream().limit(4).forEach(ticket -> {
-            HBox row = new HBox(10);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.getStyleClass().add("activity-row");
-
-            Label icon = new Label(activityIcon(ticket.getStatus()));
-            icon.getStyleClass().add("activity-icon");
-
+            HBox row = new HBox(10); row.setAlignment(Pos.CENTER_LEFT); row.getStyleClass().add("activity-row");
+            Label icon = new Label(activityIcon(ticket.getStatus())); icon.getStyleClass().add("activity-icon");
             VBox texts = new VBox(2);
-            Label title = new Label(activityText(ticket));
-            title.getStyleClass().add("activity-title");
-
-            Label time = new Label(nullSafe(ticket.getUpdatedAt()));
-            time.getStyleClass().add("activity-time");
-
+            Label title = new Label(activityText(ticket)); title.getStyleClass().add("activity-title");
+            Label time = new Label(nullSafe(ticket.getUpdatedAt())); time.getStyleClass().add("activity-time");
             texts.getChildren().addAll(title, time);
             row.getChildren().addAll(icon, texts);
             activityContainer.getChildren().add(row);
@@ -457,11 +394,9 @@ public class CustomerController {
 
     private void applyFilter() {
         if (ticketTable == null) return;
-
         String status = filterStatusCombo == null ? "Alle" : filterStatusCombo.getValue();
         String priority = filterPriorityCombo == null ? "Alle" : filterPriorityCombo.getValue();
         String search = searchField == null || searchField.getText() == null ? "" : searchField.getText().trim().toLowerCase();
-
         List<TicketFX> filtered = latestTickets.stream()
                 .filter(t -> status == null || "Alle".equals(status) || status.equals(t.getStatus()))
                 .filter(t -> priority == null || "Alle".equals(priority) || priority.equals(t.getPriority()))
@@ -471,7 +406,6 @@ public class CustomerController {
                         || containsIgnoreCase(t.getAssignedTo(), search)
                         || containsIgnoreCase(t.getCategoryName(), search))
                 .collect(Collectors.toList());
-
         ticketData.setAll(filtered);
     }
 
@@ -481,7 +415,8 @@ public class CustomerController {
 
     @FXML
     public void handleQuickCreate() {
-        if (quickTitleField.getText() == null || quickTitleField.getText().trim().isEmpty() || quickPriorityCombo.getValue() == null) return;
+        if (quickTitleField.getText() == null || quickTitleField.getText().trim().isEmpty()
+                || quickPriorityCombo.getValue() == null) return;
         String title = quickTitleField.getText().trim();
         String desc = "Schnell-Ticket: " + title;
         checkDuplicatesAndCreate(title, desc, () -> doQuickSubmit(title));
@@ -497,7 +432,7 @@ public class CustomerController {
 
     @FXML
     public void handleCreateFullTicket() {
-        if (text(newTitleField).isBlank() || text(newDescField).isBlank() || newPriorityCombo.getValue() == null) {
+        if (text(newTitleField).isBlank() || text(newDescField).isBlank()) {
             newErrorLabel.setVisible(true);
             return;
         }
@@ -525,7 +460,8 @@ public class CustomerController {
 
     private void showDuplicateDialog(String title, List<TicketFX> tickets, Runnable createAction) {
         String names = tickets.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, names + "\n\nTrotzdem ein neues Ticket erstellen?", ButtonType.YES, ButtonType.NO);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, names + "\n\nTrotzdem ein neues Ticket erstellen?",
+                ButtonType.YES, ButtonType.NO);
         alert.setTitle(title);
         alert.setHeaderText(title);
         alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) createAction.run(); });
@@ -535,7 +471,12 @@ public class CustomerController {
         Map<String, Object> req = new HashMap<>();
         req.put("title", title);
         req.put("description", desc);
-        req.put("priority", newPriorityCombo.getValue());
+
+        // Aufgabe 16: Priority nur senden wenn explizit ausgewählt, sonst null = automatisch
+        TicketPriority selectedPriority = newPriorityCombo.getValue();
+        if (selectedPriority != null) {
+            req.put("priority", selectedPriority);
+        }
 
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
         if (newAttachmentNameField != null && !text(newAttachmentNameField).isBlank()) {
@@ -559,22 +500,19 @@ public class CustomerController {
         new Thread(task, "customer-create-ticket").start();
     }
 
-    @FXML
-    public void showOverview() {
+    @FXML public void showOverview() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
         switchTab(paneOverview, navOverview, dotOverview, labelOverview, "Übersicht");
         loadTickets();
     }
 
-    @FXML
-    public void showMyTickets() {
+    @FXML public void showMyTickets() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
         switchTab(paneMyTickets, navMyTickets, dotMyTickets, labelMyTickets, "Meine Tickets");
         loadTickets();
     }
 
-    @FXML
-    public void showNewTicket() {
+    @FXML public void showNewTicket() {
         switchTab(paneNewTicket, navNewTicket, dotNewTicket, labelNewTicket, "Neues Ticket");
     }
 
@@ -582,21 +520,16 @@ public class CustomerController {
         paneOverview.setVisible(false); paneOverview.setManaged(false);
         paneMyTickets.setVisible(false); paneMyTickets.setManaged(false);
         paneNewTicket.setVisible(false); paneNewTicket.setManaged(false);
-
         paneToShow.setVisible(true); paneToShow.setManaged(true);
-
         navOverview.getStyleClass().remove("nav-item-active");
         navMyTickets.getStyleClass().remove("nav-item-active");
         navNewTicket.getStyleClass().remove("nav-item-active");
-
         dotOverview.setFill(javafx.scene.paint.Color.web("#475569"));
         dotMyTickets.setFill(javafx.scene.paint.Color.web("#475569"));
         dotNewTicket.setFill(javafx.scene.paint.Color.web("#475569"));
-
         resetNavLabel(labelOverview);
         resetNavLabel(labelMyTickets);
         resetNavLabel(labelNewTicket);
-
         navActive.getStyleClass().add("nav-item-active");
         dotActive.setFill(javafx.scene.paint.Color.web("#0EA5E9"));
         labelActive.getStyleClass().remove("text-secondary");
@@ -631,7 +564,7 @@ public class CustomerController {
         if (quickTitleField != null) quickTitleField.clear();
         if (newTitleField != null) newTitleField.clear();
         if (newDescField != null) newDescField.clear();
-        if (newPriorityCombo != null) newPriorityCombo.setValue(null);
+        if (newPriorityCombo != null) newPriorityCombo.setValue(null); // zurück auf "Automatisch ermitteln"
         if (newCategoryCombo != null) newCategoryCombo.setValue(null);
         if (newAttachmentNameField != null) newAttachmentNameField.clear();
         if (newLastName != null) newLastName.clear();
@@ -681,9 +614,7 @@ public class CustomerController {
     private void markShownNotificationsAsRead(List<NotificationFX> notifications) {
         new Thread(() -> {
             for (NotificationFX notification : notifications) {
-                try {
-                    if (!notification.isRead()) notificationService.markAsRead(notification.getId());
-                } catch (Exception ignored) { }
+                try { if (!notification.isRead()) notificationService.markAsRead(notification.getId()); } catch (Exception ignored) { }
             }
             Platform.runLater(this::loadUnreadNotifications);
         }, "mark-notifications-read").start();
@@ -701,14 +632,12 @@ public class CustomerController {
         }, "customer-load-notifications-popup").start();
     }
 
-    @FXML
-    public void handleProfile() {
+    @FXML public void handleProfile() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
         Navigator.navigateTo("ProfileView.fxml");
     }
 
-    @FXML
-    public void handleLogout() {
+    @FXML public void handleLogout() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
         Navigator.logout();
     }
@@ -717,9 +646,7 @@ public class CustomerController {
         return control == null || control.getText() == null ? "" : control.getText().trim();
     }
 
-    private String nullSafe(Object value) {
-        return value == null ? "" : value.toString();
-    }
+    private String nullSafe(Object value) { return value == null ? "" : value.toString(); }
 
     private String shortId(String id) {
         if (id == null || id.isBlank()) return "#";

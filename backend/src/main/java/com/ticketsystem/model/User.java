@@ -43,6 +43,14 @@ public class User {
     @Column(name = "birth_date")
     private LocalDate birthDate;
 
+    /**
+     * Aufgabe 15 - Agent-Spezialisierung.
+     * Komma-separierte Kategorie-Namen (z.B. "Software,Netzwerk").
+     * Null/leer = Generalist, bekommt alle Tickets.
+     */
+    @Column(name = "specialization")
+    private String specialization;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
