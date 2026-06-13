@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<!-- [Nzchupa | 2026-06-13] Neues Fenster für alle Benachrichtigungen -->
+<!-- New modal window showing all notifications with mark-as-read support -->
+<BorderPane fx:id="rootPane"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ticketsystem.frontend.controller.NotificationsController"
+            stylesheets="@../css/styles.css"
+            styleClass="root"
+            prefWidth="900" prefHeight="650">
+
+    <top>
+        <HBox styleClass="topbar" prefHeight="52" alignment="CENTER_LEFT">
+            <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
+            <Label text="🔔  Alle Benachrichtigungen" styleClass="heading-md"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="unreadCountLabel" text="" styleClass="text-muted" style="-fx-font-size: 12px;"/>
+            <HBox spacing="8" alignment="CENTER">
+                <padding><Insets left="12"/></padding>
+                <Button text="Alle als gelesen markieren" onAction="#handleMarkAllRead" styleClass="btn-ghost"/>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="scroll-pane">
+            <VBox fx:id="notificationsContainer" spacing="10">
+                <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" styleClass="card" style="-fx-border-radius: 0; -fx-background-radius: 0;">
+            <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
+            <Button text="Schließen" onAction="#handleClose" styleClass="btn-primary"/>
+        </HBox>
+    </bottom>
+</BorderPane>

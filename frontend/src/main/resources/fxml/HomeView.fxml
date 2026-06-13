@@ -30,7 +30,9 @@
 
             <Region HBox.hgrow="ALWAYS"/>
 
-            <Button text="☀ / 🌙" onAction="#handleToggle" styleClass="start-theme-button"/>
+            <!-- [Nzchupa | 2026-06-13] TSS-001: fx:id für dynamischen Button-Text nach Theme-Toggle -->
+            <!-- Added fx:id so controller can update button text after theme switch -->
+            <Button fx:id="themeToggleBtn" text="🌙" onAction="#handleToggle" styleClass="start-theme-button"/>
             <Button text="Anmelden" onAction="#handleLogin" styleClass="start-btn-outline"/>
             <Button text="Registrieren" onAction="#handleRegister" styleClass="start-btn-primary"/>
         </HBox>

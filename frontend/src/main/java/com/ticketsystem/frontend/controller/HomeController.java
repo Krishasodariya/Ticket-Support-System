@@ -5,15 +5,28 @@ import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.UserRole;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class HomeController {
-	@FXML
-	private void handleToggle() {
-	    ThemeManager.toggle();
-	}
+
+    // [Nzchupa | 2026-06-13] TSS-001: Button-Referenz für Icon-Update nach Theme-Toggle
+    // Button reference so we can update the icon text after toggling
+    @FXML private Button themeToggleBtn;
+
+    // [Nzchupa | 2026-06-13] TSS-001: ThemeManager.apply() fehlte — Theme wurde nur intern umgeschaltet
+    // Bug-Fix: ThemeManager.apply() was missing — theme toggled internally but UI never updated
+    @FXML
+    private void handleToggle() {
+        ThemeManager.toggle();
+        if (mainScrollPane != null && mainScrollPane.getScene() != null) {
+            ThemeManager.apply(mainScrollPane.getScene().getRoot());
+        }
+        if (themeToggleBtn != null) themeToggleBtn.setText(ThemeManager.isDarkMode() ? "☀" : "🌙");
+    }
+
     @FXML private ScrollPane mainScrollPane;
     @FXML private HBox homeSection;
     @FXML private VBox featuresSection;

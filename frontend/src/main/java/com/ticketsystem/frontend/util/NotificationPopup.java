@@ -56,7 +56,9 @@ public class NotificationPopup {
             listBox.getChildren().add(empty);
         } else {
             for (NotificationFX notification : notifications) {
-                listBox.getChildren().add(createNotificationRow(notification, bellIcon));
+                // [Nzchupa | 2026-06-13] TSS-006: reloadCallback weitergeben — Klick auf Zeile aktualisiert Zähler
+                // Pass reloadCallback so clicking a row marks it read and refreshes the badge counter
+                listBox.getChildren().add(createNotificationRow(notification, bellIcon, reloadCallback));
             }
         }
 
@@ -66,8 +68,17 @@ public class NotificationPopup {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.getStyleClass().add("notification-scroll");
 
+        // [Nzchupa | 2026-06-13] "Alle anzeigen" öffnet jetzt ein eigenes Modal-Fenster
+        // Button now opens a dedicated NotificationsView modal with all notifications listed
         Button showAll = new Button("Alle Benachrichtigungen anzeigen");
         showAll.getStyleClass().add("notification-show-all");
+        showAll.setOnAction(e -> {
+            if (popup != null) popup.hide();
+            // Modal öffnen; nach Schließen Badge-Counter aktualisieren
+            Platform.runLater(() ->
+                Navigator.openModal("NotificationsView.fxml", "Alle Benachrichtigungen", reloadCallback)
+            );
+        });
 
         root.getChildren().addAll(header, scrollPane, showAll);
         addStylesheet(root);
@@ -119,7 +130,9 @@ public class NotificationPopup {
         return header;
     }
 
-    private static Node createNotificationRow(NotificationFX notification, Node bellIcon) {
+    // [Nzchupa | 2026-06-13] TSS-006: Signature erweitert — reloadCallback für Zähler-Update
+    // Extended signature — reloadCallback lets clicking one row refresh the unread badge count
+    private static Node createNotificationRow(NotificationFX notification, Node bellIcon, Runnable reloadCallback) {
         HBox row = new HBox(12);
         row.setAlignment(Pos.TOP_LEFT);
         row.getStyleClass().add("notification-row");
@@ -155,16 +168,40 @@ public class NotificationPopup {
         textBox.getChildren().addAll(titleLine, message, status);
         row.getChildren().addAll(icon, textBox);
 
-        row.setOnMouseClicked(event -> showDetails(bellIcon, notification));
+        row.setOnMouseClicked(event -> {
+            // [Nzchupa | 2026-06-13] TSS-006: Einzelne Benachrichtigung als gelesen markieren und Zähler aktualisieren
+            // Mark single notification as read on click, then refresh the badge counter
+            if (!notification.isRead()) {
+                unreadDot.setVisible(false); // sofort ausblenden — kein Warten auf API
+                new Thread(() -> {
+                    try {
+                        new NotificationApiService().markAsRead(notification.getId());
+                        notification.setRead(true);
+                    } catch (Exception ignored) { }
+                    Platform.runLater(() -> {
+                        if (reloadCallback != null) reloadCallback.run();
+                    });
+                }, "mark-one-notification-read").start();
+            }
+            // [Nzchupa | 2026-06-13] TSS: Hauptpopup bleibt offen — autoHide deaktivieren während Detail sichtbar
+            // Keep main popup open while detail is shown; disable autoHide so clicking detail doesn't close main
+            if (popup != null) popup.setAutoHide(false);
+            showDetails(bellIcon, notification, () -> {
+                if (popup != null) popup.setAutoHide(true);
+            });
+        });
 
         return row;
     }
 
-    private static void showDetails(Node ownerNode, NotificationFX notification) {
+    // [Nzchupa | 2026-06-13] TSS: onCloseCallback hinzugefügt — benachrichtigt Aufrufer wenn Detail-Popup schliesst
+    // Added onCloseCallback so caller can re-enable autoHide on the main popup when detail closes
+    private static void showDetails(Node ownerNode, NotificationFX notification, Runnable onCloseCallback) {
         closeDetailsPopup();
 
         detailsPopup = new Popup();
         detailsPopup.setAutoHide(true);
+        detailsPopup.setOnAutoHide(e -> { if (onCloseCallback != null) onCloseCallback.run(); });
 
         VBox root = new VBox(14);
         root.setPrefWidth(360);
@@ -192,7 +229,7 @@ public class NotificationPopup {
 
         Button closeButtonTop = new Button("×");
         closeButtonTop.getStyleClass().add("notification-close-button");
-        closeButtonTop.setOnAction(event -> closeDetailsPopup());
+        closeButtonTop.setOnAction(event -> { closeDetailsPopup(); if (onCloseCallback != null) onCloseCallback.run(); });
 
         header.getChildren().addAll(icon, titleBox, spacer, closeButtonTop);
 
@@ -210,7 +247,7 @@ public class NotificationPopup {
 
         Button closeButton = new Button("Schließen");
         closeButton.getStyleClass().addAll("btn-ghost", "notification-detail-button");
-        closeButton.setOnAction(event -> closeDetailsPopup());
+        closeButton.setOnAction(event -> { closeDetailsPopup(); if (onCloseCallback != null) onCloseCallback.run(); });
 
         buttonBox.getChildren().add(closeButton);
 
@@ -226,12 +263,10 @@ public class NotificationPopup {
 
         detailsPopup.getContent().add(root);
 
+        // [Nzchupa | 2026-06-13] TSS: popup.hide() entfernt — Hauptpopup bleibt offen wenn Detail angezeigt wird
+        // Removed popup.hide() so the main notification list stays visible behind the detail popup
         double x = ownerNode.localToScreen(ownerNode.getBoundsInLocal()).getMinX() - 340;
         double y = ownerNode.localToScreen(ownerNode.getBoundsInLocal()).getMaxY() + 10;
-
-        if (popup != null && popup.isShowing()) {
-            popup.hide();
-        }
 
         detailsPopup.show(ownerNode, x, y);
     }

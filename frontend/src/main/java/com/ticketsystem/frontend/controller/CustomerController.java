@@ -396,6 +396,18 @@ public class CustomerController {
         }
         card.getChildren().addAll(titleRow, description, badgeRow);
         card.setOnMouseClicked(e -> { TicketDetailController.setCurrentTicketId(ticket.getId()); Navigator.navigateTo("TicketDetailView.fxml"); });
+
+        // [Nzchupa | 2026-06-13] TSS-017: Hover nur für diese Karte — hellt Hintergrund auf beim Überfahren
+        // Hover effect per card: background highlight on enter, restore on exit
+        card.setOnMouseEntered(e -> {
+            String bg = ThemeManager.isDarkMode() ? "#0F1B2D" : "#EFF6FF";
+            card.setStyle("-fx-background-color: " + bg
+                    + "; -fx-cursor: hand;"
+                    + " -fx-border-color: #0EA5E9; -fx-border-width: 1;"
+                    + " -fx-border-radius: 8; -fx-background-radius: 8;");
+        });
+        card.setOnMouseExited(e -> card.setStyle("-fx-cursor: hand;"));
+
         return card;
     }
 

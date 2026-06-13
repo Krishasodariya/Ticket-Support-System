@@ -83,8 +83,9 @@
             <Label fx:id="breadcrumb" text="Admin  /  Dashboard" styleClass="text-muted" style="-fx-font-size: 12px;" />
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
-                <!-- [V2] Search field -->
-                <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
+                <!-- [Nzchupa | 2026-06-13] TSS-015: Topbar-Suche — fx:id für Controller-Binding -->
+                <!-- Topbar search now has fx:id so AdminController can wire up real-time filter -->
+                <TextField fx:id="topbarSearchField" promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
                 <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
                 <!-- Theme toggle button added to topbar -->
                 <Button fx:id="themeToggleBtn" text="☀" onAction="#handleToggleTheme" styleClass="btn-ghost"

@@ -88,10 +88,16 @@ public class AdminController {
     @FXML private TableColumn<TicketFX, String> colId, colTitle, colPriority, colStatus, colCategory, colAgent, colCreatedAt;
     @FXML private ComboBox<String> filterStatusCombo, filterPriorityCombo;
     @FXML private TextField searchField;
+    // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suchfeld — delegiert an aktiven Pane-Filter
+    // Topbar search field reference — delegates to whichever pane is currently active
+    @FXML private TextField topbarSearchField;
 
     @FXML private TableView<UserFX> userTable;
     @FXML private TableColumn<UserFX, String> colUsername, colEmail, colRole;
     @FXML private ComboBox<String> roleCombo;
+    // [Nzchupa | 2026-06-13] TSS-015: Alle Benutzer speichern für clientseitige Topbar-Suche
+    // Store all users so topbar search can filter without re-fetching
+    private List<UserFX> allUsers = new java.util.ArrayList<>();
     @FXML private Label selectedUserLabel;
     @FXML private TextField specializationField;
 
@@ -153,6 +159,11 @@ public class AdminController {
 
         initTable();
         initFiltersAndUserActions();
+        // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suche — Echtzeit-Listener, delegiert an aktiven Pane
+        // Real-time topbar search: copy typed text to the active pane's search field so filter applies
+        if (topbarSearchField != null) {
+            topbarSearchField.textProperty().addListener((obs, old, val) -> handleTopbarSearch(val));
+        }
         loadUnreadNotifications();
         showDashboard();
     }
@@ -374,76 +385,109 @@ public class AdminController {
     }
 
     private void applyStats(DashboardStatsFX stats) {
-        long total = stats.getTotalTickets();
-        long open = stats.getOpenTickets();
-        long resolved = stats.getResolvedToday();
-        long overdue = stats.getOverdueTickets();
+        long total    = stats.getTotalTickets();
+        long overdue  = stats.getOverdueTickets();
+
+        // [Nzchupa | 2026-06-13] TSS-013: Korrektur der Diagramm-Werte
+        // Bug-Fix: resolvedToday war falsch (nur heute), open fehlte IN_PROGRESS + WAITING.
+        // Gelöst  = alle abgeschlossenen Tickets (RESOLVED + CLOSED)
+        // Überfällig = überfällige aktive Tickets
+        // Offen   = Rest: aktiv aber nicht überfällig (disjoint für saubere Tortendarstellung)
+        long resolved = stats.getResolvedTickets() + stats.getClosedTickets();
+        long active   = stats.getOpenTickets() + stats.getInProgressTickets() + stats.getWaitingTickets();
+        long openNormal = Math.max(0, active - overdue); // aktiv aber nicht überfällig
 
         long critical = value(stats.getTicketsByPriority(), "CRITICAL");
-        long high = value(stats.getTicketsByPriority(), "HIGH");
-        long medium = value(stats.getTicketsByPriority(), "MEDIUM");
-        long low = value(stats.getTicketsByPriority(), "LOW");
+        long high     = value(stats.getTicketsByPriority(), "HIGH");
+        long medium   = value(stats.getTicketsByPriority(), "MEDIUM");
+        long low      = value(stats.getTicketsByPriority(), "LOW");
 
         statTotal.setText(String.valueOf(total));
-        statOpen.setText(String.valueOf(open));
-        statResolvedToday.setText(String.valueOf(resolved));
+        statOpen.setText(String.valueOf(active));                          // Stat-Karte: alle aktiven
+        statResolvedToday.setText(String.valueOf(stats.getResolvedToday())); // Stat-Karte: heute gelöst
 
-        if (statCritical != null) statCritical.setText(String.valueOf(critical));
+        if (statCritical != null)    statCritical.setText(String.valueOf(critical));
         if (statCreatedToday != null) statCreatedToday.setText(String.valueOf(stats.getCreatedToday()));
-        if (statOverdue != null) statOverdue.setText(String.valueOf(overdue));
-        if (statEscalated != null) statEscalated.setText(String.valueOf(stats.getEscalatedTickets()));
+        if (statOverdue != null)     statOverdue.setText(String.valueOf(overdue));
+        if (statEscalated != null)   statEscalated.setText(String.valueOf(stats.getEscalatedTickets()));
         if (statAvgResolution != null) statAvgResolution.setText(stats.getAverageResolutionHours() + " h");
 
-        updateStatusChart(total, resolved, open, overdue);
+        updateStatusChart(total, resolved, openNormal, overdue);
         updatePriorityChart(total, critical, high, medium, low);
     }
+    // [Nzchupa | 2026-06-13] TSS-013: Explizite Slice-Farben nach Platform.runLater — verhindert Farb-Reset
+    // After getData().clear()+addAll() JavaFX re-assigns default-color CSS classes.
+    // Platform.runLater waits for the scene to render nodes, then sets inline -fx-pie-color per slice.
     private void updateStatusChart(long total, long resolved, long open, long overdue) {
-        if (statusPieChart == null) {
-            return;
-        }
-
+        if (statusPieChart == null) return;
         statusPieChart.getData().clear();
+        if (!statusPieChart.getStyleClass().contains("status-chart")) statusPieChart.getStyleClass().add("status-chart");
 
-        if (!statusPieChart.getStyleClass().contains("status-chart")) {
-            statusPieChart.getStyleClass().add("status-chart");
-        }
+        PieChart.Data dResolved  = new PieChart.Data("Gelöst",    resolved);
+        PieChart.Data dOpen      = new PieChart.Data("Offen",      open);
+        PieChart.Data dOverdue   = new PieChart.Data("Überfällig", overdue);
+        statusPieChart.getData().addAll(dResolved, dOpen, dOverdue);
 
-        statusPieChart.getData().addAll(
-                new PieChart.Data("Gelöst", resolved),
-                new PieChart.Data("Offen", open),
-                new PieChart.Data("Überfällig", overdue)
-        );
+        // Farben nach Render setzen, damit getData().clear() sie nicht zurücksetzt
+        Platform.runLater(() -> {
+            applyPieColor(dResolved, "#22C55E");
+            applyPieColor(dOpen,     "#3B82F6");
+            applyPieColor(dOverdue,  "#EF4444");
+            // [Nzchupa | 2026-06-13] TSS-013: Legendensymbole ebenfalls einfärben
+            // Legend symbols use default-colorN CSS classes — must override them too
+            applyLegendColors(statusPieChart, "#22C55E", "#3B82F6", "#EF4444");
+        });
 
         if (statusChartTotalLabel != null) statusChartTotalLabel.setText(String.valueOf(total));
         if (legendResolved != null) legendResolved.setText(formatLegend(resolved, total));
-        if (legendOpen != null) legendOpen.setText(formatLegend(open, total));
-        if (legendOverdue != null) legendOverdue.setText(formatLegend(overdue, total));
-        if (legendTotal != null) legendTotal.setText(total + " (100%)");
+        if (legendOpen != null)     legendOpen.setText(formatLegend(open, total));
+        if (legendOverdue != null)  legendOverdue.setText(formatLegend(overdue, total));
+        if (legendTotal != null)    legendTotal.setText(total + " (100%)");
     }
 
     private void updatePriorityChart(long total, long critical, long high, long medium, long low) {
-        if (priorityPieChart == null) {
-            return;
-        }
-
+        if (priorityPieChart == null) return;
         priorityPieChart.getData().clear();
+        if (!priorityPieChart.getStyleClass().contains("priority-chart")) priorityPieChart.getStyleClass().add("priority-chart");
 
-        if (!priorityPieChart.getStyleClass().contains("priority-chart")) {
-            priorityPieChart.getStyleClass().add("priority-chart");
-        }
+        PieChart.Data dCritical = new PieChart.Data("Kritisch", critical);
+        PieChart.Data dHigh     = new PieChart.Data("Hoch",     high);
+        PieChart.Data dMedium   = new PieChart.Data("Mittel",   medium);
+        PieChart.Data dLow      = new PieChart.Data("Niedrig",  low);
+        priorityPieChart.getData().addAll(dCritical, dHigh, dMedium, dLow);
 
-        priorityPieChart.getData().addAll(
-                new PieChart.Data("Kritisch", critical),
-                new PieChart.Data("Hoch", high),
-                new PieChart.Data("Mittel", medium),
-                new PieChart.Data("Niedrig", low)
-        );
+        Platform.runLater(() -> {
+            applyPieColor(dCritical, "#EF4444");
+            applyPieColor(dHigh,     "#F97316");
+            applyPieColor(dMedium,   "#EAB308");
+            applyPieColor(dLow,      "#22C55E");
+            // [Nzchupa | 2026-06-13] TSS-013: Legendensymbole ebenfalls einfärben
+            applyLegendColors(priorityPieChart, "#EF4444", "#F97316", "#EAB308", "#22C55E");
+        });
 
         if (priorityChartTotalLabel != null) priorityChartTotalLabel.setText(String.valueOf(total));
         if (legendCritical != null) legendCritical.setText(formatLegend(critical, total));
-        if (legendHigh != null) legendHigh.setText(formatLegend(high, total));
-        if (legendMedium != null) legendMedium.setText(formatLegend(medium, total));
-        if (legendLow != null) legendLow.setText(formatLegend(low, total));
+        if (legendHigh != null)     legendHigh.setText(formatLegend(high, total));
+        if (legendMedium != null)   legendMedium.setText(formatLegend(medium, total));
+        if (legendLow != null)      legendLow.setText(formatLegend(low, total));
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-013: Hilfsmethode — setzt -fx-pie-color direkt am Slice-Node
+    // Helper: sets inline -fx-pie-color on the pie slice node; noop if node not yet rendered
+    private void applyPieColor(PieChart.Data data, String color) {
+        if (data.getNode() != null) {
+            data.getNode().setStyle("-fx-pie-color: " + color + ";");
+        }
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-013: Legendensymbole einfärben — default-colorN überschreiben
+    // JavaFX legend symbols keep their default-colorN class; override -fx-background-color inline
+    private void applyLegendColors(javafx.scene.chart.PieChart chart, String... colors) {
+        for (int i = 0; i < colors.length; i++) {
+            final String color = colors[i];
+            chart.lookupAll(".default-color" + i + ".chart-legend-item-symbol")
+                 .forEach(node -> node.setStyle("-fx-background-color: " + color + ";"));
+        }
     }
 
     private String formatLegend(long value, long total) {
@@ -511,6 +555,28 @@ public class AdminController {
         applyTicketFilter();
     }
 
+    // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suche delegiert an aktiven Pane
+    // Topbar search delegates to whichever pane is currently visible
+    private void handleTopbarSearch(String val) {
+        if (paneTickets != null && paneTickets.isVisible()) {
+            // Tickets-Pane: Suchtext in pane-eigenes searchField setzen → löst applyTicketFilter() aus
+            if (searchField != null) searchField.setText(val);
+        } else if (paneUsers != null && paneUsers.isVisible()) {
+            // Benutzer-Pane: direkt allUsers filtern nach Username oder E-Mail
+            String search = val == null ? "" : val.trim().toLowerCase();
+            List<UserFX> filtered = allUsers.stream()
+                    .filter(u -> search.isBlank()
+                            || (u.getUsername() != null && u.getUsername().toLowerCase().contains(search))
+                            || (u.getEmail() != null && u.getEmail().toLowerCase().contains(search)))
+                    .collect(Collectors.toList());
+            userTable.setItems(FXCollections.observableArrayList(filtered));
+        } else if (paneAuditLog != null && paneAuditLog.isVisible()) {
+            // Audit-Log-Pane: Text in auditSearchField setzen und Filter ausführen
+            if (auditSearchField != null) auditSearchField.setText(val);
+            applyAuditFilter();
+        }
+    }
+
     private void applyTicketFilter() {
         String status = filterStatusCombo == null ? "Alle" : filterStatusCombo.getValue();
         String priority = filterPriorityCombo == null ? "Alle" : filterPriorityCombo.getValue();
@@ -532,7 +598,11 @@ public class AdminController {
         Task<List<UserFX>> task = new Task<>() {
             @Override protected List<UserFX> call() throws Exception { return userService.getAllUsers(); }
         };
-        task.setOnSucceeded(e -> userTable.setItems(FXCollections.observableArrayList(task.getValue())));
+        task.setOnSucceeded(e -> {
+            // [Nzchupa | 2026-06-13] TSS-015: allUsers speichern für Topbar-Suche
+            allUsers = new java.util.ArrayList<>(task.getValue());
+            userTable.setItems(FXCollections.observableArrayList(allUsers));
+        });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Benutzer konnten nicht geladen werden."));
         new Thread(task, "admin-load-users").start();
     }

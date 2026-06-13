@@ -40,7 +40,10 @@ public class TicketDetailController {
     @FXML private Label priorityLabel;
     @FXML private Label createdByLabel;
     @FXML private Label assignedToLabel;
-    @FXML private Label dueDateLabel, slaLabel, attachmentLabel, solutionLabel, ratingLabel;
+    @FXML private Label dueDateLabel, slaLabel, solutionLabel, ratingLabel;
+    // [Nzchupa | 2026-06-13] TSS-016: Hyperlink statt Label — öffnet Datei per Desktop.open()
+    // Hyperlink replaces plain Label so agents/admins can click to open the attachment
+    @FXML private javafx.scene.control.Hyperlink attachmentLink;
     @FXML private TextArea descriptionArea;
 
     @FXML private ComboBox<TicketStatus> statusCombo;
@@ -91,7 +94,6 @@ public class TicketDetailController {
         if (closeWithSolutionBtn != null) closeWithSolutionBtn.setVisible(!customer);
         if (solutionReasonArea != null) solutionReasonArea.setVisible(!customer);
         if (attachBtn != null) attachBtn.setVisible(!customer);
-        if (attachmentNameField != null) attachmentNameField.setVisible(!customer);
         if (sendFeedbackBtn != null) sendFeedbackBtn.setVisible(customer);
         if (feedbackArea != null) feedbackArea.setVisible(customer);
         // Feature 38 – Reopen-Button: nur für Customer, Sichtbarkeit nach Ticket-Load gesetzt
@@ -326,7 +328,20 @@ public class TicketDetailController {
                     assignedToLabel.setText(currentTicket.getAssignedTo() != null ? currentTicket.getAssignedTo() : "Noch nicht zugewiesen");
                     if (dueDateLabel != null) dueDateLabel.setText(currentTicket.getDueAt() != null ? currentTicket.getDueAt().toString() : "Keine SLA");
                     if (slaLabel != null) slaLabel.setText(currentTicket.getSlaLabel() + (currentTicket.isEscalated() ? " / Eskaliert" : ""));
-                    if (attachmentLabel != null) attachmentLabel.setText(currentTicket.getAttachmentName() != null ? currentTicket.getAttachmentName() : "Kein Anhang");
+                    // [Nzchupa | 2026-06-13] TSS-016: Anhang als Hyperlink — bei Klick wird Datei geöffnet
+                    // If attachment exists show filename as blue link; otherwise show grey placeholder
+                    if (attachmentLink != null) {
+                        String attachName = currentTicket.getAttachmentName();
+                        if (attachName != null && !attachName.isBlank()) {
+                            attachmentLink.setText("📎 " + attachName);
+                            attachmentLink.getStyleClass().remove("text-muted");
+                            attachmentLink.setStyle("-fx-text-fill: #0EA5E9;");
+                        } else {
+                            attachmentLink.setText("Kein Anhang");
+                            attachmentLink.setStyle("");
+                            if (!attachmentLink.getStyleClass().contains("text-muted")) attachmentLink.getStyleClass().add("text-muted");
+                        }
+                    }
                     if (solutionLabel != null) solutionLabel.setText(currentTicket.getSolutionReason() != null ? currentTicket.getSolutionReason() : "Noch kein Lösungsgrund");
                     if (ratingLabel != null) ratingLabel.setText(currentTicket.getCustomerRating() != null ? currentTicket.getCustomerRating() + "/5 - " + safe(currentTicket.getCustomerFeedback()) : "Noch kein Feedback");
                     descriptionArea.setText(currentTicket.getDescription());
@@ -436,25 +451,64 @@ public class TicketDetailController {
         }).start();
     }
 
+    // [Nzchupa | 2026-06-13] TSS-016: FileChooser öffnet Dateiauswahl-Dialog — speichert echten Dateipfad
+    // FileChooser replaces text-field input; stores real absolute path so Desktop.open() works later
     @FXML
     public void handleAddAttachment() {
-        String fileName = attachmentNameField == null || attachmentNameField.getText() == null ? "" : attachmentNameField.getText().trim();
-        if (fileName.isBlank()) {
-            AlertHelper.showError("Fehler", "Bitte Dateiname eingeben, z.B. screenshot.png");
-            return;
-        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Datei auswählen");
+        chooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("Alle Dateien", "*.*"),
+                new javafx.stage.FileChooser.ExtensionFilter("Bilder", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp"),
+                new javafx.stage.FileChooser.ExtensionFilter("Dokumente", "*.pdf", "*.doc", "*.docx", "*.txt", "*.xlsx")
+        );
+        java.io.File selected = chooser.showOpenDialog(
+                attachBtn != null ? attachBtn.getScene().getWindow() : null
+        );
+        if (selected == null) return; // Benutzer hat abgebrochen / user cancelled
+
+        String fileName = selected.getName();
+        String filePath = selected.getAbsolutePath();
+
         new Thread(() -> {
             try {
                 Map<String, Object> req = Map.of(
                         "attachmentName", fileName,
-                        "attachmentPath", "demo-attachments/" + fileName
+                        "attachmentPath", filePath
                 );
                 ticketService.updateTicket(currentTicketId, req);
-                Platform.runLater(() -> { attachmentNameField.clear(); AlertHelper.showInfo("Anhang", "Anhang wurde simuliert gespeichert."); loadTicket(); });
+                Platform.runLater(() -> {
+                    AlertHelper.showInfo("Anhang gespeichert", "Datei angehängt: " + fileName);
+                    loadTicket();
+                });
             } catch (Exception e) {
                 Platform.runLater(() -> AlertHelper.showError("Fehler", "Anhang konnte nicht gespeichert werden.\n" + e.getMessage()));
             }
         }).start();
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-016: Anhang öffnen per java.awt.Desktop — plattformübergreifend
+    // Opens the attachment file using the OS default application (Desktop.open)
+    @FXML
+    public void handleOpenAttachment() {
+        if (currentTicket == null) return;
+        String path = currentTicket.getAttachmentPath();
+        String name = currentTicket.getAttachmentName();
+        if (path == null || path.isBlank() || name == null || name.isBlank()) {
+            AlertHelper.showInfo("Anhang", "Kein Anhang vorhanden.");
+            return;
+        }
+        java.io.File file = new java.io.File(path);
+        if (file.exists()) {
+            try {
+                java.awt.Desktop.getDesktop().open(file);
+            } catch (Exception ex) {
+                AlertHelper.showError("Fehler beim Öffnen", "Datei konnte nicht geöffnet werden:\n" + ex.getMessage());
+            }
+        } else {
+            AlertHelper.showInfo("Datei nicht gefunden",
+                    "Die Datei ist auf diesem Gerät nicht zugänglich.\n\nDateiname: " + name + "\nPfad: " + path);
+        }
     }
 
     @FXML

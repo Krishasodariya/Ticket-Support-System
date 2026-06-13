@@ -304,7 +304,16 @@ public class AgentController {
                 case "MEDIUM"   -> "#38BDF8";
                 default         -> "#22C55E";
             };
-            card.setStyle("-fx-border-color: transparent transparent transparent " + borderColor + "; -fx-border-width: 0 0 0 3;");
+            // [Nzchupa | 2026-06-13] TSS-017: Hover nur für diese Karte — inline style überschreibt CSS :hover
+            // Inline setStyle() overrides CSS :hover, so we use Java mouse events instead
+            final String baseStyle = "-fx-border-color: transparent transparent transparent " + borderColor
+                    + "; -fx-border-width: 0 0 0 3;";
+            card.setStyle(baseStyle);
+            card.setOnMouseEntered(ev -> {
+                String bg = ThemeManager.isDarkMode() ? "#0F1B2D" : "#EFF6FF";
+                card.setStyle(baseStyle + " -fx-background-color: " + bg + ";");
+            });
+            card.setOnMouseExited(ev -> card.setStyle(baseStyle));
 
             HBox row1 = new HBox(new Label(t.getTitle()));
             ((Label) row1.getChildren().get(0)).setStyle("-fx-font-size: 13px; -fx-text-fill: #F1F5F9; -fx-font-weight: bold;");
