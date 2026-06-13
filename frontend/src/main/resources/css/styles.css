@@ -218,6 +218,59 @@
     -fx-cursor: hand;
 }
 
+/* [Nzchupa | 2026-06-13] TSS-008: Customer-Ticket-Karten — fehlende Textfarben für Light/Dark Mode */
+/* Customer ticket card title and description text colors */
+.customer-ticket-card {
+    -fx-cursor: hand;
+}
+
+.customer-ticket-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.theme-light .customer-ticket-title {
+    -fx-text-fill: #111827;
+}
+
+.theme-dark .customer-ticket-title {
+    -fx-text-fill: #F1F5F9;
+}
+
+.theme-light .customer-ticket-card .label {
+    -fx-text-fill: #374151;
+}
+
+.theme-dark .customer-ticket-card .label {
+    -fx-text-fill: #CBD5E1;
+}
+
+/* Activity-Feed Texte */
+.activity-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.theme-light .activity-title {
+    -fx-text-fill: #111827;
+}
+
+.theme-dark .activity-title {
+    -fx-text-fill: #F1F5F9;
+}
+
+.activity-time {
+    -fx-font-size: 11px;
+}
+
+.theme-light .activity-time {
+    -fx-text-fill: #6B7280;
+}
+
+.theme-dark .activity-time {
+    -fx-text-fill: #64748B;
+}
+
 .theme-light .card:hover,
 .theme-light .stat-card:hover,
 .theme-light .ticket-card:hover {
@@ -1128,25 +1181,32 @@
     -fx-border-color: #1E293B;
 }
 
+/* [Nzchupa | 2026-06-13] TSS-008: Verbesserte Spaltenüberschriften — klarer Kontrast und Trennlinie */
+/* Improved column headers — clearer contrast and separator border */
 .theme-light .modern-table .column-header-background {
-    -fx-background-color: #F8FAFC;
+    -fx-background-color: #EFF6FF;
+    -fx-border-color: transparent transparent #BFDBFE transparent;
+    -fx-border-width: 0 0 2 0;
 }
 
 .theme-dark .modern-table .column-header-background {
-    -fx-background-color: #0F172A;
+    -fx-background-color: #06111F;
+    -fx-border-color: transparent transparent #1E3A5F transparent;
+    -fx-border-width: 0 0 2 0;
 }
 
 .modern-table .column-header .label {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
+    -fx-padding: 8 10;
 }
 
 .theme-light .modern-table .column-header .label {
-    -fx-text-fill: #475569;
+    -fx-text-fill: #1E40AF;
 }
 
 .theme-dark .modern-table .column-header .label {
-    -fx-text-fill: #94A3B8;
+    -fx-text-fill: #93C5FD;
 }
 
 .modern-table .table-row-cell {

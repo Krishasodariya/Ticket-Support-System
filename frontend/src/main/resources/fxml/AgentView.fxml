@@ -195,7 +195,9 @@
                     <Button text="Zurücksetzen" onAction="#handleClearFilter" styleClass="btn-ghost" />
                 </HBox>
 
-                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <!-- [Nzchupa | 2026-06-13] TSS-008: modern-table für bessere Lesbarkeit der Spaltenüberschriften und Trennlinien -->
+                <!-- Added modern-table class for clearer column headers and row separators -->
+                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view,modern-table">
                     <columns>
                         <TableColumn fx:id="colId" text="#" prefWidth="60" />
                         <TableColumn fx:id="colTitle" text="Titel" prefWidth="250" />

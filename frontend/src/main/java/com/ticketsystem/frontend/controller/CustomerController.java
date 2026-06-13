@@ -30,6 +30,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -112,6 +114,10 @@ public class CustomerController {
     private final TicketApiService ticketService = new TicketApiService();
     private final CategoryApiService categoryService = new CategoryApiService();
     private final NotificationApiService notificationService = new NotificationApiService();
+
+    // [Nzchupa | 2026-06-13] TSS-007: Pfad der ausgewählten Anhangsdatei — wird beim Ticket-Erstellen mitgeschickt
+    // Path of the selected attachment file — sent along when creating the ticket
+    private String selectedAttachmentPath = null;
 
     private final ObservableList<TicketFX> ticketData = FXCollections.observableArrayList();
 
@@ -523,10 +529,12 @@ public class CustomerController {
         }
 
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
+        // [Nzchupa | 2026-06-13] TSS-007: Echten Datei-Pfad verwenden wenn per FileChooser ausgewählt
+        // Use real file path from FileChooser if available, otherwise fall back to manual entry
         if (newAttachmentNameField != null && !text(newAttachmentNameField).isBlank()) {
             String attachmentName = text(newAttachmentNameField);
             req.put("attachmentName", attachmentName);
-            req.put("attachmentPath", "demo-attachments/" + attachmentName);
+            req.put("attachmentPath", selectedAttachmentPath != null ? selectedAttachmentPath : "demo-attachments/" + attachmentName);
         }
         doCreateTicket(req);
     }
@@ -611,6 +619,7 @@ public class CustomerController {
         if (newPriorityCombo != null) newPriorityCombo.setValue(null); // zurück auf "Automatisch ermitteln"
         if (newCategoryCombo != null) newCategoryCombo.setValue(null);
         if (newAttachmentNameField != null) newAttachmentNameField.clear();
+        selectedAttachmentPath = null; // [Nzchupa | 2026-06-13] TSS-007: Datei-Pfad zurücksetzen
         if (newLastName != null) newLastName.clear();
         if (newFirstName != null) newFirstName.setText(SessionManager.getUsername());
         if (newEmail != null) newEmail.clear();
@@ -642,10 +651,27 @@ public class CustomerController {
         }, "customer-load-notifications-popup").start();
     }
 
+    // [Nzchupa | 2026-06-13] TSS-007: FileChooser für Ticket-Anhang — Datei direkt auswählen
+    // Opens a FileChooser so the customer can select a file to attach to the new ticket
+    @FXML public void handleBrowseAttachment() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Anhang auswählen");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
+        Stage stage = (Stage) newAttachmentNameField.getScene().getWindow();
+        java.io.File file = fc.showOpenDialog(stage);
+        if (file != null) {
+            selectedAttachmentPath = file.getAbsolutePath();
+            newAttachmentNameField.setText(file.getName());
+        }
+    }
+
     // [Nzchupa | 2026-06-12] TS-007: Profil als Modal öffnen — Customer-Dashboard bleibt im Hintergrund
+    // [Nzchupa | 2026-06-13] TSS-005: Avatar nach Schließen aktualisieren
+    // Refresh topbar/sidebar avatar after profile modal closes
     @FXML public void handleProfile() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
-        Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit");
+        Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
+            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
     }
 
     // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen

@@ -72,6 +72,12 @@ public class Navigator {
     // [Nzchupa | 2026-06-12] TS-007: Modales Fenster öffnen — Profile und TicketDetail als Modal
     // Opens a view as an APPLICATION_MODAL window (blocks the owner) — used for Profile and TicketDetail
     public static void openModal(String fxmlFile, String title) {
+        openModal(fxmlFile, title, null);
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-005: onClose-Callback — wird nach dem Schließen des Modals ausgeführt
+    // onClose callback runs after modal closes — used to refresh avatar after profile save
+    public static void openModal(String fxmlFile, String title, Runnable onClose) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     FrontendApplication.class.getResource("/fxml/" + fxmlFile)
@@ -92,6 +98,10 @@ public class Navigator {
             modal.setMinWidth(900);
             modal.setMinHeight(650);
             modal.showAndWait();
+
+            // Nach dem Schließen Callback ausführen (z.B. Avatar aktualisieren)
+            // Run callback after modal is closed (e.g. refresh avatar in parent view)
+            if (onClose != null) onClose.run();
 
         } catch (IOException e) {
             e.printStackTrace();

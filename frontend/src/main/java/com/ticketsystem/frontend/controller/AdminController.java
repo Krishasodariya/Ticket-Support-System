@@ -873,7 +873,12 @@ public class AdminController {
 
     // [Nzchupa | 2026-06-12] TS-007: Profil als Modal öffnen — Dashboard bleibt im Hintergrund
     // Open Profile as modal window so the admin dashboard is not replaced
-    @FXML public void handleProfile() { Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit"); }
+    // [Nzchupa | 2026-06-13] TSS-005: Avatar nach Profil-Modal-Schließen aktualisieren
+    // Refresh topbar/sidebar avatar after profile modal closes (picks up new picture from SessionManager)
+    @FXML public void handleProfile() {
+        Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
+            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
+    }
     // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen
     // Logout confirmation dialog to prevent accidental logouts
     @FXML public void handleLogout() {

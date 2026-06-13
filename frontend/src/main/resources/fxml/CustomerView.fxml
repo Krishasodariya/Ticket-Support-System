@@ -171,7 +171,12 @@
                         <TextField fx:id="newTitleField" promptText="Titel" styleClass="text-field"/>
                         <TextArea fx:id="newDescField" promptText="Beschreibung" styleClass="text-area" prefRowCount="5" wrapText="true"/>
                         <HBox spacing="12"><ComboBox fx:id="newPriorityCombo" promptText="Priorität *" styleClass="combo-box" maxWidth="Infinity" HBox.hgrow="ALWAYS"/><ComboBox fx:id="newCategoryCombo" promptText="Kategorie *" styleClass="combo-box" maxWidth="Infinity" HBox.hgrow="ALWAYS"/></HBox>
-                        <TextField fx:id="newAttachmentNameField" promptText="Anhang-Dateiname optional, z. B. screenshot.png" styleClass="text-field"/>
+                        <!-- [Nzchupa | 2026-06-13] TSS-007: FileChooser-Button für Anhang — Datei direkt auswählen -->
+                        <!-- FileChooser button for attachment — select file directly instead of typing filename -->
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <TextField fx:id="newAttachmentNameField" promptText="Kein Anhang ausgewählt" styleClass="text-field" editable="false" HBox.hgrow="ALWAYS"/>
+                            <Button text="📎 Datei auswählen" onAction="#handleBrowseAttachment" styleClass="btn-ghost"/>
+                        </HBox>
                         <Label fx:id="newErrorLabel" text="Bitte Titel, Beschreibung und Priorität ausfüllen." styleClass="text-danger" visible="false"/>
                         <Separator styleClass="separator"/>
                         <Label text="IHRE KONTAKTDATEN" styleClass="label-uppercase"/>
