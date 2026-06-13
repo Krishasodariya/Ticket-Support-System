@@ -62,7 +62,7 @@
                 </StackPane>
                 <VBox>
                     <Label fx:id="sidebarName" text="customer" styleClass="sidebar-user-name"/>
-                    <Label text="Customer" styleClass="sidebar-user-role"/>
+                    <Label text="Kunde" styleClass="sidebar-user-role"/>
                 </VBox>
             </HBox>
 
