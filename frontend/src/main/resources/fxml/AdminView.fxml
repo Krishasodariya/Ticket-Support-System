@@ -504,10 +504,18 @@
                 </VBox>
             </ScrollPane>
 
-            <!-- ═══════════════════ AUDIT LOG (незмінено) ═══════════════════ -->
+            <!-- ═══════════════════ AUDIT LOG ═══════════════════ -->
+            <!-- [Nzchupa | 2026-06-13] TSS-014: Such- und Filterfelder für Audit-Log hinzugefügt -->
+            <!-- Added search field and action type filter to Audit-Log pane -->
             <VBox fx:id="paneAuditLog" spacing="20" visible="false">
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                 <Label text="Ticket-Historie: Status-, Prioritäts-, Titel- und Agentenänderungen werden automatisch protokolliert." styleClass="text-muted" />
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="auditSearchField" promptText="Ticket oder Benutzer suchen..." prefWidth="260" styleClass="text-field" />
+                    <ComboBox fx:id="auditTypeFilter" promptText="Alle Aktionen" prefWidth="180" styleClass="combo-box" />
+                    <Button text="Filtern" onAction="#handleFilterAuditLog" styleClass="btn-primary" />
+                    <Button text="Zurücksetzen" onAction="#handleClearAuditFilter" styleClass="btn-ghost" />
+                </HBox>
                 <TableView fx:id="auditLogTable" VBox.vgrow="ALWAYS" styleClass="table-view">
                     <columns>
                         <TableColumn fx:id="auditColTicket" text="Ticket" prefWidth="240" />

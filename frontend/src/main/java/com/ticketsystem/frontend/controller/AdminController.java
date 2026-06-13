@@ -101,6 +101,11 @@ public class AdminController {
 
     @FXML private TableView<AuditLogFX> auditLogTable;
     @FXML private TableColumn<AuditLogFX, String> auditColTicket, auditColUser, auditColType, auditColOld, auditColNew, auditColTime;
+    // [Nzchupa | 2026-06-13] TSS-014: Such- und Filterfelder für Audit-Log
+    // Search and filter controls for Audit-Log pane
+    @FXML private TextField auditSearchField;
+    @FXML private ComboBox<String> auditTypeFilter;
+    private List<AuditLogFX> allAuditLogs = new java.util.ArrayList<>();
 
     // Feature 32 – System-Aktivitätsprotokoll
     @FXML private TableView<SystemAuditLogFX> sysAuditTable;
@@ -636,12 +641,49 @@ public class AdminController {
         Task<List<AuditLogFX>> task = new Task<>() {
             @Override protected List<AuditLogFX> call() throws Exception { return auditLogService.getAllLogs(); }
         };
-        task.setOnSucceeded(e -> auditLogTable.setItems(FXCollections.observableArrayList(task.getValue())));
+        task.setOnSucceeded(e -> {
+            // [Nzchupa | 2026-06-13] TSS-014: Alle Einträge speichern für clientseitige Filterung
+            // Store all entries so client-side filter can work without re-fetching
+            allAuditLogs = new java.util.ArrayList<>(task.getValue());
+            // Aktionstypen für Filter-ComboBox befüllen
+            if (auditTypeFilter != null && auditTypeFilter.getItems().isEmpty()) {
+                java.util.Set<String> types = new java.util.TreeSet<>();
+                allAuditLogs.forEach(l -> { if (l.getChangeType() != null) types.add(l.getChangeType()); });
+                auditTypeFilter.getItems().add("Alle");
+                auditTypeFilter.getItems().addAll(types);
+                auditTypeFilter.setValue("Alle");
+            }
+            applyAuditFilter();
+        });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Audit-Log konnte nicht geladen werden."));
         new Thread(task, "admin-load-audit").start();
 
         // Feature 32 – System-Audit-Log parallel laden
         loadSystemAuditLogs();
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-014: Audit-Log-Filter — Suche nach Ticket/Benutzer + Aktionstyp
+    // Filter audit log by ticket title / user name and action type
+    private void applyAuditFilter() {
+        String search = auditSearchField != null && auditSearchField.getText() != null
+                ? auditSearchField.getText().trim().toLowerCase() : "";
+        String type = auditTypeFilter != null ? auditTypeFilter.getValue() : "Alle";
+        List<AuditLogFX> filtered = allAuditLogs.stream()
+                .filter(l -> search.isEmpty()
+                        || (l.getTicketTitle() != null && l.getTicketTitle().toLowerCase().contains(search))
+                        || (l.getChangedBy() != null && l.getChangedBy().toLowerCase().contains(search)))
+                .filter(l -> type == null || "Alle".equals(type)
+                        || type.equals(l.getChangeType()))
+                .collect(Collectors.toList());
+        auditLogTable.setItems(FXCollections.observableArrayList(filtered));
+    }
+
+    @FXML public void handleFilterAuditLog() { applyAuditFilter(); }
+
+    @FXML public void handleClearAuditFilter() {
+        if (auditSearchField != null) auditSearchField.clear();
+        if (auditTypeFilter  != null) auditTypeFilter.setValue("Alle");
+        applyAuditFilter();
     }
 
     // Feature 32

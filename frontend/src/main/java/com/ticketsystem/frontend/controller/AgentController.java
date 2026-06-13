@@ -259,11 +259,17 @@ public class AgentController {
                     : "–");
         }
 
-        // ── Performance-Bars: meine Tickets (alle, inkl. gelöste) ──────────────
-        long myTotal = tickets.stream().filter(t -> me.equals(t.getAssignedTo())).count();
+        // [Nzchupa | 2026-06-13] TSS-009: Performance-Bars auf 30 Tage begrenzen
+        // Filter performance data to last 30 days so label "PERFORMANCE (30 TAGE)" is accurate
+        java.time.LocalDateTime cutoff = java.time.LocalDateTime.now().minusDays(30);
+        long myTotal = tickets.stream()
+                .filter(t -> me.equals(t.getAssignedTo()))
+                .filter(t -> t.getCreatedAt() != null && t.getCreatedAt().isAfter(cutoff))
+                .count();
         if (myTotal > 0) {
             long myResolved = tickets.stream()
                     .filter(t -> me.equals(t.getAssignedTo()))
+                    .filter(t -> t.getCreatedAt() != null && t.getCreatedAt().isAfter(cutoff))
                     .filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus()))
                     .count();
             long myOpen = myTotal - myResolved;
