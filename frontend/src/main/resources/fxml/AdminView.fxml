@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>	
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
@@ -46,7 +46,7 @@
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showAuditLog" fx:id="navAuditLog" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#475569" fx:id="dotAuditLog" />
-                <Label text="📝 Audit-Log" styleClass="text-secondary" fx:id="labelAuditLog" />
+                <Label text="📝 Aktivitätsprotokoll" styleClass="text-secondary" fx:id="labelAuditLog" />
             </HBox>
             <!-- Feature 32 – System-Aktivitätsprotokoll -->
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showSystemAuditLog" fx:id="navSystemAuditLog" styleClass="nav-item">
