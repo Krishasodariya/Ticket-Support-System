@@ -372,7 +372,7 @@
                     </VBox>
                 </HBox>
                 <!-- Filter Bar -->
-                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="filter-bar">
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="filter-barg">
                     <ComboBox fx:id="filterStatusCombo" promptText="Alle Status" prefWidth="170" styleClass="combo-box" />
                     <ComboBox fx:id="filterPriorityCombo" promptText="Alle Prioritäten" prefWidth="170" styleClass="combo-box" />
                     <TextField fx:id="searchField" promptText="Suche: Titel, Kunde, Agent..." prefWidth="300" styleClass="text-field" />
