@@ -10,6 +10,7 @@ import com.ticketsystem.frontend.service.CommentApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
+import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
@@ -103,6 +104,16 @@ public class TicketDetailController {
         if (!customer) {
             statusCombo.getItems().setAll(TicketStatus.values());
             priorityCombo.getItems().setAll(TicketPriority.values());
+            // [Nzchupa | 2026-06-13] TSS-003/004: Deutsche Bezeichnungen in ComboBoxen anzeigen
+            // Show German labels in status and priority ComboBoxes
+            statusCombo.setConverter(new javafx.util.StringConverter<>() {
+                @Override public String toString(TicketStatus s) { return s == null ? "" : LabelHelper.statusToGerman(s.name()); }
+                @Override public TicketStatus fromString(String s) { return null; }
+            });
+            priorityCombo.setConverter(new javafx.util.StringConverter<>() {
+                @Override public String toString(TicketPriority p) { return p == null ? "" : LabelHelper.priorityToGerman(p.name()); }
+                @Override public TicketPriority fromString(String s) { return null; }
+            });
             loadAgents();
         }
 
@@ -136,6 +147,31 @@ public class TicketDetailController {
                 setText(empty || item == null ? null : item.getUsername() + " (" + item.getEmail() + ")");
             }
         };
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-003/004: Badge-Klasse + deutsches Label dynamisch setzen
+    // Applies the correct colored badge CSS class and German display text to a label
+    private void applyBadge(javafx.scene.control.Label label, String value) {
+        if (label == null || value == null) return;
+        label.getStyleClass().removeIf(c -> c.startsWith("badge-"));
+        String v = value.trim().toUpperCase();
+        String cssClass = switch (v) {
+            case "OPEN"        -> "badge-open";
+            case "IN_PROGRESS" -> "badge-progress";
+            case "WAITING"     -> "badge-waiting";
+            case "RESOLVED"    -> "badge-resolved";
+            case "CLOSED"      -> "badge-closed";
+            case "CRITICAL"    -> "badge-critical";
+            case "HIGH"        -> "badge-high";
+            case "MEDIUM"      -> "badge-medium";
+            case "LOW"         -> "badge-low";
+            default            -> "";
+        };
+        if (!cssClass.isEmpty()) label.getStyleClass().add(cssClass);
+        // Спочатку перевіряємо статус, потім пріоритет / Try status translation first, fall back to priority
+        String german = LabelHelper.statusToGerman(v);
+        if (german.equals(v)) german = LabelHelper.priorityToGerman(v);
+        label.setText(german);
     }
 
     private String safe(String text) {
@@ -282,8 +318,10 @@ public class TicketDetailController {
                 Platform.runLater(() -> {
                     titleLabel.setText(currentTicket.getTitle());
                     if (ticketNumberLabel != null) ticketNumberLabel.setText(currentTicket.getTicketNumber() != null ? currentTicket.getTicketNumber() : currentTicket.getId());
-                    statusLabel.setText(currentTicket.getStatus());
-                    priorityLabel.setText(currentTicket.getPriority());
+                    // [Nzchupa | 2026-06-13] TSS-003/004: Badge mit Farb-Klasse und deutschen Labels setzen
+                    // Apply colored badge class + German label for status and priority
+                    applyBadge(statusLabel,   currentTicket.getStatus());
+                    applyBadge(priorityLabel, currentTicket.getPriority());
                     createdByLabel.setText(currentTicket.getCreatedByUser() != null ? currentTicket.getCreatedByUser().getUsername() : currentTicket.getCreatedBy());
                     assignedToLabel.setText(currentTicket.getAssignedTo() != null ? currentTicket.getAssignedTo() : "Noch nicht zugewiesen");
                     if (dueDateLabel != null) dueDateLabel.setText(currentTicket.getDueAt() != null ? currentTicket.getDueAt().toString() : "Keine SLA");

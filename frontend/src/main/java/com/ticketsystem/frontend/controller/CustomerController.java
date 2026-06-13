@@ -9,6 +9,7 @@ import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
+import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
 import com.ticketsystem.frontend.util.SessionManager;
@@ -140,18 +141,20 @@ public class CustomerController {
         newPriorityCombo.getItems().clear();
         newPriorityCombo.getItems().add(null); // null = automatisch ermitteln
         newPriorityCombo.getItems().addAll(TicketPriority.values());
+        // [Nzchupa | 2026-06-13] TSS-004: Deutsche Prioritätsbezeichnungen in der ComboBox anzeigen
+        // Show German priority labels instead of raw enum names (CRITICAL → Kritisch, etc.)
         newPriorityCombo.setButtonCell(new ListCell<>() {
             @Override
             protected void updateItem(TicketPriority item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(item == null ? "Automatisch ermitteln" : item.name());
+                setText(item == null ? "Automatisch ermitteln" : LabelHelper.priorityToGerman(item.name()));
             }
         });
         newPriorityCombo.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(TicketPriority item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(item == null ? "Automatisch ermitteln" : item.name());
+                setText(item == null ? "Automatisch ermitteln" : LabelHelper.priorityToGerman(item.name()));
             }
         });
         newPriorityCombo.setValue(null); // Standard: automatisch
@@ -220,6 +223,12 @@ public class CustomerController {
         if (filterStatusCombo != null) {
             filterStatusCombo.getItems().setAll("Alle", "OPEN", "IN_PROGRESS", "WAITING", "RESOLVED", "CLOSED");
             filterStatusCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen
+            // Show German labels in filter combo; keep enum names as values so filtering still works
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+            filterStatusCombo.setCellFactory(statusCF);
+            filterStatusCombo.setButtonCell(statusCF.call(null));
             // [Nzchupa | 2026-06-13] Echtzeit-Filter und Suche — sofortige Reaktion ohne Button
             // Real-time filter and search listeners
             filterStatusCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
@@ -227,6 +236,12 @@ public class CustomerController {
         if (filterPriorityCombo != null) {
             filterPriorityCombo.getItems().setAll("Alle", "CRITICAL", "HIGH", "MEDIUM", "LOW");
             filterPriorityCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
+            // Show German labels in priority filter combo
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+            filterPriorityCombo.setCellFactory(priorityCF);
+            filterPriorityCombo.setButtonCell(priorityCF.call(null));
             filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
         }
         if (searchField != null) {

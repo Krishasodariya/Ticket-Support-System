@@ -21,6 +21,7 @@ import com.ticketsystem.frontend.service.WorkflowOptionApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
+import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
 import com.ticketsystem.frontend.util.SessionManager;
@@ -212,6 +213,12 @@ public class AdminController {
         if (filterStatusCombo != null) {
             filterStatusCombo.getItems().setAll("Alle", TicketStatus.OPEN.name(), TicketStatus.IN_PROGRESS.name(), TicketStatus.WAITING.name(), TicketStatus.RESOLVED.name(), TicketStatus.CLOSED.name());
             filterStatusCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen, interne Enum-Namen für Filter-Logik behalten
+            // Show German labels in filter combo; keep enum names as values so filtering still works
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+            filterStatusCombo.setCellFactory(statusCF);
+            filterStatusCombo.setButtonCell(statusCF.call(null));
             // [Nzchupa | 2026-06-13] Echtzeit-Filter — Tabelle aktualisiert sich sofort ohne Button-Klick
             // Real-time filter: update table immediately on combo change
             filterStatusCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
@@ -219,6 +226,12 @@ public class AdminController {
         if (filterPriorityCombo != null) {
             filterPriorityCombo.getItems().setAll("Alle", TicketPriority.CRITICAL.name(), TicketPriority.HIGH.name(), TicketPriority.MEDIUM.name(), TicketPriority.LOW.name());
             filterPriorityCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
+            // Show German labels in priority filter combo
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+            filterPriorityCombo.setCellFactory(priorityCF);
+            filterPriorityCombo.setButtonCell(priorityCF.call(null));
             filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
         }
         if (searchField != null) {
@@ -869,12 +882,19 @@ public class AdminController {
         }
     }
 
+    // [Nzchupa | 2026-06-13] TSS-002: themeToggleBtn für dynamisches Icon-Update
+    // Theme toggle button reference for dynamic icon update
+    @FXML private Button themeToggleBtn;
+
     // [Nzchupa | 2026-06-12] TS-002: Theme-Toggle im Topbar — Dark/Light Mode umschalten
     // Theme toggle in topbar — switches dark/light mode and applies it to the current view
     @FXML public void handleToggleTheme() {
         ThemeManager.toggle();
         // getRoot() gibt bereits Parent zurück — kein Cast nötig / getRoot() already returns Parent, no cast needed
         ThemeManager.apply(notificationButton.getScene().getRoot());
+        // [Nzchupa | 2026-06-13] TSS-002: Icon nach Theme-Wechsel aktualisieren
+        // Update icon after theme switch
+        if (themeToggleBtn != null) themeToggleBtn.setText(ThemeManager.isDarkMode() ? "☀" : "🌙");
     }
 
     @FXML

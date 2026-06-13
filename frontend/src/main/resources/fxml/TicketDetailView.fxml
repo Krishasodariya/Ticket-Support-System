@@ -19,39 +19,43 @@
                     <Label text="Ticket-Nr.:" styleClass="field-label"/>
                     <Label fx:id="ticketNumberLabel" text="-" styleClass="text-primary"/>
                 </HBox>
-                <HBox spacing="20">
-                    <VBox spacing="4">
-                        <Label text="Status" styleClass="field-label"/>
-                        <Label fx:id="statusLabel" styleClass="badge"/>
-                    </VBox>
-                    <VBox spacing="4">
-                        <Label text="Priorität" styleClass="field-label"/>
-                        <Label fx:id="priorityLabel" styleClass="badge"/>
-                    </VBox>
-                    <VBox spacing="4">
-                        <Label text="Erstellt von" styleClass="field-label"/>
-                        <Label fx:id="createdByLabel" styleClass="text-primary" />
-                    </VBox>
-                    <VBox spacing="4">
-                        <Label text="Agent" styleClass="field-label"/>
-                        <Label fx:id="assignedToLabel" styleClass="text-primary" />
-                    </VBox>
-                    <VBox spacing="4">
-                        <Label text="SLA" styleClass="field-label"/>
-                        <Label fx:id="slaLabel" text="-" styleClass="text-warning" />
-                    </VBox>
-                </HBox>
-                <GridPane hgap="16" vgap="8">
+                <!-- [Nzchupa | 2026-06-13] TSS-011: Ticket-Metadaten als GridPane — gleichmäßige Spaltenbreiten -->
+                <!-- Ticket metadata in GridPane — consistent column widths for all roles -->
+                <GridPane hgap="0" vgap="5">
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="25"/>
-                        <ColumnConstraints percentWidth="25"/>
-                        <ColumnConstraints percentWidth="25"/>
-                        <ColumnConstraints percentWidth="25"/>
+                        <ColumnConstraints percentWidth="20" minWidth="80"/>
+                        <ColumnConstraints percentWidth="20" minWidth="80"/>
+                        <ColumnConstraints percentWidth="20" minWidth="80"/>
+                        <ColumnConstraints percentWidth="20" minWidth="80"/>
+                        <ColumnConstraints percentWidth="20" minWidth="80"/>
                     </columnConstraints>
-                    <VBox GridPane.columnIndex="0" spacing="4"><Label text="Fällig am" styleClass="field-label"/><Label fx:id="dueDateLabel" text="-" styleClass="text-muted" wrapText="true"/></VBox>
-                    <VBox GridPane.columnIndex="1" spacing="4"><Label text="Anhang" styleClass="field-label"/><Label fx:id="attachmentLabel" text="Kein Anhang" styleClass="text-muted" wrapText="true"/></VBox>
-                    <VBox GridPane.columnIndex="2" spacing="4"><Label text="Lösungsgrund" styleClass="field-label"/><Label fx:id="solutionLabel" text="-" styleClass="text-muted" wrapText="true"/></VBox>
-                    <VBox GridPane.columnIndex="3" spacing="4"><Label text="Kundenfeedback" styleClass="field-label"/><Label fx:id="ratingLabel" text="-" styleClass="text-muted" wrapText="true"/></VBox>
+                    <Label text="Status"       styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Label text="Priorität"    styleClass="field-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <Label text="Erstellt von" styleClass="field-label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <Label text="Agent"        styleClass="field-label" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                    <Label text="SLA"          styleClass="field-label" GridPane.columnIndex="4" GridPane.rowIndex="0"/>
+                    <Label fx:id="statusLabel"    styleClass="badge"        GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <Label fx:id="priorityLabel"  styleClass="badge"        GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <Label fx:id="createdByLabel" styleClass="text-primary" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                    <Label fx:id="assignedToLabel" styleClass="text-primary" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                    <Label fx:id="slaLabel" text="-" styleClass="text-warning" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                </GridPane>
+                <Separator/>
+                <GridPane hgap="0" vgap="5">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="25" minWidth="80"/>
+                        <ColumnConstraints percentWidth="25" minWidth="80"/>
+                        <ColumnConstraints percentWidth="25" minWidth="80"/>
+                        <ColumnConstraints percentWidth="25" minWidth="80"/>
+                    </columnConstraints>
+                    <Label text="Fällig am"      styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Label text="Anhang"         styleClass="field-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <Label text="Lösungsgrund"   styleClass="field-label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <Label text="Kundenfeedback" styleClass="field-label" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                    <Label fx:id="dueDateLabel"    text="-"           styleClass="text-muted" wrapText="true" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <Label fx:id="attachmentLabel" text="Kein Anhang" styleClass="text-muted" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <Label fx:id="solutionLabel"   text="-"           styleClass="text-muted" wrapText="true" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                    <Label fx:id="ratingLabel"     text="-"           styleClass="text-muted" wrapText="true" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
                 </GridPane>
                 <Label text="Beschreibung" styleClass="section-title"/>
                 <TextArea fx:id="descriptionArea" editable="false" wrapText="true" VBox.vgrow="ALWAYS"/>
@@ -81,7 +85,7 @@
                 <!-- [Nzchupa | 2026-06-13] Timeline ersetzt ListView — bessere visuelle Darstellung -->
                 <!-- Timeline replaces flat ListView — shows history as visual timeline entries -->
                 <Label text="Ticket-Historie" styleClass="section-title"/>
-                <ScrollPane fitToWidth="true" prefHeight="180" styleClass="scroll-pane">
+                <ScrollPane fitToWidth="true" prefHeight="280" styleClass="scroll-pane">
                     <VBox fx:id="timelineContainer" spacing="0" />
                 </ScrollPane>
             </VBox>
