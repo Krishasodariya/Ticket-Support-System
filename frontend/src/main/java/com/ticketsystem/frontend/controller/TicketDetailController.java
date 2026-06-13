@@ -12,6 +12,7 @@ import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.SessionManager;
+import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
 import com.ticketsystem.model.enums.UserRole;
@@ -19,6 +20,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
 
 import java.util.List;
 import java.util.Map;
@@ -57,7 +59,9 @@ public class TicketDetailController {
     private int selectedRating = 0;
 
     @FXML private ListView<CommentFX> commentsList;
-    @FXML private ListView<AuditLogFX> historyList;
+    // [Nzchupa | 2026-06-13] timelineContainer ersetzt historyList — visuelle Timeline statt flacher Liste
+    // timelineContainer replaces historyList — visual timeline instead of flat ListView
+    @FXML private javafx.scene.layout.VBox timelineContainer;
     @FXML private TextArea newCommentArea;
     @FXML private CheckBox internalCheckBox;
 
@@ -119,17 +123,8 @@ public class TicketDetailController {
                 }
             }
         });
-        historyList.setCellFactory(param -> new ListCell<>() {
-            @Override protected void updateItem(AuditLogFX item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getTimestamp() + " | " + item.getChangedBy() + " | " + item.getChangeType()
-                            + " | " + safe(item.getOldValue()) + " → " + safe(item.getNewValue()));
-                }
-            }
-        });
+        // [Nzchupa | 2026-06-13] historyList.setCellFactory entfernt — buildTimeline() wird jetzt verwendet
+        // Removed old cell factory; timeline entries are built programmatically in buildTimeline()
         agentCombo.setCellFactory(param -> userCell());
         agentCombo.setButtonCell(userCell());
     }
@@ -145,6 +140,120 @@ public class TicketDetailController {
 
     private String safe(String text) {
         return text == null ? "-" : text;
+    }
+
+    // [Nzchupa | 2026-06-13] buildTimeline — visuelle Timeline für Ticket-Verlauf
+    // Builds visual timeline entries from AuditLog list; replaces the old flat ListView
+    private void buildTimeline(List<AuditLogFX> logs) {
+        if (timelineContainer == null) return;
+        timelineContainer.getChildren().clear();
+
+        if (logs == null || logs.isEmpty()) {
+            javafx.scene.control.Label empty = new javafx.scene.control.Label("Keine Änderungen vorhanden.");
+            empty.setStyle("-fx-text-fill: #64748B; -fx-font-size: 12px; -fx-padding: 8 12;");
+            timelineContainer.getChildren().add(empty);
+            return;
+        }
+
+        boolean dark = ThemeManager.isDarkMode();
+        String lineBg   = dark ? "#334155" : "#E2E8F0";
+        String dotBg    = "#0EA5E9";
+        String cardBg   = dark ? "#1E293B" : "#F8FAFC";
+        String cardBord = dark ? "#334155" : "#E2E8F0";
+        String textMain = dark ? "#F1F5F9" : "#0F172A";
+        String textSub  = dark ? "#94A3B8" : "#64748B";
+
+        for (int i = 0; i < logs.size(); i++) {
+            AuditLogFX log = logs.get(i);
+            boolean last = (i == logs.size() - 1);
+
+            // Row: dot column + card column
+            javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(10);
+            row.setAlignment(javafx.geometry.Pos.TOP_LEFT);
+            javafx.geometry.Insets rowPadding = new javafx.geometry.Insets(0, 8, 0, 8);
+            javafx.scene.layout.HBox.setMargin(row, rowPadding);
+
+            // Dot + vertical line column
+            javafx.scene.layout.VBox dotCol = new javafx.scene.layout.VBox();
+            dotCol.setAlignment(javafx.geometry.Pos.TOP_CENTER);
+            dotCol.setMinWidth(16);
+            dotCol.setMaxWidth(16);
+
+            javafx.scene.shape.Circle dot = new javafx.scene.shape.Circle(5);
+            dot.setStyle("-fx-fill: " + dotBg + ";");
+
+            javafx.scene.layout.VBox dotColInner = new javafx.scene.layout.VBox(dot);
+            dotColInner.setAlignment(javafx.geometry.Pos.CENTER);
+            dotColInner.setPadding(new javafx.geometry.Insets(4, 0, 0, 0));
+
+            if (!last) {
+                javafx.scene.layout.Region line = new javafx.scene.layout.Region();
+                line.setPrefWidth(2);
+                line.setPrefHeight(30);
+                line.setMaxWidth(2);
+                line.setStyle("-fx-background-color: " + lineBg + ";");
+                javafx.scene.layout.VBox.setVgrow(line, javafx.scene.layout.Priority.ALWAYS);
+                dotColInner.getChildren().add(line);
+            }
+            dotCol.getChildren().add(dotColInner);
+
+            // Card
+            javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(3);
+            card.setPadding(new javafx.geometry.Insets(6, 10, 8, 10));
+            card.setStyle(
+                "-fx-background-color: " + cardBg + ";" +
+                "-fx-border-color: " + cardBord + ";" +
+                "-fx-border-radius: 6;" +
+                "-fx-background-radius: 6;"
+            );
+            javafx.scene.layout.HBox.setHgrow(card, javafx.scene.layout.Priority.ALWAYS);
+
+            // Change type + user
+            String changeType = safe(log.getChangeType());
+            String icon = iconForChangeType(changeType);
+            javafx.scene.control.Label headerLbl = new javafx.scene.control.Label(icon + " " + changeType + "  •  " + safe(log.getChangedBy()));
+            headerLbl.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + textMain + ";");
+
+            // old → new value
+            String detail = safe(log.getOldValue()) + " → " + safe(log.getNewValue());
+            javafx.scene.control.Label detailLbl = new javafx.scene.control.Label(detail);
+            detailLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: " + textSub + ";");
+            detailLbl.setWrapText(true);
+
+            // timestamp
+            String ts = log.getTimestamp() != null
+                ? log.getTimestamp().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                : "-";
+            javafx.scene.control.Label tsLbl = new javafx.scene.control.Label(ts);
+            tsLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: " + textSub + ";");
+
+            card.getChildren().addAll(headerLbl, detailLbl, tsLbl);
+            row.getChildren().addAll(dotCol, card);
+            timelineContainer.getChildren().add(row);
+
+            if (!last) {
+                // spacing between entries
+                javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
+                spacer.setPrefHeight(4);
+                timelineContainer.getChildren().add(spacer);
+            }
+        }
+    }
+
+    // Icon auswählen anhand des ChangeType-Wertes / Pick icon based on change type
+    private String iconForChangeType(String changeType) {
+        if (changeType == null) return "•";
+        return switch (changeType.toUpperCase()) {
+            case "STATUS_CHANGED"   -> "↔";
+            case "PRIORITY_CHANGED" -> "⚑";
+            case "AGENT_ASSIGNED"   -> "👤";
+            case "COMMENT_ADDED"    -> "💬";
+            case "TICKET_CREATED"   -> "✚";
+            case "TICKET_CLOSED"    -> "✔";
+            case "TICKET_REOPENED"  -> "↺";
+            case "ATTACHMENT_ADDED" -> "📎";
+            default -> "•";
+        };
     }
 
     private void loadAgents() {
@@ -198,7 +307,7 @@ public class TicketDetailController {
                         selectCurrentAgent();
                     }
                     commentsList.setItems(FXCollections.observableArrayList(comments));
-                    historyList.setItems(FXCollections.observableArrayList(logs));
+                    buildTimeline(logs);
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> AlertHelper.showError("Fehler", "Ticket konnte nicht geladen werden.\n" + e.getMessage()));

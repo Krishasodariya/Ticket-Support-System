@@ -49,7 +49,8 @@
                     <VBox spacing="6">
                         <Label text="Persönliche Daten" styleClass="nav-item, nav-item-active, text-primary" maxWidth="Infinity" />
                         <Label text="Passwort ändern" styleClass="nav-item, text-secondary" maxWidth="Infinity" />
-                        <Button text="Dark/Light Mode wechseln" onAction="#handleToggleTheme" styleClass="btn-ghost" maxWidth="Infinity" />
+                        <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Button aus Profil entfernt — befindet sich jetzt im Topbar -->
+                        <!-- Theme toggle moved to topbar — removed from Profile sidebar -->
                     </VBox>
                 </VBox>
 
@@ -74,9 +75,16 @@
                                     <Label text="Geburtsdatum" styleClass="text-muted" />
                                     <DatePicker fx:id="birthDatePicker" styleClass="text-field" maxWidth="Infinity" />
                                 </VBox>
+                                <!-- [Nzchupa | 2026-06-13] FileChooser-Schaltfläche für Profilbild — URL oder lokale Datei wählen -->
+                                <!-- Browse button next to URL field — allows selecting local image file -->
                                 <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                     <Label text="Profilbild URL" styleClass="text-muted" />
-                                    <TextField fx:id="profilePicField" styleClass="text-field" />
+                                    <HBox spacing="6" alignment="CENTER_LEFT">
+                                        <TextField fx:id="profilePicField" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                        <Button text="📁" onAction="#handleBrowseProfilePic" styleClass="btn-ghost"
+                                                prefWidth="36" prefHeight="36"
+                                                style="-fx-font-size: 14px;" />
+                                    </HBox>
                                 </VBox>
                             </GridPane>
                             <HBox alignment="CENTER_RIGHT" spacing="10">

@@ -729,6 +729,21 @@
     -fx-text-fill: #CBD5E1;
 }
 
+/* [Nzchupa | 2026-06-13] TS-005: Feldbeschriftungen für RegisterView — bessere UX */
+/* Field labels above each input */
+.register-field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.theme-light .register-field-label {
+    -fx-text-fill: #374151;
+}
+
+.theme-dark .register-field-label {
+    -fx-text-fill: #94A3B8;
+}
+
 .register-error {
     -fx-text-fill: #EF4444;
 }
@@ -1632,6 +1647,57 @@
 
 .theme-light .chart-legend-row {
     -fx-border-color: transparent transparent #E5E7EB transparent;
+}
+
+/* =========================================================
+   CUSTOM ALERT DIALOGS — [Nzchupa | 2026-06-13]
+   Ersetzt Standard-JavaFX-Alerts / Replaces default JavaFX alerts
+   ========================================================= */
+
+/* --- Dark Mode --- */
+.theme-dark .alert-root {
+    -fx-background-color: #0F172A;
+    -fx-border-color: #1E293B;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 24, 0, 0, 6);
+}
+
+.theme-dark .alert-root .text-secondary {
+    -fx-text-fill: #94A3B8;
+}
+
+.theme-dark .alert-root .separator {
+    -fx-background-color: #1E293B;
+}
+
+/* --- Light Mode --- */
+.theme-light .alert-root {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 20, 0, 0, 4);
+}
+
+.theme-light .alert-root .text-secondary {
+    -fx-text-fill: #475569;
+}
+
+.theme-light .alert-root .separator {
+    -fx-background-color: #E2E8F0;
+}
+
+/* --- Fallback ohne Theme-Klasse --- */
+.alert-root {
+    -fx-background-color: #0F172A;
+    -fx-border-color: #1E293B;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 4);
 }
 
 .theme-light .chart-legend-total {

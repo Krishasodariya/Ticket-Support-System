@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 public class RegisterController {
     @FXML private TextField usernameField;
@@ -69,6 +71,15 @@ public class RegisterController {
                 Platform.runLater(() -> showError("Fehler bei der Registrierung: " + e.getMessage()));
             }
         }).start();
+    }
+
+    // [Nzchupa | 2026-06-13] Enter-Taste zum Absenden — bessere UX in Formularfeldern
+    // Allow pressing Enter in any field to submit the form
+    @FXML
+    public void handleEnterKey(KeyEvent event) {
+        if (event.getCode() == KeyCode.ENTER) {
+            handleRegister();
+        }
     }
 
     @FXML

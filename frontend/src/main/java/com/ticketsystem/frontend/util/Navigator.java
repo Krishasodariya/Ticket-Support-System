@@ -5,7 +5,9 @@ import com.ticketsystem.model.enums.UserRole;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import com.ticketsystem.frontend.util.ThemeManager;
 
 import java.io.IOException;
 
@@ -60,6 +62,36 @@ public class Navigator {
             primaryStage.setMaximized(wasMaximized);
 
             primaryStage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            AlertHelper.showError("Navigation Error", "Could not load view: " + fxmlFile);
+        }
+    }
+
+    // [Nzchupa | 2026-06-12] TS-007: Modales Fenster öffnen — Profile und TicketDetail als Modal
+    // Opens a view as an APPLICATION_MODAL window (blocks the owner) — used for Profile and TicketDetail
+    public static void openModal(String fxmlFile, String title) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    FrontendApplication.class.getResource("/fxml/" + fxmlFile)
+            );
+            Parent root = loader.load();
+            ThemeManager.apply(root);
+
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(
+                    FrontendApplication.class.getResource("/css/styles.css").toExternalForm()
+            );
+
+            Stage modal = new Stage();
+            modal.setTitle(title);
+            modal.setScene(scene);
+            modal.initModality(Modality.APPLICATION_MODAL);
+            modal.initOwner(primaryStage);
+            modal.setMinWidth(900);
+            modal.setMinHeight(650);
+            modal.showAndWait();
 
         } catch (IOException e) {
             e.printStackTrace();

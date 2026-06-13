@@ -45,8 +45,15 @@ public final class AvatarHelper {
                 }
             });
 
-            if (image.getProgress() >= 1.0 && !image.isError()) {
-                showImage(imageView, backgroundCircle, initialsLabel, image);
+            // [Nzchupa | 2026-06-12] TS-004: Race condition behoben — fehlender Fehler-Zweig ergänzt
+            // Bug-Fix: if image was already loaded before listeners were registered,
+            // handle both success and error cases (previously only success was handled)
+            if (image.getProgress() >= 1.0) {
+                if (image.isError()) {
+                    showInitials(imageView, backgroundCircle, initialsLabel);
+                } else {
+                    showImage(imageView, backgroundCircle, initialsLabel, image);
+                }
             }
         } catch (IllegalArgumentException ex) {
             showInitials(imageView, backgroundCircle, initialsLabel);

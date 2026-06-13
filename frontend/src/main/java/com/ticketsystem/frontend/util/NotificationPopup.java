@@ -1,7 +1,9 @@
 package com.ticketsystem.frontend.util;
 
+
 import com.ticketsystem.frontend.model.NotificationFX;
-import javafx.geometry.Insets;
+import com.ticketsystem.frontend.service.NotificationApiService;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -12,7 +14,6 @@ import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-
 import javafx.scene.layout.VBox;
 import javafx.stage.Popup;
 
@@ -24,7 +25,9 @@ public class NotificationPopup {
     private static Popup popup;
     private static Popup detailsPopup;
 
-    public static void show(Node bellIcon, List<NotificationFX> notifications) {
+    // [Nzchupa | 2026-06-12] TS-001: reloadCallback hinzugefügt — wird nach "Alle gelesen" aufgerufen
+    // Added reloadCallback — called after "Alle gelesen" so the badge counter updates
+    public static void show(Node bellIcon, List<NotificationFX> notifications, Runnable reloadCallback) {
         if (popup != null && popup.isShowing()) {
             popup.hide();
             return;
@@ -41,7 +44,8 @@ public class NotificationPopup {
         root.getStyleClass().add("notification-popup");
         applyTheme(root);
 
-        HBox header = createHeader();
+        // [Nzchupa | 2026-06-12] TS-001: notifications + reloadCallback an createHeader übergeben
+        HBox header = createHeader(notifications, reloadCallback);
 
         VBox listBox = new VBox();
         listBox.getStyleClass().add("notification-list");
@@ -76,7 +80,15 @@ public class NotificationPopup {
         popup.show(bellIcon, x, y);
     }
 
-    private static HBox createHeader() {
+    // [Nzchupa | 2026-06-12] TS-001: Überladene Methode ohne Callback für Abwärtskompatibilität
+    // Overloaded method without callback for backward compatibility
+    public static void show(Node bellIcon, List<NotificationFX> notifications) {
+        show(bellIcon, notifications, null);
+    }
+
+    // [Nzchupa | 2026-06-12] TS-001: Bug-Fix — fehlende setOnAction-Logik hinzugefügt
+    // Bug-Fix: createHeader now accepts notifications + callback and wires up the markAll button
+    private static HBox createHeader(List<NotificationFX> notifications, Runnable reloadCallback) {
         HBox header = new HBox(10);
         header.setAlignment(Pos.CENTER_LEFT);
         header.getStyleClass().add("notification-header");
@@ -89,6 +101,19 @@ public class NotificationPopup {
 
         Button markAll = new Button("Alle gelesen");
         markAll.getStyleClass().add("notification-link-button");
+
+        // [Nzchupa | 2026-06-12] TS-001: Button war nie verdrahtet — jetzt API-Aufruf + UI-Reload
+        // Button had no action before — now calls markAllAsRead in background, then reloads badge
+        markAll.setOnAction(e -> {
+            markAll.setDisable(true);
+            new Thread(() -> {
+                new NotificationApiService().markAllAsRead(notifications);
+                Platform.runLater(() -> {
+                    if (popup != null) popup.hide();
+                    if (reloadCallback != null) reloadCallback.run();
+                });
+            }, "mark-all-notifications-read").start();
+        });
 
         header.getChildren().addAll(title, spacer, markAll);
         return header;

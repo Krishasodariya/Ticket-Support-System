@@ -17,6 +17,9 @@ public class HomeController {
     @FXML private ScrollPane mainScrollPane;
     @FXML private HBox homeSection;
     @FXML private VBox featuresSection;
+    // [Nzchupa | 2026-06-12] TS-008: Neues Feld für die Rollen-Sektion
+    // New field for the roles section
+    @FXML private VBox rolesSection;
     @FXML private HBox aboutSection;
     @FXML private VBox contactSection;
 
@@ -61,12 +64,19 @@ public class HomeController {
 
     @FXML
     private void scrollToFeatures() {
-        scrollTo(0.35);
+        scrollTo(0.30);
+    }
+
+    // [Nzchupa | 2026-06-12] TS-008: scrollToRoles-Methode hinzugefügt — scrollt zur Rollen-Sektion
+    // Added scrollToRoles method — scrolls to the new roles section
+    @FXML
+    private void scrollToRoles() {
+        scrollTo(0.52);
     }
 
     @FXML
     private void scrollToAbout() {
-        scrollTo(0.68);
+        scrollTo(0.72);
     }
 
     @FXML

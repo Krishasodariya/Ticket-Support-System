@@ -78,8 +78,12 @@
                             styleClass="btn-ghost" visible="false" managed="false"
                             style="-fx-text-fill: #F59E0B; -fx-border-color: #F59E0B;" />
                 </VBox>
+                <!-- [Nzchupa | 2026-06-13] Timeline ersetzt ListView — bessere visuelle Darstellung -->
+                <!-- Timeline replaces flat ListView — shows history as visual timeline entries -->
                 <Label text="Ticket-Historie" styleClass="section-title"/>
-                <ListView fx:id="historyList" prefHeight="150" styleClass="list-view" />
+                <ScrollPane fitToWidth="true" prefHeight="180" styleClass="scroll-pane">
+                    <VBox fx:id="timelineContainer" spacing="0" />
+                </ScrollPane>
             </VBox>
             <VBox spacing="10" styleClass="card">
                 <Label text="Kommentare" styleClass="section-title"/>

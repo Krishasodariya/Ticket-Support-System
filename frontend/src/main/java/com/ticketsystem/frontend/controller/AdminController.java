@@ -23,8 +23,8 @@ import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
-
 import com.ticketsystem.frontend.util.SessionManager;
+import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
 import com.ticketsystem.model.enums.UserRole;
@@ -212,10 +212,19 @@ public class AdminController {
         if (filterStatusCombo != null) {
             filterStatusCombo.getItems().setAll("Alle", TicketStatus.OPEN.name(), TicketStatus.IN_PROGRESS.name(), TicketStatus.WAITING.name(), TicketStatus.RESOLVED.name(), TicketStatus.CLOSED.name());
             filterStatusCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] Echtzeit-Filter — Tabelle aktualisiert sich sofort ohne Button-Klick
+            // Real-time filter: update table immediately on combo change
+            filterStatusCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
         }
         if (filterPriorityCombo != null) {
             filterPriorityCombo.getItems().setAll("Alle", TicketPriority.CRITICAL.name(), TicketPriority.HIGH.name(), TicketPriority.MEDIUM.name(), TicketPriority.LOW.name());
             filterPriorityCombo.setValue("Alle");
+            filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
+        }
+        if (searchField != null) {
+            // [Nzchupa | 2026-06-13] Echtzeit-Suche — Ergebnisse erscheinen beim Tippen
+            // Real-time search: filter on every keystroke
+            searchField.textProperty().addListener((obs, old, val) -> applyTicketFilter());
         }
         if (roleCombo != null) {
             roleCombo.getItems().setAll(UserRole.CUSTOMER.name(), UserRole.AGENT.name(), UserRole.ADMIN.name());
@@ -437,23 +446,43 @@ public class AdminController {
         return map == null ? 0 : map.getOrDefault(key, 0L);
     }
 
+    // [Nzchupa | 2026-06-13] Loading-Spinner während Datenladen — bessere UX
+    // Show spinner while loading, restore empty-state placeholder on finish
     private void loadTickets() {
+        ticketTable.setPlaceholder(buildLoadingNode());
         Task<List<TicketFX>> task = new Task<>() {
             @Override
             protected List<TicketFX> call() throws Exception {
                 return ticketService.getAllTickets();
             }
         };
-
         task.setOnSucceeded(e -> {
             allTickets.setAll(task.getValue());
+            ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
         });
-
-        task.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden."));
-
+        task.setOnFailed(e -> {
+            ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
+            AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden.");
+        });
         new Thread(task, "admin-load-tickets").start();
+    }
+
+    private javafx.scene.Node buildLoadingNode() {
+        javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
+        spinner.setPrefSize(36, 36);
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label("Daten werden geladen…");
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, lbl);
+        box.setAlignment(javafx.geometry.Pos.CENTER);
+        return box;
+    }
+
+    private javafx.scene.Node buildEmptyNode(String msg) {
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label(msg);
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        return lbl;
     }
 
     @FXML public void handleApplyTicketFilter() { applyTicketFilter(); }
@@ -628,44 +657,8 @@ public class AdminController {
         new Thread(task, "admin-notification-count").start();
     }
 
-    @FXML public void handleShowNotifications() {
-        new Thread(() -> {
-            try {
-                List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() -> showNotificationDialog(notifications));
-            } catch (Exception ex) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden."));
-            }
-        }, "admin-load-notifications").start();
-    }
-
-    private void showNotificationDialog(List<NotificationFX> notifications) {
-        ListView<NotificationFX> list = new ListView<>(FXCollections.observableArrayList(notifications));
-        list.setPrefSize(520, 320);
-        list.setCellFactory(v -> new ListCell<>() {
-            @Override protected void updateItem(NotificationFX item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : (item.isRead() ? "✓ " : "● ") + item.getTitle() + "\n" + item.getMessage());
-            }
-        });
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Benachrichtigungen");
-        alert.setHeaderText(notifications.isEmpty() ? "Keine Benachrichtigungen" : "Meine Benachrichtigungen");
-        alert.getDialogPane().setContent(list);
-        alert.showAndWait();
-        markShownNotificationsAsRead(notifications);
-    }
-
-    private void markShownNotificationsAsRead(List<NotificationFX> notifications) {
-        new Thread(() -> {
-            for (NotificationFX notification : notifications) {
-                try {
-                    if (!notification.isRead()) notificationService.markAsRead(notification.getId());
-                } catch (Exception ignored) { }
-            }
-            Platform.runLater(this::loadUnreadNotifications);
-        }, "mark-notifications-read").start();
-    }
+    // [Nzchupa | 2026-06-13] Alte handleShowNotifications / showNotificationDialog entfernt — war toter Code
+    // Removed old native-Alert notification dialog — NotificationPopup (handleNotifications) is used instead
 
     @FXML public void showDashboard() { switchTab(paneDashboard, navDashboard, dotDashboard, labelDashboard, "Dashboard"); loadDashboardData(); }
     @FXML public void showTickets() { switchTab(paneTickets, navTickets, dotTickets, labelTickets, "Alle Tickets"); loadTickets(); }
@@ -865,16 +858,34 @@ public class AdminController {
 
     private interface ExportSupplier { byte[] get() throws Exception; }
 
-    @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
-    @FXML public void handleLogout() { Navigator.logout(); }
+    // [Nzchupa | 2026-06-12] TS-007: Profil als Modal öffnen — Dashboard bleibt im Hintergrund
+    // Open Profile as modal window so the admin dashboard is not replaced
+    @FXML public void handleProfile() { Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit"); }
+    // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen
+    // Logout confirmation dialog to prevent accidental logouts
+    @FXML public void handleLogout() {
+        if (AlertHelper.showConfirm("Abmelden", "Möchten Sie sich wirklich abmelden?", "Abmelden")) {
+            Navigator.logout();
+        }
+    }
+
+    // [Nzchupa | 2026-06-12] TS-002: Theme-Toggle im Topbar — Dark/Light Mode umschalten
+    // Theme toggle in topbar — switches dark/light mode and applies it to the current view
+    @FXML public void handleToggleTheme() {
+        ThemeManager.toggle();
+        // getRoot() gibt bereits Parent zurück — kein Cast nötig / getRoot() already returns Parent, no cast needed
+        ThemeManager.apply(notificationButton.getScene().getRoot());
+    }
 
     @FXML
     private void handleNotifications(MouseEvent event) {
         new Thread(() -> {
             try {
                 List<NotificationFX> notifications = notificationService.getMyNotifications();
+                // [Nzchupa | 2026-06-12] TS-001: reloadCallback übergeben — Badge-Counter wird nach "Alle gelesen" aktualisiert
+                // Pass reloadCallback so the unread badge refreshes after "Alle gelesen" is clicked
                 Platform.runLater(() ->
-                        NotificationPopup.show((Node) event.getSource(), notifications)
+                        NotificationPopup.show((Node) event.getSource(), notifications, this::loadUnreadNotifications)
                 );
             } catch (Exception ex) {
                 Platform.runLater(() ->
