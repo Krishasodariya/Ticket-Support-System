@@ -273,48 +273,21 @@
                             </TableView>
                         </VBox>
 
-                        <!-- Agent info + [V2] ProgressBars -->
+                        <!-- Agent assignment -->
                         <VBox styleClass="dashboard-chart-card" spacing="10" prefWidth="430">
                             <Label text="AGENT-ZUWEISUNG" styleClass="dashboard-chart-title"/>
-                            <HBox spacing="16" alignment="CENTER_LEFT">
-                                <Label text="👥" styleClass="metric-icon metric-blue"/>
-                                <Label text="Tickets können in der Detailansicht direkt an Agenten zugewiesen werden."
-                                       wrapText="true" styleClass="text-muted"/>
-                            </HBox>
-                            <VBox spacing="4">
-                                <Label text="Durchschnittliche Bearbeitungszeit" styleClass="text-muted"/>
-                                <Label fx:id="statAvgResolution" text="0.0 h" styleClass="heading-md"/>
-                            </VBox>
-                            <VBox spacing="4">
-                                <Label text="Eskalierte Tickets" styleClass="text-muted"/>
-                                <Label fx:id="statEscalated" text="0" styleClass="heading-md"/>
-                            </VBox>
-                            <!-- [V2] Priority progress bars -->
-                            <Label text="PRIORITÄTSVERTEILUNG" styleClass="label-uppercase" style="-fx-font-size: 10px; -fx-padding: 8 0 2 0;"/>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <Label prefWidth="62" text="Kritisch" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                                <ProgressBar fx:id="progressCritical" progress="0" styleClass="progress-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/>
-                                <Label fx:id="lblCriticalCount" text="0" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <Label prefWidth="62" text="Hoch" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                                <ProgressBar fx:id="progressHigh" progress="0" styleClass="progress-warning" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/>
-                                <Label fx:id="lblHighCount" text="0" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <Label prefWidth="62" text="Mittel" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                                <ProgressBar fx:id="progressMedium" progress="0" styleClass="progress-info" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/>
-                                <Label fx:id="lblMediumCount" text="0" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                            </HBox>
-                            <HBox alignment="CENTER_LEFT" spacing="8">
-                                <Label prefWidth="62" text="Niedrig" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                                <ProgressBar fx:id="progressLow" progress="0" styleClass="progress-success" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/>
-                                <Label fx:id="lblLowCount" text="0" styleClass="text-muted" style="-fx-font-size: 11px;"/>
-                            </HBox>
-                            <HBox spacing="10" style="-fx-padding: 6 0 0 0;">
-                                <Button text="Überfällige eskalieren" onAction="#handleEscalateOverdue" styleClass="btn-ghost"/>
-                                <Button text="Demo-Daten erstellen" onAction="#handleGenerateDemoData" styleClass="btn-primary"/>
-                            </HBox>
+                            <Label text="Ticket und aktiven Agenten auswählen. Die Zuweisung wird direkt gespeichert."
+                                   wrapText="true" styleClass="text-muted"/>
+                            <ComboBox fx:id="dashboardTicketCombo" promptText="Ticket auswählen"
+                                      maxWidth="Infinity" styleClass="combo-box"/>
+                            <ComboBox fx:id="dashboardAgentCombo" promptText="Agent auswählen"
+                                      maxWidth="Infinity" styleClass="combo-box"/>
+                            <Button fx:id="dashboardAssignButton" text="Agent zuweisen"
+                                    onAction="#handleDashboardAssignAgent" maxWidth="Infinity" styleClass="btn-primary"/>
+                            <Label fx:id="dashboardAssignmentHint" text="In der Tabelle kann ebenfalls ein Ticket ausgewählt werden."
+                                   wrapText="true" styleClass="text-muted"/>
+                            <Button text="Demo-Daten erstellen" onAction="#handleGenerateDemoData"
+                                    maxWidth="Infinity" styleClass="btn-primary"/>
                         </VBox>
                     </HBox>
                 </VBox>
@@ -447,6 +420,28 @@
                         </HBox>
                     </VBox>
                 </HBox>
+                <HBox spacing="20">
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
+                        <Label text="STATUS-TYPEN VERWALTEN" styleClass="label-uppercase" />
+                        <ListView fx:id="statusOptionList" prefHeight="140" styleClass="list-view" />
+                        <HBox spacing="8">
+                            <TextField fx:id="statusNameField" promptText="Name, z.B. ESCALATED" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="statusLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <Button text="+" onAction="#handleAddStatusOption" styleClass="btn-primary" />
+                            <Button text="-" onAction="#handleDeleteStatusOption" styleClass="btn-ghost" />
+                        </HBox>
+                    </VBox>
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
+                        <Label text="PRIORITÄTEN VERWALTEN" styleClass="label-uppercase" />
+                        <ListView fx:id="priorityOptionList" prefHeight="140" styleClass="list-view" />
+                        <HBox spacing="8">
+                            <TextField fx:id="priorityNameField" promptText="Name, z.B. BLOCKER" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="priorityLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <Button text="+" onAction="#handleAddPriorityOption" styleClass="btn-primary" />
+                            <Button text="-" onAction="#handleDeletePriorityOption" styleClass="btn-ghost" />
+                        </HBox>
+                    </VBox>
+                </HBox>
             </VBox>
 
             <!-- ═══════════════════ REPORTS (незмінено) ═══════════════════ -->
@@ -480,28 +475,6 @@
                             <Button text="Artikel hinzufügen" onAction="#handleAddKnowledgeBase" styleClass="btn-primary" />
                         </VBox>
                     </HBox>
-                    <HBox spacing="20">
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
-                            <Label text="STATUS-TYPEN VERWALTEN" styleClass="label-uppercase" />
-                            <ListView fx:id="statusOptionList" prefHeight="140" styleClass="list-view" />
-                            <HBox spacing="8">
-                                <TextField fx:id="statusNameField" promptText="Name, z.B. ESCALATED" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                                <TextField fx:id="statusLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                                <Button text="+" onAction="#handleAddStatusOption" styleClass="btn-primary" />
-                                <Button text="-" onAction="#handleDeleteStatusOption" styleClass="btn-ghost" />
-                            </HBox>
-                        </VBox>
-                        <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
-                            <Label text="PRIORITÄTEN VERWALTEN" styleClass="label-uppercase" />
-                            <ListView fx:id="priorityOptionList" prefHeight="140" styleClass="list-view" />
-                            <HBox spacing="8">
-                                <TextField fx:id="priorityNameField" promptText="Name, z.B. BLOCKER" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                                <TextField fx:id="priorityLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                                <Button text="+" onAction="#handleAddPriorityOption" styleClass="btn-primary" />
-                                <Button text="-" onAction="#handleDeletePriorityOption" styleClass="btn-ghost" />
-                            </HBox>
-                        </VBox>
-                    </HBox>
                 </VBox>
             </ScrollPane>
 
@@ -512,7 +485,8 @@
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                 <Label text="Ticket-Historie: Status-, Prioritäts-, Titel- und Agentenänderungen werden automatisch protokolliert." styleClass="text-muted" />
                 <HBox spacing="8" alignment="CENTER_LEFT">
-                    <TextField fx:id="auditSearchField" promptText="Ticket oder Benutzer suchen..." prefWidth="260" styleClass="text-field" />
+                    <TextField fx:id="auditSearchField" promptText="Ticket oder Benutzer suchen..." prefWidth="260"
+                               onAction="#handleFilterAuditLog" styleClass="text-field" />
                     <ComboBox fx:id="auditTypeFilter" promptText="Alle Aktionen" prefWidth="180" styleClass="combo-box" />
                     <Button text="Filtern" onAction="#handleFilterAuditLog" styleClass="btn-primary" />
                     <Button text="Zurücksetzen" onAction="#handleClearAuditFilter" styleClass="btn-ghost" />
