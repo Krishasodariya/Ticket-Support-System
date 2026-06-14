@@ -10,12 +10,15 @@ import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -139,18 +142,47 @@ public class ProfileController {
         new Thread(task).start();
     }
 
+    // [Nzchupa | 2026-06-12] TS-002: Theme-Toggle ohne Navigation — Theme wird direkt angewendet
+    // Bug-Fix: previously called Navigator.navigateTo which reloaded the whole view
+    // Now toggles theme in-place without any navigation
     @FXML
     public void handleToggleTheme() {
         ThemeManager.toggle();
-        Navigator.navigateTo("ProfileView.fxml");
+        ThemeManager.apply((Parent) usernameField.getScene().getRoot());
     }
 
+    // [Nzchupa | 2026-06-12] TS-007: Zurück-Button schließt Modal oder navigiert zurück
+    // If opened as a modal window, close it; otherwise fall back to role-based navigation
     @FXML
     public void handleBack() {
         if (hasUnsavedChanges() && !AlertHelper.confirmDiscardUnsavedChanges()) {
             return;
         }
-        Navigator.navigateAfterLogin(SessionManager.getRole());
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        if (stage.getOwner() != null) {
+            // Fenster ist ein Modal — schließen / Window is a modal — close it
+            stage.close();
+        } else {
+            Navigator.navigateAfterLogin(SessionManager.getRole());
+        }
+    }
+
+    // [Nzchupa | 2026-06-13] FileChooser für Profilbild — lokale Bilddatei als file:// URL laden
+    // Browse for a local image file and set it as the profile picture URL
+    @FXML
+    public void handleBrowseProfilePic() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Profilbild auswählen");
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Bilddateien", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp")
+        );
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        java.io.File selectedFile = fileChooser.showOpenDialog(stage);
+        if (selectedFile != null) {
+            String fileUrl = selectedFile.toURI().toString(); // file:///...
+            profilePicField.setText(fileUrl);
+            updateProfilePicturePreview(fileUrl);
+        }
     }
 
     private void setupProfilePicturePreview() {

@@ -218,6 +218,82 @@
     -fx-cursor: hand;
 }
 
+/* [Nzchupa | 2026-06-13] TSS-008: Customer-Ticket-Karten — fehlende Textfarben für Light/Dark Mode */
+/* Customer ticket card title and description text colors */
+.customer-ticket-card {
+    -fx-cursor: hand;
+}
+
+.customer-ticket-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.theme-light .customer-ticket-title {
+    -fx-text-fill: #111827;
+}
+
+.theme-dark .customer-ticket-title {
+    -fx-text-fill: #F1F5F9;
+}
+
+.theme-light .customer-ticket-card .label {
+    -fx-text-fill: #374151;
+}
+
+.theme-dark .customer-ticket-card .label {
+    -fx-text-fill: #CBD5E1;
+}
+
+/* Activity-Feed Texte */
+.activity-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.theme-light .activity-title {
+    -fx-text-fill: #111827;
+}
+
+.theme-dark .activity-title {
+    -fx-text-fill: #F1F5F9;
+}
+
+.activity-time {
+    -fx-font-size: 11px;
+}
+
+.theme-light .activity-time {
+    -fx-text-fill: #6B7280;
+}
+
+.theme-dark .activity-time {
+    -fx-text-fill: #64748B;
+}
+
+/* [Nzchupa | 2026-06-13] TSS-009: ProgressBar-Farben für Performance-Chart */
+/* ProgressBar colors for Agent performance section */
+.progress-bar {
+    -fx-pref-height: 6px;
+}
+.progress-bar .track {
+    -fx-background-color: #E2E8F0;
+    -fx-background-radius: 3px;
+}
+.theme-dark .progress-bar .track {
+    -fx-background-color: #1E293B;
+}
+.progress-success .bar {
+    -fx-background-color: #22C55E;
+    -fx-background-radius: 3px;
+    -fx-background-insets: 0;
+}
+.progress-danger .bar {
+    -fx-background-color: #EF4444;
+    -fx-background-radius: 3px;
+    -fx-background-insets: 0;
+}
+
 .theme-light .card:hover,
 .theme-light .stat-card:hover,
 .theme-light .ticket-card:hover {
@@ -729,6 +805,21 @@
     -fx-text-fill: #CBD5E1;
 }
 
+/* [Nzchupa | 2026-06-13] TS-005: Feldbeschriftungen für RegisterView — bessere UX */
+/* Field labels above each input */
+.register-field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.theme-light .register-field-label {
+    -fx-text-fill: #374151;
+}
+
+.theme-dark .register-field-label {
+    -fx-text-fill: #94A3B8;
+}
+
 .register-error {
     -fx-text-fill: #EF4444;
 }
@@ -1113,25 +1204,32 @@
     -fx-border-color: #1E293B;
 }
 
+/* [Nzchupa | 2026-06-13] TSS-008: Verbesserte Spaltenüberschriften — klarer Kontrast und Trennlinie */
+/* Improved column headers — clearer contrast and separator border */
 .theme-light .modern-table .column-header-background {
-    -fx-background-color: #F8FAFC;
+    -fx-background-color: #EFF6FF;
+    -fx-border-color: transparent transparent #BFDBFE transparent;
+    -fx-border-width: 0 0 2 0;
 }
 
 .theme-dark .modern-table .column-header-background {
-    -fx-background-color: #0F172A;
+    -fx-background-color: #06111F;
+    -fx-border-color: transparent transparent #1E3A5F transparent;
+    -fx-border-width: 0 0 2 0;
 }
 
 .modern-table .column-header .label {
     -fx-font-size: 12px;
     -fx-font-weight: bold;
+    -fx-padding: 8 10;
 }
 
 .theme-light .modern-table .column-header .label {
-    -fx-text-fill: #475569;
+    -fx-text-fill: #1E40AF;
 }
 
 .theme-dark .modern-table .column-header .label {
-    -fx-text-fill: #94A3B8;
+    -fx-text-fill: #93C5FD;
 }
 
 .modern-table .table-row-cell {
@@ -1632,6 +1730,57 @@
 
 .theme-light .chart-legend-row {
     -fx-border-color: transparent transparent #E5E7EB transparent;
+}
+
+/* =========================================================
+   CUSTOM ALERT DIALOGS — [Nzchupa | 2026-06-13]
+   Ersetzt Standard-JavaFX-Alerts / Replaces default JavaFX alerts
+   ========================================================= */
+
+/* --- Dark Mode --- */
+.theme-dark .alert-root {
+    -fx-background-color: #0F172A;
+    -fx-border-color: #1E293B;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 24, 0, 0, 6);
+}
+
+.theme-dark .alert-root .text-secondary {
+    -fx-text-fill: #94A3B8;
+}
+
+.theme-dark .alert-root .separator {
+    -fx-background-color: #1E293B;
+}
+
+/* --- Light Mode --- */
+.theme-light .alert-root {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 20, 0, 0, 4);
+}
+
+.theme-light .alert-root .text-secondary {
+    -fx-text-fill: #475569;
+}
+
+.theme-light .alert-root .separator {
+    -fx-background-color: #E2E8F0;
+}
+
+/* --- Fallback ohne Theme-Klasse --- */
+.alert-root {
+    -fx-background-color: #0F172A;
+    -fx-border-color: #1E293B;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 20, 0, 0, 4);
 }
 
 .theme-light .chart-legend-total {

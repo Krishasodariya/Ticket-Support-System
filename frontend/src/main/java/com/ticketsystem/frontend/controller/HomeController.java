@@ -5,18 +5,34 @@ import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.UserRole;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class HomeController {
-	@FXML
-	private void handleToggle() {
-	    ThemeManager.toggle();
-	}
+
+    // [Nzchupa | 2026-06-13] TSS-001: Button-Referenz für Icon-Update nach Theme-Toggle
+    // Button reference so we can update the icon text after toggling
+    @FXML private Button themeToggleBtn;
+
+    // [Nzchupa | 2026-06-13] TSS-001: ThemeManager.apply() fehlte — Theme wurde nur intern umgeschaltet
+    // Bug-Fix: ThemeManager.apply() was missing — theme toggled internally but UI never updated
+    @FXML
+    private void handleToggle() {
+        ThemeManager.toggle();
+        if (mainScrollPane != null && mainScrollPane.getScene() != null) {
+            ThemeManager.apply(mainScrollPane.getScene().getRoot());
+        }
+        if (themeToggleBtn != null) themeToggleBtn.setText(ThemeManager.isDarkMode() ? "☀" : "🌙");
+    }
+
     @FXML private ScrollPane mainScrollPane;
     @FXML private HBox homeSection;
     @FXML private VBox featuresSection;
+    // [Nzchupa | 2026-06-12] TS-008: Neues Feld für die Rollen-Sektion
+    // New field for the roles section
+    @FXML private VBox rolesSection;
     @FXML private HBox aboutSection;
     @FXML private VBox contactSection;
 
@@ -61,12 +77,19 @@ public class HomeController {
 
     @FXML
     private void scrollToFeatures() {
-        scrollTo(0.35);
+        scrollTo(0.30);
+    }
+
+    // [Nzchupa | 2026-06-12] TS-008: scrollToRoles-Methode hinzugefügt — scrollt zur Rollen-Sektion
+    // Added scrollToRoles method — scrolls to the new roles section
+    @FXML
+    private void scrollToRoles() {
+        scrollTo(0.52);
     }
 
     @FXML
     private void scrollToAbout() {
-        scrollTo(0.68);
+        scrollTo(0.72);
     }
 
     @FXML

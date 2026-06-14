@@ -22,12 +22,17 @@
 
             <Button text="Startseite" onAction="#scrollToHome" styleClass="start-nav-button"/>
             <Button text="Funktionen" onAction="#scrollToFeatures" styleClass="start-nav-button"/>
+            <!-- [Nzchupa | 2026-06-12] TS-008: "Rollen" Navbar-Button hinzugefügt -->
+            <!-- Added "Rollen" navbar button for the new roles section -->
+            <Button text="Rollen" onAction="#scrollToRoles" styleClass="start-nav-button"/>
             <Button text="Über uns" onAction="#scrollToAbout" styleClass="start-nav-button"/>
             <Button text="Kontakt" onAction="#scrollToContact" styleClass="start-nav-button"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
-            <Button text="☀ / 🌙" onAction="#handleToggle" styleClass="start-theme-button"/>
+            <!-- [Nzchupa | 2026-06-13] TSS-001: fx:id für dynamischen Button-Text nach Theme-Toggle -->
+            <!-- Added fx:id so controller can update button text after theme switch -->
+            <Button fx:id="themeToggleBtn" text="🌙" onAction="#handleToggle" styleClass="start-theme-button"/>
             <Button text="Anmelden" onAction="#handleLogin" styleClass="start-btn-outline"/>
             <Button text="Registrieren" onAction="#handleRegister" styleClass="start-btn-primary"/>
         </HBox>
@@ -148,6 +153,60 @@
                         <Label text="Support verfügbar" styleClass="start-stat-label"/>
                     </VBox>
                 </HBox>
+
+                <!-- [Nzchupa | 2026-06-12] TS-008: Neue Sektion "Rollen im System" hinzugefügt -->
+                <!-- New "Roles in the system" section with Admin / Agent / Customer cards -->
+                <VBox fx:id="rolesSection" spacing="22" alignment="CENTER">
+                    <Label text="Rollen im System" styleClass="start-section-title"/>
+                    <Label text="Das Ticket Support System bietet drei Benutzerrollen mit unterschiedlichen Berechtigungen."
+                           wrapText="true" styleClass="start-feature-text"/>
+                    <HBox spacing="22">
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="🛠" styleClass="start-feature-icon"/>
+                            <Label text="Admin" styleClass="start-feature-title"/>
+                            <Label text="Verwaltet Benutzer, Tickets, Berichte und das gesamte System. Zugang zu Audit-Logs und Exporten."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="🎧" styleClass="start-feature-icon"/>
+                            <Label text="Agent" styleClass="start-feature-title"/>
+                            <Label text="Bearbeitet Tickets, kommuniziert mit Kunden und nutzt die Wissensdatenbank für schnelle Lösungen."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS" spacing="8">
+                            <Label text="👤" styleClass="start-feature-icon"/>
+                            <Label text="Kunde" styleClass="start-feature-title"/>
+                            <Label text="Erstellt Tickets, verfolgt den Status und verwaltet das eigene Profil. Erhält Benachrichtigungen über Updates."
+                                   wrapText="true" styleClass="start-feature-text"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- [Nzchupa | 2026-06-12] TS-008: Projektinformations-Sektion hinzugefügt -->
+                <!-- Project info section with team and tech stack info -->
+                <VBox spacing="14" alignment="CENTER" styleClass="start-contact-box">
+                    <Label text="Über das Projekt" styleClass="start-section-title"/>
+                    <Label text="Ticket Support System ist ein studentisches Teamprojekt, entwickelt mit Java 21, Spring Boot und JavaFX."
+                           wrapText="true" styleClass="start-feature-text"/>
+                    <HBox spacing="30" alignment="CENTER">
+                        <VBox alignment="CENTER" spacing="4">
+                            <Label text="☕" styleClass="start-feature-icon"/>
+                            <Label text="Java 21" styleClass="start-stat-label"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="4">
+                            <Label text="🌱" styleClass="start-feature-icon"/>
+                            <Label text="Spring Boot" styleClass="start-stat-label"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="4">
+                            <Label text="🖥" styleClass="start-feature-icon"/>
+                            <Label text="JavaFX" styleClass="start-stat-label"/>
+                        </VBox>
+                        <VBox alignment="CENTER" spacing="4">
+                            <Label text="🐘" styleClass="start-feature-icon"/>
+                            <Label text="PostgreSQL" styleClass="start-stat-label"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
 
                 <!-- Contact -->
                 <VBox fx:id="contactSection" spacing="12" alignment="CENTER" styleClass="start-contact-box">

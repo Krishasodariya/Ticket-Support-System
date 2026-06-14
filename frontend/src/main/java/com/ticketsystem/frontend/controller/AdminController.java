@@ -21,10 +21,11 @@ import com.ticketsystem.frontend.service.WorkflowOptionApiService;
 import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
+import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
-
 import com.ticketsystem.frontend.util.SessionManager;
+import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
 import com.ticketsystem.model.enums.UserRole;
@@ -87,10 +88,16 @@ public class AdminController {
     @FXML private TableColumn<TicketFX, String> colId, colTitle, colPriority, colStatus, colCategory, colAgent, colCreatedAt;
     @FXML private ComboBox<String> filterStatusCombo, filterPriorityCombo;
     @FXML private TextField searchField;
+    // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suchfeld — delegiert an aktiven Pane-Filter
+    // Topbar search field reference — delegates to whichever pane is currently active
+    @FXML private TextField topbarSearchField;
 
     @FXML private TableView<UserFX> userTable;
     @FXML private TableColumn<UserFX, String> colUsername, colEmail, colRole;
     @FXML private ComboBox<String> roleCombo;
+    // [Nzchupa | 2026-06-13] TSS-015: Alle Benutzer speichern für clientseitige Topbar-Suche
+    // Store all users so topbar search can filter without re-fetching
+    private List<UserFX> allUsers = new java.util.ArrayList<>();
     @FXML private Label selectedUserLabel;
     @FXML private TextField specializationField;
 
@@ -100,6 +107,11 @@ public class AdminController {
 
     @FXML private TableView<AuditLogFX> auditLogTable;
     @FXML private TableColumn<AuditLogFX, String> auditColTicket, auditColUser, auditColType, auditColOld, auditColNew, auditColTime;
+    // [Nzchupa | 2026-06-13] TSS-014: Such- und Filterfelder für Audit-Log
+    // Search and filter controls for Audit-Log pane
+    @FXML private TextField auditSearchField;
+    @FXML private ComboBox<String> auditTypeFilter;
+    private List<AuditLogFX> allAuditLogs = new java.util.ArrayList<>();
 
     // Feature 32 – System-Aktivitätsprotokoll
     @FXML private TableView<SystemAuditLogFX> sysAuditTable;
@@ -147,6 +159,11 @@ public class AdminController {
 
         initTable();
         initFiltersAndUserActions();
+        // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suche — Echtzeit-Listener, delegiert an aktiven Pane
+        // Real-time topbar search: copy typed text to the active pane's search field so filter applies
+        if (topbarSearchField != null) {
+            topbarSearchField.textProperty().addListener((obs, old, val) -> handleTopbarSearch(val));
+        }
         loadUnreadNotifications();
         showDashboard();
     }
@@ -212,10 +229,31 @@ public class AdminController {
         if (filterStatusCombo != null) {
             filterStatusCombo.getItems().setAll("Alle", TicketStatus.OPEN.name(), TicketStatus.IN_PROGRESS.name(), TicketStatus.WAITING.name(), TicketStatus.RESOLVED.name(), TicketStatus.CLOSED.name());
             filterStatusCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen, interne Enum-Namen für Filter-Logik behalten
+            // Show German labels in filter combo; keep enum names as values so filtering still works
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+            filterStatusCombo.setCellFactory(statusCF);
+            filterStatusCombo.setButtonCell(statusCF.call(null));
+            // [Nzchupa | 2026-06-13] Echtzeit-Filter — Tabelle aktualisiert sich sofort ohne Button-Klick
+            // Real-time filter: update table immediately on combo change
+            filterStatusCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
         }
         if (filterPriorityCombo != null) {
             filterPriorityCombo.getItems().setAll("Alle", TicketPriority.CRITICAL.name(), TicketPriority.HIGH.name(), TicketPriority.MEDIUM.name(), TicketPriority.LOW.name());
             filterPriorityCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
+            // Show German labels in priority filter combo
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+            filterPriorityCombo.setCellFactory(priorityCF);
+            filterPriorityCombo.setButtonCell(priorityCF.call(null));
+            filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
+        }
+        if (searchField != null) {
+            // [Nzchupa | 2026-06-13] Echtzeit-Suche — Ergebnisse erscheinen beim Tippen
+            // Real-time search: filter on every keystroke
+            searchField.textProperty().addListener((obs, old, val) -> applyTicketFilter());
         }
         if (roleCombo != null) {
             roleCombo.getItems().setAll(UserRole.CUSTOMER.name(), UserRole.AGENT.name(), UserRole.ADMIN.name());
@@ -347,76 +385,109 @@ public class AdminController {
     }
 
     private void applyStats(DashboardStatsFX stats) {
-        long total = stats.getTotalTickets();
-        long open = stats.getOpenTickets();
-        long resolved = stats.getResolvedToday();
-        long overdue = stats.getOverdueTickets();
+        long total    = stats.getTotalTickets();
+        long overdue  = stats.getOverdueTickets();
+
+        // [Nzchupa | 2026-06-13] TSS-013: Korrektur der Diagramm-Werte
+        // Bug-Fix: resolvedToday war falsch (nur heute), open fehlte IN_PROGRESS + WAITING.
+        // Gelöst  = alle abgeschlossenen Tickets (RESOLVED + CLOSED)
+        // Überfällig = überfällige aktive Tickets
+        // Offen   = Rest: aktiv aber nicht überfällig (disjoint für saubere Tortendarstellung)
+        long resolved = stats.getResolvedTickets() + stats.getClosedTickets();
+        long active   = stats.getOpenTickets() + stats.getInProgressTickets() + stats.getWaitingTickets();
+        long openNormal = Math.max(0, active - overdue); // aktiv aber nicht überfällig
 
         long critical = value(stats.getTicketsByPriority(), "CRITICAL");
-        long high = value(stats.getTicketsByPriority(), "HIGH");
-        long medium = value(stats.getTicketsByPriority(), "MEDIUM");
-        long low = value(stats.getTicketsByPriority(), "LOW");
+        long high     = value(stats.getTicketsByPriority(), "HIGH");
+        long medium   = value(stats.getTicketsByPriority(), "MEDIUM");
+        long low      = value(stats.getTicketsByPriority(), "LOW");
 
         statTotal.setText(String.valueOf(total));
-        statOpen.setText(String.valueOf(open));
-        statResolvedToday.setText(String.valueOf(resolved));
+        statOpen.setText(String.valueOf(active));                          // Stat-Karte: alle aktiven
+        statResolvedToday.setText(String.valueOf(stats.getResolvedToday())); // Stat-Karte: heute gelöst
 
-        if (statCritical != null) statCritical.setText(String.valueOf(critical));
+        if (statCritical != null)    statCritical.setText(String.valueOf(critical));
         if (statCreatedToday != null) statCreatedToday.setText(String.valueOf(stats.getCreatedToday()));
-        if (statOverdue != null) statOverdue.setText(String.valueOf(overdue));
-        if (statEscalated != null) statEscalated.setText(String.valueOf(stats.getEscalatedTickets()));
+        if (statOverdue != null)     statOverdue.setText(String.valueOf(overdue));
+        if (statEscalated != null)   statEscalated.setText(String.valueOf(stats.getEscalatedTickets()));
         if (statAvgResolution != null) statAvgResolution.setText(stats.getAverageResolutionHours() + " h");
 
-        updateStatusChart(total, resolved, open, overdue);
+        updateStatusChart(total, resolved, openNormal, overdue);
         updatePriorityChart(total, critical, high, medium, low);
     }
+    // [Nzchupa | 2026-06-13] TSS-013: Explizite Slice-Farben nach Platform.runLater — verhindert Farb-Reset
+    // After getData().clear()+addAll() JavaFX re-assigns default-color CSS classes.
+    // Platform.runLater waits for the scene to render nodes, then sets inline -fx-pie-color per slice.
     private void updateStatusChart(long total, long resolved, long open, long overdue) {
-        if (statusPieChart == null) {
-            return;
-        }
-
+        if (statusPieChart == null) return;
         statusPieChart.getData().clear();
+        if (!statusPieChart.getStyleClass().contains("status-chart")) statusPieChart.getStyleClass().add("status-chart");
 
-        if (!statusPieChart.getStyleClass().contains("status-chart")) {
-            statusPieChart.getStyleClass().add("status-chart");
-        }
+        PieChart.Data dResolved  = new PieChart.Data("Gelöst",    resolved);
+        PieChart.Data dOpen      = new PieChart.Data("Offen",      open);
+        PieChart.Data dOverdue   = new PieChart.Data("Überfällig", overdue);
+        statusPieChart.getData().addAll(dResolved, dOpen, dOverdue);
 
-        statusPieChart.getData().addAll(
-                new PieChart.Data("Gelöst", resolved),
-                new PieChart.Data("Offen", open),
-                new PieChart.Data("Überfällig", overdue)
-        );
+        // Farben nach Render setzen, damit getData().clear() sie nicht zurücksetzt
+        Platform.runLater(() -> {
+            applyPieColor(dResolved, "#22C55E");
+            applyPieColor(dOpen,     "#3B82F6");
+            applyPieColor(dOverdue,  "#EF4444");
+            // [Nzchupa | 2026-06-13] TSS-013: Legendensymbole ebenfalls einfärben
+            // Legend symbols use default-colorN CSS classes — must override them too
+            applyLegendColors(statusPieChart, "#22C55E", "#3B82F6", "#EF4444");
+        });
 
         if (statusChartTotalLabel != null) statusChartTotalLabel.setText(String.valueOf(total));
         if (legendResolved != null) legendResolved.setText(formatLegend(resolved, total));
-        if (legendOpen != null) legendOpen.setText(formatLegend(open, total));
-        if (legendOverdue != null) legendOverdue.setText(formatLegend(overdue, total));
-        if (legendTotal != null) legendTotal.setText(total + " (100%)");
+        if (legendOpen != null)     legendOpen.setText(formatLegend(open, total));
+        if (legendOverdue != null)  legendOverdue.setText(formatLegend(overdue, total));
+        if (legendTotal != null)    legendTotal.setText(total + " (100%)");
     }
 
     private void updatePriorityChart(long total, long critical, long high, long medium, long low) {
-        if (priorityPieChart == null) {
-            return;
-        }
-
+        if (priorityPieChart == null) return;
         priorityPieChart.getData().clear();
+        if (!priorityPieChart.getStyleClass().contains("priority-chart")) priorityPieChart.getStyleClass().add("priority-chart");
 
-        if (!priorityPieChart.getStyleClass().contains("priority-chart")) {
-            priorityPieChart.getStyleClass().add("priority-chart");
-        }
+        PieChart.Data dCritical = new PieChart.Data("Kritisch", critical);
+        PieChart.Data dHigh     = new PieChart.Data("Hoch",     high);
+        PieChart.Data dMedium   = new PieChart.Data("Mittel",   medium);
+        PieChart.Data dLow      = new PieChart.Data("Niedrig",  low);
+        priorityPieChart.getData().addAll(dCritical, dHigh, dMedium, dLow);
 
-        priorityPieChart.getData().addAll(
-                new PieChart.Data("Kritisch", critical),
-                new PieChart.Data("Hoch", high),
-                new PieChart.Data("Mittel", medium),
-                new PieChart.Data("Niedrig", low)
-        );
+        Platform.runLater(() -> {
+            applyPieColor(dCritical, "#EF4444");
+            applyPieColor(dHigh,     "#F97316");
+            applyPieColor(dMedium,   "#EAB308");
+            applyPieColor(dLow,      "#22C55E");
+            // [Nzchupa | 2026-06-13] TSS-013: Legendensymbole ebenfalls einfärben
+            applyLegendColors(priorityPieChart, "#EF4444", "#F97316", "#EAB308", "#22C55E");
+        });
 
         if (priorityChartTotalLabel != null) priorityChartTotalLabel.setText(String.valueOf(total));
         if (legendCritical != null) legendCritical.setText(formatLegend(critical, total));
-        if (legendHigh != null) legendHigh.setText(formatLegend(high, total));
-        if (legendMedium != null) legendMedium.setText(formatLegend(medium, total));
-        if (legendLow != null) legendLow.setText(formatLegend(low, total));
+        if (legendHigh != null)     legendHigh.setText(formatLegend(high, total));
+        if (legendMedium != null)   legendMedium.setText(formatLegend(medium, total));
+        if (legendLow != null)      legendLow.setText(formatLegend(low, total));
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-013: Hilfsmethode — setzt -fx-pie-color direkt am Slice-Node
+    // Helper: sets inline -fx-pie-color on the pie slice node; noop if node not yet rendered
+    private void applyPieColor(PieChart.Data data, String color) {
+        if (data.getNode() != null) {
+            data.getNode().setStyle("-fx-pie-color: " + color + ";");
+        }
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-013: Legendensymbole einfärben — default-colorN überschreiben
+    // JavaFX legend symbols keep their default-colorN class; override -fx-background-color inline
+    private void applyLegendColors(javafx.scene.chart.PieChart chart, String... colors) {
+        for (int i = 0; i < colors.length; i++) {
+            final String color = colors[i];
+            chart.lookupAll(".default-color" + i + ".chart-legend-item-symbol")
+                 .forEach(node -> node.setStyle("-fx-background-color: " + color + ";"));
+        }
     }
 
     private String formatLegend(long value, long total) {
@@ -437,23 +508,43 @@ public class AdminController {
         return map == null ? 0 : map.getOrDefault(key, 0L);
     }
 
+    // [Nzchupa | 2026-06-13] Loading-Spinner während Datenladen — bessere UX
+    // Show spinner while loading, restore empty-state placeholder on finish
     private void loadTickets() {
+        ticketTable.setPlaceholder(buildLoadingNode());
         Task<List<TicketFX>> task = new Task<>() {
             @Override
             protected List<TicketFX> call() throws Exception {
                 return ticketService.getAllTickets();
             }
         };
-
         task.setOnSucceeded(e -> {
             allTickets.setAll(task.getValue());
+            ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
         });
-
-        task.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden."));
-
+        task.setOnFailed(e -> {
+            ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
+            AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden.");
+        });
         new Thread(task, "admin-load-tickets").start();
+    }
+
+    private javafx.scene.Node buildLoadingNode() {
+        javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
+        spinner.setPrefSize(36, 36);
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label("Daten werden geladen…");
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, lbl);
+        box.setAlignment(javafx.geometry.Pos.CENTER);
+        return box;
+    }
+
+    private javafx.scene.Node buildEmptyNode(String msg) {
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label(msg);
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        return lbl;
     }
 
     @FXML public void handleApplyTicketFilter() { applyTicketFilter(); }
@@ -462,6 +553,28 @@ public class AdminController {
         filterPriorityCombo.setValue("Alle");
         searchField.clear();
         applyTicketFilter();
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suche delegiert an aktiven Pane
+    // Topbar search delegates to whichever pane is currently visible
+    private void handleTopbarSearch(String val) {
+        if (paneTickets != null && paneTickets.isVisible()) {
+            // Tickets-Pane: Suchtext in pane-eigenes searchField setzen → löst applyTicketFilter() aus
+            if (searchField != null) searchField.setText(val);
+        } else if (paneUsers != null && paneUsers.isVisible()) {
+            // Benutzer-Pane: direkt allUsers filtern nach Username oder E-Mail
+            String search = val == null ? "" : val.trim().toLowerCase();
+            List<UserFX> filtered = allUsers.stream()
+                    .filter(u -> search.isBlank()
+                            || (u.getUsername() != null && u.getUsername().toLowerCase().contains(search))
+                            || (u.getEmail() != null && u.getEmail().toLowerCase().contains(search)))
+                    .collect(Collectors.toList());
+            userTable.setItems(FXCollections.observableArrayList(filtered));
+        } else if (paneAuditLog != null && paneAuditLog.isVisible()) {
+            // Audit-Log-Pane: Text in auditSearchField setzen und Filter ausführen
+            if (auditSearchField != null) auditSearchField.setText(val);
+            applyAuditFilter();
+        }
     }
 
     private void applyTicketFilter() {
@@ -485,7 +598,11 @@ public class AdminController {
         Task<List<UserFX>> task = new Task<>() {
             @Override protected List<UserFX> call() throws Exception { return userService.getAllUsers(); }
         };
-        task.setOnSucceeded(e -> userTable.setItems(FXCollections.observableArrayList(task.getValue())));
+        task.setOnSucceeded(e -> {
+            // [Nzchupa | 2026-06-13] TSS-015: allUsers speichern für Topbar-Suche
+            allUsers = new java.util.ArrayList<>(task.getValue());
+            userTable.setItems(FXCollections.observableArrayList(allUsers));
+        });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Benutzer konnten nicht geladen werden."));
         new Thread(task, "admin-load-users").start();
     }
@@ -594,12 +711,49 @@ public class AdminController {
         Task<List<AuditLogFX>> task = new Task<>() {
             @Override protected List<AuditLogFX> call() throws Exception { return auditLogService.getAllLogs(); }
         };
-        task.setOnSucceeded(e -> auditLogTable.setItems(FXCollections.observableArrayList(task.getValue())));
+        task.setOnSucceeded(e -> {
+            // [Nzchupa | 2026-06-13] TSS-014: Alle Einträge speichern für clientseitige Filterung
+            // Store all entries so client-side filter can work without re-fetching
+            allAuditLogs = new java.util.ArrayList<>(task.getValue());
+            // Aktionstypen für Filter-ComboBox befüllen
+            if (auditTypeFilter != null && auditTypeFilter.getItems().isEmpty()) {
+                java.util.Set<String> types = new java.util.TreeSet<>();
+                allAuditLogs.forEach(l -> { if (l.getChangeType() != null) types.add(l.getChangeType()); });
+                auditTypeFilter.getItems().add("Alle");
+                auditTypeFilter.getItems().addAll(types);
+                auditTypeFilter.setValue("Alle");
+            }
+            applyAuditFilter();
+        });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Audit-Log konnte nicht geladen werden."));
         new Thread(task, "admin-load-audit").start();
 
         // Feature 32 – System-Audit-Log parallel laden
         loadSystemAuditLogs();
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-014: Audit-Log-Filter — Suche nach Ticket/Benutzer + Aktionstyp
+    // Filter audit log by ticket title / user name and action type
+    private void applyAuditFilter() {
+        String search = auditSearchField != null && auditSearchField.getText() != null
+                ? auditSearchField.getText().trim().toLowerCase() : "";
+        String type = auditTypeFilter != null ? auditTypeFilter.getValue() : "Alle";
+        List<AuditLogFX> filtered = allAuditLogs.stream()
+                .filter(l -> search.isEmpty()
+                        || (l.getTicketTitle() != null && l.getTicketTitle().toLowerCase().contains(search))
+                        || (l.getChangedBy() != null && l.getChangedBy().toLowerCase().contains(search)))
+                .filter(l -> type == null || "Alle".equals(type)
+                        || type.equals(l.getChangeType()))
+                .collect(Collectors.toList());
+        auditLogTable.setItems(FXCollections.observableArrayList(filtered));
+    }
+
+    @FXML public void handleFilterAuditLog() { applyAuditFilter(); }
+
+    @FXML public void handleClearAuditFilter() {
+        if (auditSearchField != null) auditSearchField.clear();
+        if (auditTypeFilter  != null) auditTypeFilter.setValue("Alle");
+        applyAuditFilter();
     }
 
     // Feature 32
@@ -628,44 +782,8 @@ public class AdminController {
         new Thread(task, "admin-notification-count").start();
     }
 
-    @FXML public void handleShowNotifications() {
-        new Thread(() -> {
-            try {
-                List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() -> showNotificationDialog(notifications));
-            } catch (Exception ex) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden."));
-            }
-        }, "admin-load-notifications").start();
-    }
-
-    private void showNotificationDialog(List<NotificationFX> notifications) {
-        ListView<NotificationFX> list = new ListView<>(FXCollections.observableArrayList(notifications));
-        list.setPrefSize(520, 320);
-        list.setCellFactory(v -> new ListCell<>() {
-            @Override protected void updateItem(NotificationFX item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : (item.isRead() ? "✓ " : "● ") + item.getTitle() + "\n" + item.getMessage());
-            }
-        });
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Benachrichtigungen");
-        alert.setHeaderText(notifications.isEmpty() ? "Keine Benachrichtigungen" : "Meine Benachrichtigungen");
-        alert.getDialogPane().setContent(list);
-        alert.showAndWait();
-        markShownNotificationsAsRead(notifications);
-    }
-
-    private void markShownNotificationsAsRead(List<NotificationFX> notifications) {
-        new Thread(() -> {
-            for (NotificationFX notification : notifications) {
-                try {
-                    if (!notification.isRead()) notificationService.markAsRead(notification.getId());
-                } catch (Exception ignored) { }
-            }
-            Platform.runLater(this::loadUnreadNotifications);
-        }, "mark-notifications-read").start();
-    }
+    // [Nzchupa | 2026-06-13] Alte handleShowNotifications / showNotificationDialog entfernt — war toter Code
+    // Removed old native-Alert notification dialog — NotificationPopup (handleNotifications) is used instead
 
     @FXML public void showDashboard() { switchTab(paneDashboard, navDashboard, dotDashboard, labelDashboard, "Dashboard"); loadDashboardData(); }
     @FXML public void showTickets() { switchTab(paneTickets, navTickets, dotTickets, labelTickets, "Alle Tickets"); loadTickets(); }
@@ -865,16 +983,46 @@ public class AdminController {
 
     private interface ExportSupplier { byte[] get() throws Exception; }
 
-    @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
-    @FXML public void handleLogout() { Navigator.logout(); }
+    // [Nzchupa | 2026-06-12] TS-007: Profil als Modal öffnen — Dashboard bleibt im Hintergrund
+    // Open Profile as modal window so the admin dashboard is not replaced
+    // [Nzchupa | 2026-06-13] TSS-005: Avatar nach Profil-Modal-Schließen aktualisieren
+    // Refresh topbar/sidebar avatar after profile modal closes (picks up new picture from SessionManager)
+    @FXML public void handleProfile() {
+        Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
+            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
+    }
+    // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen
+    // Logout confirmation dialog to prevent accidental logouts
+    @FXML public void handleLogout() {
+        if (AlertHelper.showConfirm("Abmelden", "Möchten Sie sich wirklich abmelden?", "Abmelden")) {
+            Navigator.logout();
+        }
+    }
+
+    // [Nzchupa | 2026-06-13] TSS-002: themeToggleBtn für dynamisches Icon-Update
+    // Theme toggle button reference for dynamic icon update
+    @FXML private Button themeToggleBtn;
+
+    // [Nzchupa | 2026-06-12] TS-002: Theme-Toggle im Topbar — Dark/Light Mode umschalten
+    // Theme toggle in topbar — switches dark/light mode and applies it to the current view
+    @FXML public void handleToggleTheme() {
+        ThemeManager.toggle();
+        // getRoot() gibt bereits Parent zurück — kein Cast nötig / getRoot() already returns Parent, no cast needed
+        ThemeManager.apply(notificationButton.getScene().getRoot());
+        // [Nzchupa | 2026-06-13] TSS-002: Icon nach Theme-Wechsel aktualisieren
+        // Update icon after theme switch
+        if (themeToggleBtn != null) themeToggleBtn.setText(ThemeManager.isDarkMode() ? "☀" : "🌙");
+    }
 
     @FXML
     private void handleNotifications(MouseEvent event) {
         new Thread(() -> {
             try {
                 List<NotificationFX> notifications = notificationService.getMyNotifications();
+                // [Nzchupa | 2026-06-12] TS-001: reloadCallback übergeben — Badge-Counter wird nach "Alle gelesen" aktualisiert
+                // Pass reloadCallback so the unread badge refreshes after "Alle gelesen" is clicked
                 Platform.runLater(() ->
-                        NotificationPopup.show((Node) event.getSource(), notifications)
+                        NotificationPopup.show((Node) event.getSource(), notifications, this::loadUnreadNotifications)
                 );
             } catch (Exception ex) {
                 Platform.runLater(() ->

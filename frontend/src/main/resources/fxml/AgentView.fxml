@@ -57,6 +57,13 @@
                 </VBox>
             </HBox>
 
+            <!-- [Nzchupa | 2026-06-12] TS-006: Profil-Navigationseintrag in der Sidebar hinzugefügt -->
+            <!-- Added Profile navigation item to agent sidebar -->
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleProfile" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" />
+                <Label text="Mein Profil" styleClass="text-secondary" />
+            </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleLogout" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#EF4444" />
@@ -73,7 +80,11 @@
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
                 <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
- <StackPane fx:id="notificationButton"
+ <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
+                <!-- Theme toggle button added to topbar -->
+                <Button fx:id="themeToggleBtn" text="☀" onAction="#handleToggleTheme" styleClass="btn-ghost"
+                        style="-fx-font-size: 14px; -fx-padding: 4 8;" />
+                <StackPane fx:id="notificationButton"
            styleClass="notification-pill"
            onMouseClicked="#handleNotifications"
            style="-fx-cursor: hand;">
@@ -184,7 +195,9 @@
                     <Button text="Zurücksetzen" onAction="#handleClearFilter" styleClass="btn-ghost" />
                 </HBox>
 
-                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                <!-- [Nzchupa | 2026-06-13] TSS-008: modern-table für bessere Lesbarkeit der Spaltenüberschriften und Trennlinien -->
+                <!-- Added modern-table class for clearer column headers and row separators -->
+                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view,modern-table">
                     <columns>
                         <TableColumn fx:id="colId" text="#" prefWidth="60" />
                         <TableColumn fx:id="colTitle" text="Titel" prefWidth="250" />

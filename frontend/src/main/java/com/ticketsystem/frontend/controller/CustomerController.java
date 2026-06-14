@@ -9,9 +9,11 @@ import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
+import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
 import com.ticketsystem.frontend.util.SessionManager;
+import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.TicketPriority;
 
 import javafx.application.Platform;
@@ -28,6 +30,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 import java.util.HashMap;
 import java.util.List;
@@ -111,10 +115,15 @@ public class CustomerController {
     private final CategoryApiService categoryService = new CategoryApiService();
     private final NotificationApiService notificationService = new NotificationApiService();
 
+    // [Nzchupa | 2026-06-13] TSS-007: Pfad der ausgewählten Anhangsdatei — wird beim Ticket-Erstellen mitgeschickt
+    // Path of the selected attachment file — sent along when creating the ticket
+    private String selectedAttachmentPath = null;
+
     private final ObservableList<TicketFX> ticketData = FXCollections.observableArrayList();
 
+    // [Nzchupa | 2026-06-13] Lokales darkMode-Flag entfernt — ThemeManager wird jetzt verwendet
+    // Removed local darkMode flag — ThemeManager is the single source of truth
     private List<TicketFX> latestTickets = List.of();
-    private boolean darkMode = false;
 
     @FXML
     public void initialize() {
@@ -138,18 +147,20 @@ public class CustomerController {
         newPriorityCombo.getItems().clear();
         newPriorityCombo.getItems().add(null); // null = automatisch ermitteln
         newPriorityCombo.getItems().addAll(TicketPriority.values());
+        // [Nzchupa | 2026-06-13] TSS-004: Deutsche Prioritätsbezeichnungen in der ComboBox anzeigen
+        // Show German priority labels instead of raw enum names (CRITICAL → Kritisch, etc.)
         newPriorityCombo.setButtonCell(new ListCell<>() {
             @Override
             protected void updateItem(TicketPriority item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(item == null ? "Automatisch ermitteln" : item.name());
+                setText(item == null ? "Automatisch ermitteln" : LabelHelper.priorityToGerman(item.name()));
             }
         });
         newPriorityCombo.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(TicketPriority item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(item == null ? "Automatisch ermitteln" : item.name());
+                setText(item == null ? "Automatisch ermitteln" : LabelHelper.priorityToGerman(item.name()));
             }
         });
         newPriorityCombo.setValue(null); // Standard: automatisch
@@ -168,25 +179,24 @@ public class CustomerController {
         AvatarHelper.showAvatar(profilePictureUrl, topbarProfileImage, topbarAvatarBackground, topbarInitials, 28);
     }
 
+    // [Nzchupa | 2026-06-13] ThemeManager statt lokalem darkMode — Konsistenz mit AlertHelper + anderen Views
+    // Using ThemeManager so theme state is shared across Profile, Alerts and all views
     private void initTheme() {
         if (rootPane == null) return;
-        rootPane.getStyleClass().removeAll("theme-light", "theme-dark");
-        rootPane.getStyleClass().add("theme-light");
-        darkMode = false;
+        ThemeManager.apply(rootPane);
         updateThemeButton();
     }
 
     @FXML
     public void handleToggleTheme() {
         if (rootPane == null) return;
-        darkMode = !darkMode;
-        rootPane.getStyleClass().removeAll("theme-light", "theme-dark");
-        rootPane.getStyleClass().add(darkMode ? "theme-dark" : "theme-light");
+        ThemeManager.toggle();
+        ThemeManager.apply(rootPane);
         updateThemeButton();
     }
 
     private void updateThemeButton() {
-        if (themeToggleButton != null) themeToggleButton.setText(darkMode ? "☀" : "🌙");
+        if (themeToggleButton != null) themeToggleButton.setText(ThemeManager.isDarkMode() ? "☀" : "🌙");
     }
 
     private void initTable() {
@@ -219,10 +229,29 @@ public class CustomerController {
         if (filterStatusCombo != null) {
             filterStatusCombo.getItems().setAll("Alle", "OPEN", "IN_PROGRESS", "WAITING", "RESOLVED", "CLOSED");
             filterStatusCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen
+            // Show German labels in filter combo; keep enum names as values so filtering still works
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+            filterStatusCombo.setCellFactory(statusCF);
+            filterStatusCombo.setButtonCell(statusCF.call(null));
+            // [Nzchupa | 2026-06-13] Echtzeit-Filter und Suche — sofortige Reaktion ohne Button
+            // Real-time filter and search listeners
+            filterStatusCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
         }
         if (filterPriorityCombo != null) {
             filterPriorityCombo.getItems().setAll("Alle", "CRITICAL", "HIGH", "MEDIUM", "LOW");
             filterPriorityCombo.setValue("Alle");
+            // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
+            // Show German labels in priority filter combo
+            javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
+                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+            filterPriorityCombo.setCellFactory(priorityCF);
+            filterPriorityCombo.setButtonCell(priorityCF.call(null));
+            filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
+        }
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, old, val) -> applyFilter());
         }
     }
 
@@ -242,17 +271,19 @@ public class CustomerController {
         String value = type == null ? "" : type.trim().toUpperCase();
         Label badge = new Label();
         badge.getStyleClass().add("badge");
+        // [Nzchupa | 2026-06-13] Badge-Text vereinheitlicht — alle Controller verwenden jetzt "● " Präfix
+        // Unified badge text — all controllers now use "● " prefix for consistency
         switch (value) {
-            case "OPEN" -> { badge.getStyleClass().add("badge-open"); badge.setText("• Offen"); }
-            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress"); badge.setText("• In Bearbeitung"); }
-            case "WAITING" -> { badge.getStyleClass().add("badge-waiting"); badge.setText("• Wartend"); }
-            case "RESOLVED" -> { badge.getStyleClass().add("badge-resolved"); badge.setText("• Gelöst"); }
-            case "CLOSED" -> { badge.getStyleClass().add("badge-closed"); badge.setText("• Geschlossen"); }
-            case "CRITICAL" -> { badge.getStyleClass().add("badge-critical"); badge.setText("Kritisch"); }
-            case "HIGH" -> { badge.getStyleClass().add("badge-high"); badge.setText("Hoch"); }
-            case "MEDIUM" -> { badge.getStyleClass().add("badge-medium"); badge.setText("Mittel"); }
-            case "LOW" -> { badge.getStyleClass().add("badge-low"); badge.setText("Niedrig"); }
-            default -> { badge.getStyleClass().add("badge-customer"); badge.setText(type); }
+            case "OPEN"        -> { badge.getStyleClass().add("badge-open");      badge.setText("● Offen"); }
+            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress");  badge.setText("● In Bearbeitung"); }
+            case "WAITING"     -> { badge.getStyleClass().add("badge-waiting");   badge.setText("● Wartend"); }
+            case "RESOLVED"    -> { badge.getStyleClass().add("badge-resolved");  badge.setText("● Gelöst"); }
+            case "CLOSED"      -> { badge.getStyleClass().add("badge-closed");    badge.setText("● Geschlossen"); }
+            case "CRITICAL"    -> { badge.getStyleClass().add("badge-critical");  badge.setText("● Kritisch"); }
+            case "HIGH"        -> { badge.getStyleClass().add("badge-high");      badge.setText("● Hoch"); }
+            case "MEDIUM"      -> { badge.getStyleClass().add("badge-medium");    badge.setText("● Mittel"); }
+            case "LOW"         -> { badge.getStyleClass().add("badge-low");       badge.setText("● Niedrig"); }
+            default            -> { badge.getStyleClass().add("badge-customer");  badge.setText(type != null ? type : "–"); }
         }
         return badge;
     }
@@ -265,12 +296,15 @@ public class CustomerController {
         new Thread(task, "customer-load-categories").start();
     }
 
+    // [Nzchupa | 2026-06-13] Loading-Spinner während Datenladen — bessere UX
     private void loadTickets() {
+        ticketTable.setPlaceholder(buildLoadingNode());
         Task<List<TicketFX>> task = new Task<>() {
             @Override protected List<TicketFX> call() throws Exception { return ticketService.getAllTickets(); }
         };
         task.setOnSucceeded(e -> {
             latestTickets = task.getValue() == null ? List.of() : task.getValue();
+            ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             updateDashboardStats(latestTickets);
             updateTicketCounter(latestTickets);
             updateActiveTickets(latestTickets);
@@ -279,12 +313,29 @@ public class CustomerController {
         });
         task.setOnFailed(e -> {
             latestTickets = List.of();
+            ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
             updateDashboardStats(latestTickets);
             updateTicketCounter(latestTickets);
             updateActiveTickets(latestTickets);
             updateActivities(latestTickets);
         });
         new Thread(task, "customer-load-tickets").start();
+    }
+
+    private javafx.scene.Node buildLoadingNode() {
+        javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
+        spinner.setPrefSize(36, 36);
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label("Daten werden geladen…");
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, lbl);
+        box.setAlignment(javafx.geometry.Pos.CENTER);
+        return box;
+    }
+
+    private javafx.scene.Node buildEmptyNode(String msg) {
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label(msg);
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        return lbl;
     }
 
     private void updateDashboardStats(List<TicketFX> tickets) {
@@ -345,6 +396,18 @@ public class CustomerController {
         }
         card.getChildren().addAll(titleRow, description, badgeRow);
         card.setOnMouseClicked(e -> { TicketDetailController.setCurrentTicketId(ticket.getId()); Navigator.navigateTo("TicketDetailView.fxml"); });
+
+        // [Nzchupa | 2026-06-13] TSS-017: Hover nur für diese Karte — hellt Hintergrund auf beim Überfahren
+        // Hover effect per card: background highlight on enter, restore on exit
+        card.setOnMouseEntered(e -> {
+            String bg = ThemeManager.isDarkMode() ? "#0F1B2D" : "#EFF6FF";
+            card.setStyle("-fx-background-color: " + bg
+                    + "; -fx-cursor: hand;"
+                    + " -fx-border-color: #0EA5E9; -fx-border-width: 1;"
+                    + " -fx-border-radius: 8; -fx-background-radius: 8;");
+        });
+        card.setOnMouseExited(e -> card.setStyle("-fx-cursor: hand;"));
+
         return card;
     }
 
@@ -458,13 +521,12 @@ public class CustomerController {
         }, "customer-duplicate-check").start();
     }
 
+    // [Nzchupa | 2026-06-13] Nativer Alert.CONFIRMATION ersetzt durch AlertHelper.showConfirm
+    // Replaced native CONFIRMATION Alert with styled AlertHelper confirm dialog
     private void showDuplicateDialog(String title, List<TicketFX> tickets, Runnable createAction) {
         String names = tickets.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, names + "\n\nTrotzdem ein neues Ticket erstellen?",
-                ButtonType.YES, ButtonType.NO);
-        alert.setTitle(title);
-        alert.setHeaderText(title);
-        alert.showAndWait().ifPresent(btn -> { if (btn == ButtonType.YES) createAction.run(); });
+        boolean confirmed = AlertHelper.showConfirm(title, names + "\n\nTrotzdem ein neues Ticket erstellen?", "Erstellen");
+        if (confirmed) createAction.run();
     }
 
     private void submitFullTicket(String title, String desc) {
@@ -479,10 +541,12 @@ public class CustomerController {
         }
 
         if (newCategoryCombo.getValue() != null) req.put("categoryId", newCategoryCombo.getValue().getId());
+        // [Nzchupa | 2026-06-13] TSS-007: Echten Datei-Pfad verwenden wenn per FileChooser ausgewählt
+        // Use real file path from FileChooser if available, otherwise fall back to manual entry
         if (newAttachmentNameField != null && !text(newAttachmentNameField).isBlank()) {
             String attachmentName = text(newAttachmentNameField);
             req.put("attachmentName", attachmentName);
-            req.put("attachmentPath", "demo-attachments/" + attachmentName);
+            req.put("attachmentPath", selectedAttachmentPath != null ? selectedAttachmentPath : "demo-attachments/" + attachmentName);
         }
         doCreateTicket(req);
     }
@@ -567,6 +631,7 @@ public class CustomerController {
         if (newPriorityCombo != null) newPriorityCombo.setValue(null); // zurück auf "Automatisch ermitteln"
         if (newCategoryCombo != null) newCategoryCombo.setValue(null);
         if (newAttachmentNameField != null) newAttachmentNameField.clear();
+        selectedAttachmentPath = null; // [Nzchupa | 2026-06-13] TSS-007: Datei-Pfad zurücksetzen
         if (newLastName != null) newLastName.clear();
         if (newFirstName != null) newFirstName.setText(SessionManager.getUsername());
         if (newEmail != null) newEmail.clear();
@@ -582,64 +647,52 @@ public class CustomerController {
         new Thread(task, "customer-notification-count").start();
     }
 
-    @FXML
-    public void handleShowNotifications() {
-        new Thread(() -> {
-            try {
-                List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() -> showNotificationDialog(notifications));
-            } catch (Exception ex) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden."));
-            }
-        }, "customer-load-notifications").start();
-    }
-
-    private void showNotificationDialog(List<NotificationFX> notifications) {
-        ListView<NotificationFX> list = new ListView<>(FXCollections.observableArrayList(notifications));
-        list.setPrefSize(520, 320);
-        list.setCellFactory(v -> new ListCell<>() {
-            @Override protected void updateItem(NotificationFX item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : (item.isRead() ? "✓ " : "● ") + item.getTitle() + "\n" + item.getMessage());
-            }
-        });
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Benachrichtigungen");
-        alert.setHeaderText(notifications.isEmpty() ? "Keine Benachrichtigungen" : "Meine Benachrichtigungen");
-        alert.getDialogPane().setContent(list);
-        alert.showAndWait();
-        markShownNotificationsAsRead(notifications);
-    }
-
-    private void markShownNotificationsAsRead(List<NotificationFX> notifications) {
-        new Thread(() -> {
-            for (NotificationFX notification : notifications) {
-                try { if (!notification.isRead()) notificationService.markAsRead(notification.getId()); } catch (Exception ignored) { }
-            }
-            Platform.runLater(this::loadUnreadNotifications);
-        }, "mark-notifications-read").start();
-    }
+    // [Nzchupa | 2026-06-13] Alte handleShowNotifications / showNotificationDialog entfernt — war toter Code
+    // Removed old native-Alert notification dialog — NotificationPopup (handleNotifications) is used instead
 
     @FXML
     private void handleNotifications(MouseEvent event) {
         new Thread(() -> {
             try {
                 List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() -> NotificationPopup.show((Node) event.getSource(), notifications));
+                // [Nzchupa | 2026-06-12] TS-001: reloadCallback übergeben — Badge wird nach "Alle gelesen" aktualisiert
+                Platform.runLater(() -> NotificationPopup.show((Node) event.getSource(), notifications, this::loadUnreadNotifications));
             } catch (Exception ex) {
                 Platform.runLater(() -> AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden."));
             }
         }, "customer-load-notifications-popup").start();
     }
 
-    @FXML public void handleProfile() {
-        if (!confirmDiscardNewTicketIfNeeded()) return;
-        Navigator.navigateTo("ProfileView.fxml");
+    // [Nzchupa | 2026-06-13] TSS-007: FileChooser für Ticket-Anhang — Datei direkt auswählen
+    // Opens a FileChooser so the customer can select a file to attach to the new ticket
+    @FXML public void handleBrowseAttachment() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Anhang auswählen");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Alle Dateien", "*.*"));
+        Stage stage = (Stage) newAttachmentNameField.getScene().getWindow();
+        java.io.File file = fc.showOpenDialog(stage);
+        if (file != null) {
+            selectedAttachmentPath = file.getAbsolutePath();
+            newAttachmentNameField.setText(file.getName());
+        }
     }
 
+    // [Nzchupa | 2026-06-12] TS-007: Profil als Modal öffnen — Customer-Dashboard bleibt im Hintergrund
+    // [Nzchupa | 2026-06-13] TSS-005: Avatar nach Schließen aktualisieren
+    // Refresh topbar/sidebar avatar after profile modal closes
+    @FXML public void handleProfile() {
+        if (!confirmDiscardNewTicketIfNeeded()) return;
+        Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
+            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
+    }
+
+    // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen
+    // Logout confirmation: first check unsaved ticket, then ask to confirm logout
     @FXML public void handleLogout() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
-        Navigator.logout();
+        if (AlertHelper.showConfirm("Abmelden", "Möchten Sie sich wirklich abmelden?", "Abmelden")) {
+            Navigator.logout();
+        }
     }
 
     private String text(TextInputControl control) {

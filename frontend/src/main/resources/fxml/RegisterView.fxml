@@ -1,23 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- [Nzchupa | 2026-06-13] TS-005: RegisterView modernisiert — Labels, Enter-Support, besseres Layout -->
+<!-- TS-005: Modernized RegisterView — field labels, Enter key support, improved layout -->
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.RegisterController" stylesheets="@../css/styles.css" styleClass="register-root">
-    <VBox alignment="CENTER" spacing="18" styleClass="register-card" maxWidth="430">
-        <padding><Insets top="42" right="44" bottom="42" left="44" /></padding>
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.ticketsystem.frontend.controller.RegisterController"
+           stylesheets="@../css/styles.css"
+           styleClass="register-root">
+
+    <VBox alignment="CENTER" spacing="20" styleClass="register-card" maxWidth="440">
+        <padding><Insets top="44" right="48" bottom="44" left="48" /></padding>
+
+        <!-- Brand + Title -->
         <Label text="Ticket Support System" styleClass="register-brand" />
         <Label text="Konto erstellen" styleClass="register-title" />
-        <Label text="Registrieren Sie sich, um Support-Tickets zu erstellen und den Status zu verfolgen." styleClass="register-subtitle" wrapText="true" textAlignment="CENTER" />
-        <VBox spacing="12" maxWidth="330">
-            <TextField fx:id="usernameField" promptText="Benutzername" styleClass="text-field, register-input" />
-            <TextField fx:id="emailField" promptText="E-Mail" styleClass="text-field, register-input" />
-            <PasswordField fx:id="passwordField" promptText="Passwort" styleClass="text-field, register-input" />
-            <PasswordField fx:id="confirmPasswordField" promptText="Passwort wiederholen" styleClass="text-field, register-input" />
-            <Label fx:id="errorLabel" text="Fehler" styleClass="register-error" visible="false" wrapText="true" />
-            <Button text="Registrieren" onAction="#handleRegister" styleClass="btn-primary, register-button" maxWidth="Infinity" />
+        <Label text="Registrieren Sie sich, um Support-Tickets zu erstellen und zu verfolgen."
+               styleClass="register-subtitle" wrapText="true" textAlignment="CENTER" />
+
+        <!-- Form fields with labels -->
+        <VBox spacing="14" maxWidth="340">
+
+            <!-- Username -->
+            <VBox spacing="4">
+                <Label text="Benutzername" styleClass="register-field-label" />
+                <TextField fx:id="usernameField" promptText="z.B. max_mustermann"
+                           styleClass="text-field, register-input"
+                           onKeyPressed="#handleEnterKey" />
+            </VBox>
+
+            <!-- Email -->
+            <VBox spacing="4">
+                <Label text="E-Mail-Adresse" styleClass="register-field-label" />
+                <TextField fx:id="emailField" promptText="max@beispiel.de"
+                           styleClass="text-field, register-input"
+                           onKeyPressed="#handleEnterKey" />
+            </VBox>
+
+            <!-- Password -->
+            <VBox spacing="4">
+                <Label text="Passwort" styleClass="register-field-label" />
+                <PasswordField fx:id="passwordField" promptText="Mindestens 8 Zeichen"
+                               styleClass="text-field, register-input"
+                               onKeyPressed="#handleEnterKey" />
+            </VBox>
+
+            <!-- Confirm Password -->
+            <VBox spacing="4">
+                <Label text="Passwort bestätigen" styleClass="register-field-label" />
+                <PasswordField fx:id="confirmPasswordField" promptText="Passwort wiederholen"
+                               styleClass="text-field, register-input"
+                               onKeyPressed="#handleEnterKey" />
+            </VBox>
+
+            <!-- Error label -->
+            <Label fx:id="errorLabel" text="" styleClass="register-error" visible="false" wrapText="true" />
+
+            <!-- Submit button -->
+            <Button text="Konto erstellen" onAction="#handleRegister"
+                    styleClass="btn-primary, register-button" maxWidth="Infinity"
+                    defaultButton="true" />
         </VBox>
-        <Hyperlink text="Bereits ein Konto? Anmelden" onAction="#handleBackToLogin" styleClass="register-link" />
-   <Button text="← Zurück" onAction="#handleBackToHome" styleClass="btn-ghost"/>
+
+        <!-- Login + Home links -->
+        <VBox alignment="CENTER" spacing="6">
+            <Hyperlink text="Bereits ein Konto? Anmelden" onAction="#handleBackToLogin" styleClass="register-link" />
+            <Button text="← Zurück zur Startseite" onAction="#handleBackToHome" styleClass="btn-ghost" />
+        </VBox>
     </VBox>
 </StackPane>

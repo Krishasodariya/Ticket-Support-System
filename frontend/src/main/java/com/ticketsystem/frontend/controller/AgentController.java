@@ -8,8 +8,11 @@ import com.ticketsystem.frontend.service.NotificationApiService;
 import com.ticketsystem.frontend.service.TicketApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.AvatarHelper;
+import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
+import com.ticketsystem.frontend.util.ThemeManager;
+import com.ticketsystem.frontend.util.ToastHelper;
 
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -43,6 +46,11 @@ public class AgentController {
     @FXML private Label labelMyTickets, labelAllTickets, labelKnowledgeBase;
     @FXML private Label breadcrumb;
 
+    // [Nzchupa | 2026-06-12] TS-002: notificationButton für Theme-Toggle-Root benötigt
+    @FXML private StackPane notificationButton;
+    // [Nzchupa | 2026-06-13] TSS-002: themeToggleBtn für dynamisches Icon-Update
+    // Theme toggle button reference for dynamic icon update
+    @FXML private Button themeToggleBtn;
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, notificationCountLabel;
     @FXML private ImageView sidebarProfileImage, topbarProfileImage;
     @FXML private Circle sidebarAvatarBackground, topbarAvatarBackground;
@@ -132,28 +140,53 @@ public class AgentController {
     private void initFilters() {
         filterStatusCombo.getItems().setAll("Alle", TicketStatus.OPEN.name(), TicketStatus.IN_PROGRESS.name(), TicketStatus.WAITING.name(), TicketStatus.RESOLVED.name(), TicketStatus.CLOSED.name());
         filterStatusCombo.setValue("Alle");
+        // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen
+        // Show German labels in filter combo; keep enum names as values so filtering still works
+        javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
+            lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+        filterStatusCombo.setCellFactory(statusCF);
+        filterStatusCombo.setButtonCell(statusCF.call(null));
+        // [Nzchupa | 2026-06-13] Echtzeit-Filter und Suche — sofortige Reaktion ohne Button
+        // Real-time filter and search listeners — no need to press "Suchen"
+        filterStatusCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
         filterPriorityCombo.getItems().setAll("Alle", TicketPriority.CRITICAL.name(), TicketPriority.HIGH.name(), TicketPriority.MEDIUM.name(), TicketPriority.LOW.name());
         filterPriorityCombo.setValue("Alle");
+        // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
+        // Show German labels in priority filter combo
+        javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
+            lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+        filterPriorityCombo.setCellFactory(priorityCF);
+        filterPriorityCombo.setButtonCell(priorityCF.call(null));
+        filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, old, val) -> applyFilter());
+        }
     }
 
+    // [Nzchupa | 2026-06-13] Null-Check hinzugefügt — verhindert NPE wenn type == null
+    // Added null-check to prevent NPE; unified badge text with Admin/Customer (● prefix)
     private Label createBadge(String type) {
-        Label badge = new Label(type);
+        String value = type == null ? "" : type.trim().toUpperCase();
+        Label badge = new Label(value);
         badge.getStyleClass().add("badge");
-        switch (type.toUpperCase()) {
-            case "OPEN" -> { badge.getStyleClass().add("badge-open"); badge.setText("Offen"); }
-            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress"); badge.setText("In Bearbeitung"); }
-            case "WAITING" -> { badge.getStyleClass().add("badge-waiting"); badge.setText("Wartend"); }
-            case "RESOLVED" -> { badge.getStyleClass().add("badge-resolved"); badge.setText("Gelöst"); }
-            case "CLOSED" -> { badge.getStyleClass().add("badge-closed"); badge.setText("Geschlossen"); }
-            case "CRITICAL" -> { badge.getStyleClass().add("badge-critical"); badge.setText("Kritisch"); }
-            case "HIGH" -> { badge.getStyleClass().add("badge-high"); badge.setText("Hoch"); }
-            case "MEDIUM" -> { badge.getStyleClass().add("badge-medium"); badge.setText("Mittel"); }
-            case "LOW" -> { badge.getStyleClass().add("badge-low"); badge.setText("Niedrig"); }
+        switch (value) {
+            case "OPEN"        -> { badge.getStyleClass().add("badge-open");      badge.setText("● Offen"); }
+            case "IN_PROGRESS" -> { badge.getStyleClass().add("badge-progress");  badge.setText("● In Bearbeitung"); }
+            case "WAITING"     -> { badge.getStyleClass().add("badge-waiting");   badge.setText("● Wartend"); }
+            case "RESOLVED"    -> { badge.getStyleClass().add("badge-resolved");  badge.setText("● Gelöst"); }
+            case "CLOSED"      -> { badge.getStyleClass().add("badge-closed");    badge.setText("● Geschlossen"); }
+            case "CRITICAL"    -> { badge.getStyleClass().add("badge-critical");  badge.setText("● Kritisch"); }
+            case "HIGH"        -> { badge.getStyleClass().add("badge-high");      badge.setText("● Hoch"); }
+            case "MEDIUM"      -> { badge.getStyleClass().add("badge-medium");    badge.setText("● Mittel"); }
+            case "LOW"         -> { badge.getStyleClass().add("badge-low");       badge.setText("● Niedrig"); }
+            default            -> { badge.getStyleClass().add("badge-customer");  badge.setText(type != null ? type : "–"); }
         }
         return badge;
     }
 
+    // [Nzchupa | 2026-06-13] Loading-Spinner während Datenladen — bessere UX
     private void loadTickets() {
+        ticketTable.setPlaceholder(buildLoadingNode());
         Task<List<TicketFX>> task = new Task<>() {
             @Override protected List<TicketFX> call() throws Exception {
                 return ticketService.getAllTickets();
@@ -161,11 +194,31 @@ public class AgentController {
         };
         task.setOnSucceeded(e -> {
             latestTickets = task.getValue();
+            ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             applyFilter();
             updateAssignedCards(latestTickets);
         });
-        task.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden. Backend prüfen."));
+        task.setOnFailed(e -> {
+            ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
+            AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden. Backend prüfen.");
+        });
         new Thread(task, "agent-load-tickets").start();
+    }
+
+    private javafx.scene.Node buildLoadingNode() {
+        javafx.scene.control.ProgressIndicator spinner = new javafx.scene.control.ProgressIndicator();
+        spinner.setPrefSize(36, 36);
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label("Daten werden geladen…");
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(10, spinner, lbl);
+        box.setAlignment(javafx.geometry.Pos.CENTER);
+        return box;
+    }
+
+    private javafx.scene.Node buildEmptyNode(String msg) {
+        javafx.scene.control.Label lbl = new javafx.scene.control.Label(msg);
+        lbl.setStyle("-fx-text-fill: #64748B; -fx-font-size: 13px;");
+        return lbl;
     }
 
     private void updateAssignedCards(List<TicketFX> tickets) {
@@ -206,11 +259,17 @@ public class AgentController {
                     : "–");
         }
 
-        // ── Performance-Bars: meine Tickets (alle, inkl. gelöste) ──────────────
-        long myTotal = tickets.stream().filter(t -> me.equals(t.getAssignedTo())).count();
+        // [Nzchupa | 2026-06-13] TSS-009: Performance-Bars auf 30 Tage begrenzen
+        // Filter performance data to last 30 days so label "PERFORMANCE (30 TAGE)" is accurate
+        java.time.LocalDateTime cutoff = java.time.LocalDateTime.now().minusDays(30);
+        long myTotal = tickets.stream()
+                .filter(t -> me.equals(t.getAssignedTo()))
+                .filter(t -> t.getCreatedAt() != null && t.getCreatedAt().isAfter(cutoff))
+                .count();
         if (myTotal > 0) {
             long myResolved = tickets.stream()
                     .filter(t -> me.equals(t.getAssignedTo()))
+                    .filter(t -> t.getCreatedAt() != null && t.getCreatedAt().isAfter(cutoff))
                     .filter(t -> "RESOLVED".equals(t.getStatus()) || "CLOSED".equals(t.getStatus()))
                     .count();
             long myOpen = myTotal - myResolved;
@@ -245,7 +304,16 @@ public class AgentController {
                 case "MEDIUM"   -> "#38BDF8";
                 default         -> "#22C55E";
             };
-            card.setStyle("-fx-border-color: transparent transparent transparent " + borderColor + "; -fx-border-width: 0 0 0 3;");
+            // [Nzchupa | 2026-06-13] TSS-017: Hover nur für diese Karte — inline style überschreibt CSS :hover
+            // Inline setStyle() overrides CSS :hover, so we use Java mouse events instead
+            final String baseStyle = "-fx-border-color: transparent transparent transparent " + borderColor
+                    + "; -fx-border-width: 0 0 0 3;";
+            card.setStyle(baseStyle);
+            card.setOnMouseEntered(ev -> {
+                String bg = ThemeManager.isDarkMode() ? "#0F1B2D" : "#EFF6FF";
+                card.setStyle(baseStyle + " -fx-background-color: " + bg + ";");
+            });
+            card.setOnMouseExited(ev -> card.setStyle(baseStyle));
 
             HBox row1 = new HBox(new Label(t.getTitle()));
             ((Label) row1.getChildren().get(0)).setStyle("-fx-font-size: 13px; -fx-text-fill: #F1F5F9; -fx-font-weight: bold;");
@@ -369,11 +437,13 @@ public class AgentController {
         copyText(kbList.getSelectionModel().getSelectedItem().getAnswerTemplate());
     }
 
+    // [Nzchupa | 2026-06-13] Toast statt AlertHelper — kein Modal für einfaches Clipboard-Feedback
+    // Use Toast instead of AlertHelper modal for non-blocking clipboard feedback
     private void copyText(String text) {
         ClipboardContent content = new ClipboardContent();
         content.putString(text);
         Clipboard.getSystemClipboard().setContent(content);
-        AlertHelper.showInfo("Kopiert", "Text wurde in die Zwischenablage kopiert.");
+        ToastHelper.show(notificationButton, "Text in Zwischenablage kopiert", ToastHelper.ToastType.SUCCESS);
     }
 
     @FXML public void copyTemplate1() { copyText("Vielen Dank für Ihre Anfrage. Wir arbeiten aktiv an einer Lösung und melden uns mit einem Update."); }
@@ -392,54 +462,42 @@ public class AgentController {
         new Thread(task, "agent-notification-count").start();
     }
 
-    @FXML public void handleShowNotifications() {
-        new Thread(() -> {
-            try {
-                List<NotificationFX> notifications = notificationService.getMyNotifications();
-                Platform.runLater(() -> showNotificationDialog(notifications));
-            } catch (Exception ex) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Benachrichtigungen konnten nicht geladen werden."));
-            }
-        }, "agent-load-notifications").start();
+    // [Nzchupa | 2026-06-13] Alte handleShowNotifications / showNotificationDialog entfernt — war toter Code
+    // Removed old native-Alert notification dialog — NotificationPopup (handleNotifications) is used instead
+
+    // [Nzchupa | 2026-06-12] TS-007: Profil als Modal öffnen — Dashboard bleibt im Hintergrund
+    // [Nzchupa | 2026-06-13] TSS-005: Avatar nach Profil-Modal-Schließen aktualisieren
+    // Refresh topbar/sidebar avatar after profile modal closes
+    @FXML public void handleProfile() {
+        Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
+            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
+    }
+    // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen
+    // Logout confirmation dialog to prevent accidental logouts
+    @FXML public void handleLogout() {
+        if (AlertHelper.showConfirm("Abmelden", "Möchten Sie sich wirklich abmelden?", "Abmelden")) {
+            Navigator.logout();
+        }
     }
 
-    private void showNotificationDialog(List<NotificationFX> notifications) {
-        ListView<NotificationFX> list = new ListView<>(FXCollections.observableArrayList(notifications));
-        list.setPrefSize(520, 320);
-        list.setCellFactory(v -> new ListCell<>() {
-            @Override protected void updateItem(NotificationFX item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : (item.isRead() ? "✓ " : "● ") + item.getTitle() + "\n" + item.getMessage());
-            }
-        });
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Benachrichtigungen");
-        alert.setHeaderText(notifications.isEmpty() ? "Keine Benachrichtigungen" : "Meine Benachrichtigungen");
-        alert.getDialogPane().setContent(list);
-        alert.showAndWait();
-        markShownNotificationsAsRead(notifications);
+    // [Nzchupa | 2026-06-12] TS-002: Theme-Toggle im Topbar — Dark/Light Mode umschalten
+    @FXML public void handleToggleTheme() {
+        ThemeManager.toggle();
+        // getRoot() gibt bereits Parent zurück — kein Cast nötig / getRoot() already returns Parent, no cast needed
+        ThemeManager.apply(notificationButton.getScene().getRoot());
+        // [Nzchupa | 2026-06-13] TSS-002: Icon nach Theme-Wechsel aktualisieren
+        // Update icon after theme switch
+        if (themeToggleBtn != null) themeToggleBtn.setText(ThemeManager.isDarkMode() ? "☀" : "🌙");
     }
-
-    private void markShownNotificationsAsRead(List<NotificationFX> notifications) {
-        new Thread(() -> {
-            for (NotificationFX notification : notifications) {
-                try {
-                    if (!notification.isRead()) notificationService.markAsRead(notification.getId());
-                } catch (Exception ignored) { }
-            }
-            Platform.runLater(this::loadUnreadNotifications);
-        }, "mark-notifications-read").start();
-    }
-
-    @FXML public void handleProfile() { Navigator.navigateTo("ProfileView.fxml"); }
-    @FXML public void handleLogout() { Navigator.logout(); }
     @FXML
     private void handleNotifications(MouseEvent event) {
         new Thread(() -> {
             try {
                 List<NotificationFX> notifications = notificationService.getMyNotifications();
+                // [Nzchupa | 2026-06-12] TS-001: reloadCallback übergeben — Badge-Counter wird nach "Alle gelesen" aktualisiert
+                // Pass reloadCallback so the unread badge refreshes after "Alle gelesen" is clicked
                 Platform.runLater(() ->
-                        NotificationPopup.show((Node) event.getSource(), notifications)
+                        NotificationPopup.show((Node) event.getSource(), notifications, this::loadUnreadNotifications)
                 );
             } catch (Exception ex) {
                 Platform.runLater(() ->
