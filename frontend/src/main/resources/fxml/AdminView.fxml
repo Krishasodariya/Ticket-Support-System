@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>	
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
@@ -11,7 +11,7 @@
 
     <!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
     <left>
-        <VBox styleClass="sidebar" prefWidth="210">
+        <VBox styleClass="sidebar" prefWidth="211">
             <VBox>
                 <padding><Insets top="20" right="16" bottom="16" left="16"/></padding>
                 <Label text="Ticket Support System" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0EA5E9;" />
@@ -46,7 +46,7 @@
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showAuditLog" fx:id="navAuditLog" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#475569" fx:id="dotAuditLog" />
-                <Label text="📝 Audit-Log" styleClass="text-secondary" fx:id="labelAuditLog" />
+                <Label text="📝 Aktivitätsprotokoll" styleClass="text-secondary" fx:id="labelAuditLog" />
             </HBox>
             <!-- Feature 32 – System-Aktivitätsprotokoll -->
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showSystemAuditLog" fx:id="navSystemAuditLog" styleClass="nav-item">
@@ -372,7 +372,7 @@
                     </VBox>
                 </HBox>
                 <!-- Filter Bar -->
-                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="filter-bar">
+                <HBox spacing="10" alignment="CENTER_LEFT" styleClass="filter-barg">
                     <ComboBox fx:id="filterStatusCombo" promptText="Alle Status" prefWidth="170" styleClass="combo-box" />
                     <ComboBox fx:id="filterPriorityCombo" promptText="Alle Prioritäten" prefWidth="170" styleClass="combo-box" />
                     <TextField fx:id="searchField" promptText="Suche: Titel, Kunde, Agent..." prefWidth="300" styleClass="text-field" />
