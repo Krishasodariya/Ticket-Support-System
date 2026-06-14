@@ -16,6 +16,7 @@ public class SessionManager {
     }
 
     public static void clear() {
+        RealtimeWebSocketClient.getInstance().disconnect();
         token = null;
         username = null;
         role = null;

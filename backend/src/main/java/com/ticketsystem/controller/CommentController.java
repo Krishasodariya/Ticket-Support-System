@@ -3,6 +3,7 @@ package com.ticketsystem.controller;
 import com.ticketsystem.dto.request.CreateCommentRequest;
 import com.ticketsystem.dto.response.CommentResponse;
 import com.ticketsystem.service.CommentService;
+import com.ticketsystem.service.RealtimeEventService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,9 +17,11 @@ import java.util.UUID;
 public class CommentController {
 
     private final CommentService commentService;
+    private final RealtimeEventService realtimeEventService;
 
-    public CommentController(CommentService commentService) {
+    public CommentController(CommentService commentService, RealtimeEventService realtimeEventService) {
         this.commentService = commentService;
+        this.realtimeEventService = realtimeEventService;
     }
 
     @GetMapping
@@ -30,6 +33,8 @@ public class CommentController {
     public ResponseEntity<CommentResponse> createComment(@PathVariable UUID ticketId, 
                                                          @Valid @RequestBody CreateCommentRequest request, 
                                                          Authentication authentication) {
-        return ResponseEntity.ok(commentService.createComment(ticketId, request, authentication.getName()));
+        CommentResponse createdComment = commentService.createComment(ticketId, request, authentication.getName());
+        realtimeEventService.publishCommentCreated(ticketId, createdComment.getId());
+        return ResponseEntity.ok(createdComment);
     }
 }
