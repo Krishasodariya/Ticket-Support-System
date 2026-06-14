@@ -11,6 +11,7 @@ import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
+import com.ticketsystem.frontend.util.RealtimeWebSocketClient;
 import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.frontend.util.ToastHelper;
 
@@ -77,6 +78,8 @@ public class AgentController {
     private final KnowledgeBaseApiService knowledgeBaseService = new KnowledgeBaseApiService();
     private final ObservableList<TicketFX> allTicketData = FXCollections.observableArrayList();
     private List<TicketFX> latestTickets = List.of();
+    private boolean ticketLoading = false;
+    private boolean ticketRefreshPending = false;
 
     @FXML
     public void initialize() {
@@ -94,6 +97,16 @@ public class AgentController {
 
         initTable();
         initFilters();
+        RealtimeWebSocketClient.getInstance().setViewListener("agent-dashboard", event -> {
+            if (!event.isTicketOrCommentEvent()) {
+                return;
+            }
+            if ((paneMyTickets != null && paneMyTickets.isVisible())
+                    || (paneAllTickets != null && paneAllTickets.isVisible())) {
+                loadTickets();
+            }
+            loadUnreadNotifications();
+        });
         loadUnreadNotifications();
         showMyTickets();
     }
@@ -186,6 +199,11 @@ public class AgentController {
 
     // [Nzchupa | 2026-06-13] Loading-Spinner während Datenladen — bessere UX
     private void loadTickets() {
+        if (ticketLoading) {
+            ticketRefreshPending = true;
+            return;
+        }
+        ticketLoading = true;
         ticketTable.setPlaceholder(buildLoadingNode());
         Task<List<TicketFX>> task = new Task<>() {
             @Override protected List<TicketFX> call() throws Exception {
@@ -197,12 +215,25 @@ public class AgentController {
             ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             applyFilter();
             updateAssignedCards(latestTickets);
+            finishTicketLoad();
         });
         task.setOnFailed(e -> {
             ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
             AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden. Backend prüfen.");
+            finishTicketLoad();
         });
         new Thread(task, "agent-load-tickets").start();
+    }
+
+    private void finishTicketLoad() {
+        ticketLoading = false;
+        boolean ticketsVisible = (paneMyTickets != null && paneMyTickets.isVisible())
+                || (paneAllTickets != null && paneAllTickets.isVisible());
+        boolean refreshAgain = ticketRefreshPending && ticketsVisible;
+        ticketRefreshPending = false;
+        if (refreshAgain) {
+            loadTickets();
+        }
     }
 
     private javafx.scene.Node buildLoadingNode() {

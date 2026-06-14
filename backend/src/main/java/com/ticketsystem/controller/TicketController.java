@@ -8,6 +8,7 @@ import com.ticketsystem.dto.response.TicketDetailResponse;
 import com.ticketsystem.dto.response.TicketResponse;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
+import com.ticketsystem.service.RealtimeEventService;
 import com.ticketsystem.service.TicketService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,11 @@ import java.util.UUID;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final RealtimeEventService realtimeEventService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService, RealtimeEventService realtimeEventService) {
         this.ticketService = ticketService;
+        this.realtimeEventService = realtimeEventService;
     }
 
     @GetMapping
@@ -59,7 +62,9 @@ public class TicketController {
     @PostMapping
     public ResponseEntity<TicketDetailResponse> createTicket(@Valid @RequestBody CreateTicketRequest request,
                                                              Authentication authentication) {
-        return ResponseEntity.ok(ticketService.createTicket(request, authentication.getName()));
+        TicketDetailResponse createdTicket = ticketService.createTicket(request, authentication.getName());
+        realtimeEventService.publishTicketCreated(createdTicket.getId());
+        return ResponseEntity.ok(createdTicket);
     }
 
     @PutMapping("/{id}")

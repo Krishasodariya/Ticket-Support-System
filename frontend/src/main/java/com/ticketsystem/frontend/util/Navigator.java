@@ -26,6 +26,7 @@ public class Navigator {
     }
 
     public static void navigateTo(String fxmlFile) {
+        RealtimeWebSocketClient.getInstance().clearViewListeners();
         try {
             if (primaryStage == null) {
                 AlertHelper.showError("Navigation Error", "Primary stage is not initialized.");

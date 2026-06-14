@@ -12,6 +12,7 @@ import com.ticketsystem.frontend.service.UserApiService;
 import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
+import com.ticketsystem.frontend.util.RealtimeWebSocketClient;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -74,6 +75,8 @@ public class TicketDetailController {
     private final UserApiService userService = new UserApiService();
     private final AuditLogApiService auditLogService = new AuditLogApiService();
     private TicketFX currentTicket;
+    private boolean ticketLoading = false;
+    private boolean ticketRefreshPending = false;
 
     @FXML
     public void initialize() {
@@ -120,6 +123,11 @@ public class TicketDetailController {
         }
 
         initListCells();
+        RealtimeWebSocketClient.getInstance().setViewListener("ticket-detail", event -> {
+            if (event.isTicketOrCommentEvent() && Objects.equals(currentTicketId, event.getTicketId())) {
+                loadTicket();
+            }
+        });
         loadTicket();
     }
 
@@ -309,6 +317,11 @@ public class TicketDetailController {
     }
 
     private void loadTicket() {
+        if (ticketLoading) {
+            ticketRefreshPending = true;
+            return;
+        }
+        ticketLoading = true;
         new Thread(() -> {
             try {
                 currentTicket = ticketService.getTicketDetails(currentTicketId);
@@ -361,11 +374,24 @@ public class TicketDetailController {
                     }
                     commentsList.setItems(FXCollections.observableArrayList(comments));
                     buildTimeline(logs);
+                    finishTicketLoad();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Ticket konnte nicht geladen werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Ticket konnte nicht geladen werden.\n" + e.getMessage());
+                    finishTicketLoad();
+                });
             }
-        }).start();
+        }, "ticket-detail-load").start();
+    }
+
+    private void finishTicketLoad() {
+        ticketLoading = false;
+        boolean refreshAgain = ticketRefreshPending;
+        ticketRefreshPending = false;
+        if (refreshAgain) {
+            loadTicket();
+        }
     }
 
     private void selectCurrentAgent() {
