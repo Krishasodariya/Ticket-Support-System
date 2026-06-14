@@ -24,6 +24,7 @@ import com.ticketsystem.frontend.util.AvatarHelper;
 import com.ticketsystem.frontend.util.LabelHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import com.ticketsystem.frontend.util.NotificationPopup;
+import com.ticketsystem.frontend.util.RealtimeWebSocketClient;
 import com.ticketsystem.frontend.util.SessionManager;
 import com.ticketsystem.frontend.util.ThemeManager;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -83,6 +84,10 @@ public class AdminController {
     @FXML private ProgressBar progressCritical, progressHigh, progressMedium, progressLow;
     @FXML private TableView<TicketFX> dashTicketTable;
     @FXML private TableColumn<TicketFX, String> dashColId, dashColTitle, dashColStatus;
+    @FXML private ComboBox<TicketFX> dashboardTicketCombo;
+    @FXML private ComboBox<UserFX> dashboardAgentCombo;
+    @FXML private Button dashboardAssignButton;
+    @FXML private Label dashboardAssignmentHint;
 
     @FXML private TableView<TicketFX> ticketTable;
     @FXML private TableColumn<TicketFX, String> colId, colTitle, colPriority, colStatus, colCategory, colAgent, colCreatedAt;
@@ -141,6 +146,9 @@ public class AdminController {
 
     private final ObservableList<TicketFX> allTickets = FXCollections.observableArrayList();
     private boolean dashboardLoading = false;
+    private boolean dashboardRefreshPending = false;
+    private boolean ticketLoading = false;
+    private boolean ticketRefreshPending = false;
 
     @FXML
     public void initialize() {
@@ -164,6 +172,18 @@ public class AdminController {
         if (topbarSearchField != null) {
             topbarSearchField.textProperty().addListener((obs, old, val) -> handleTopbarSearch(val));
         }
+        RealtimeWebSocketClient.getInstance().setViewListener("admin-dashboard", event -> {
+            if (!event.isTicketOrCommentEvent()) {
+                return;
+            }
+            if (paneDashboard != null && paneDashboard.isVisible()) {
+                loadDashboardData();
+            } else if (paneTickets != null && paneTickets.isVisible()) {
+                loadTickets();
+            }
+            loadUnreadNotifications();
+        });
+
         loadUnreadNotifications();
         showDashboard();
     }
@@ -223,6 +243,17 @@ public class AdminController {
                 Navigator.navigateTo("TicketDetailView.fxml");
             }
         });
+
+        if (dashTicketTable != null) {
+            dashTicketTable.getSelectionModel().selectedItemProperty().addListener((obs, oldTicket, ticket) -> {
+                if (ticket != null && dashboardTicketCombo != null) {
+                    dashboardTicketCombo.getItems().stream()
+                            .filter(item -> item.getId().equals(ticket.getId()))
+                            .findFirst()
+                            .ifPresent(dashboardTicketCombo::setValue);
+                }
+            });
+        }
     }
 
     private void initFiltersAndUserActions() {
@@ -257,6 +288,14 @@ public class AdminController {
         }
         if (roleCombo != null) {
             roleCombo.getItems().setAll(UserRole.CUSTOMER.name(), UserRole.AGENT.name(), UserRole.ADMIN.name());
+        }
+        if (dashboardTicketCombo != null) {
+            dashboardTicketCombo.setCellFactory(param -> dashboardTicketCell());
+            dashboardTicketCombo.setButtonCell(dashboardTicketCell());
+        }
+        if (dashboardAgentCombo != null) {
+            dashboardAgentCombo.setCellFactory(param -> dashboardAgentCell());
+            dashboardAgentCombo.setButtonCell(dashboardAgentCell());
         }
         if (exportStatusCombo != null) {
             exportStatusCombo.getItems().setAll("Alle", TicketStatus.OPEN.name(), TicketStatus.IN_PROGRESS.name(), TicketStatus.WAITING.name(), TicketStatus.RESOLVED.name(), TicketStatus.CLOSED.name());
@@ -293,6 +332,37 @@ public class AdminController {
                 }
 
                 setGraphic(createBadge(item));
+            }
+        };
+    }
+
+    private ListCell<TicketFX> dashboardTicketCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(TicketFX ticket, boolean empty) {
+                super.updateItem(ticket, empty);
+                if (empty || ticket == null) {
+                    setText(null);
+                    return;
+                }
+
+                String number = ticket.getTicketNumber() == null || ticket.getTicketNumber().isBlank()
+                        ? ticket.getId()
+                        : ticket.getTicketNumber();
+                String agent = ticket.getAssignedTo() == null || ticket.getAssignedTo().isBlank()
+                        ? "nicht zugewiesen"
+                        : ticket.getAssignedTo();
+                setText(number + " – " + ticket.getTitle() + " (" + agent + ")");
+            }
+        };
+    }
+
+    private ListCell<UserFX> dashboardAgentCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(UserFX agent, boolean empty) {
+                super.updateItem(agent, empty);
+                setText(empty || agent == null ? null : agent.getUsername() + " (" + agent.getEmail() + ")");
             }
         };
     }
@@ -362,26 +432,90 @@ public class AdminController {
     }
 
     private void loadDashboardData() {
-        if (dashboardLoading) return;
+        if (dashboardLoading) {
+            dashboardRefreshPending = true;
+            return;
+        }
         dashboardLoading = true;
 
         Task<List<TicketFX>> ticketsTask = new Task<>() {
             @Override protected List<TicketFX> call() throws Exception { return ticketService.getAllTickets(); }
         };
-        ticketsTask.setOnSucceeded(e -> dashTicketTable.setItems(FXCollections.observableArrayList(ticketsTask.getValue().stream().limit(8).toList())));
+        ticketsTask.setOnSucceeded(e -> {
+            List<TicketFX> tickets = ticketsTask.getValue();
+            dashTicketTable.setItems(FXCollections.observableArrayList(tickets.stream().limit(8).toList()));
+
+            if (dashboardTicketCombo != null) {
+                String selectedTicketId = dashboardTicketCombo.getValue() == null
+                        ? null
+                        : dashboardTicketCombo.getValue().getId();
+                List<TicketFX> assignableTickets = tickets.stream()
+                        .filter(ticket -> !"RESOLVED".equalsIgnoreCase(ticket.getStatus()))
+                        .filter(ticket -> !"CLOSED".equalsIgnoreCase(ticket.getStatus()))
+                        .toList();
+                dashboardTicketCombo.setItems(FXCollections.observableArrayList(assignableTickets));
+                if (selectedTicketId != null) {
+                    assignableTickets.stream()
+                            .filter(ticket -> selectedTicketId.equals(ticket.getId()))
+                            .findFirst()
+                            .ifPresent(dashboardTicketCombo::setValue);
+                }
+            }
+        });
         ticketsTask.setOnFailed(e -> AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden. Läuft das Backend auf Port 8080?"));
         new Thread(ticketsTask, "admin-dashboard-tickets").start();
+
+        Task<List<UserFX>> agentsTask = new Task<>() {
+            @Override protected List<UserFX> call() throws Exception { return userService.getActiveAgents(); }
+        };
+        agentsTask.setOnSucceeded(e -> {
+            if (dashboardAgentCombo == null) return;
+            String selectedAgentId = dashboardAgentCombo.getValue() == null
+                    ? null
+                    : dashboardAgentCombo.getValue().getId();
+            List<UserFX> agents = agentsTask.getValue();
+            dashboardAgentCombo.setItems(FXCollections.observableArrayList(agents));
+            if (selectedAgentId != null) {
+                agents.stream()
+                        .filter(agent -> selectedAgentId.equals(agent.getId()))
+                        .findFirst()
+                        .ifPresent(dashboardAgentCombo::setValue);
+            }
+            if (dashboardAssignmentHint != null && agents.isEmpty()) {
+                dashboardAssignmentHint.setText("Keine aktiven Agenten vorhanden.");
+            }
+        });
+        agentsTask.setOnFailed(e -> {
+            if (dashboardAssignmentHint != null) {
+                dashboardAssignmentHint.setText("Agenten konnten nicht geladen werden.");
+            }
+        });
+        new Thread(agentsTask, "admin-dashboard-agents").start();
 
         Task<DashboardStatsFX> statsTask = new Task<>() {
             @Override protected DashboardStatsFX call() throws Exception { return dashboardService.getStats(); }
         };
-        statsTask.setOnCancelled(e -> dashboardLoading = false);
-        statsTask.setOnSucceeded(e -> { applyStats(statsTask.getValue()); dashboardLoading = false; });
+        statsTask.setOnCancelled(e -> finishDashboardLoad());
+        statsTask.setOnSucceeded(e -> {
+            applyStats(statsTask.getValue());
+            finishDashboardLoad();
+        });
         statsTask.setOnFailed(e -> {
-            dashboardLoading = false;
             AlertHelper.showError("Fehler", "Dashboard-Statistik konnte nicht geladen werden. Bitte als Admin anmelden und Backend prüfen.");
+            finishDashboardLoad();
         });
         new Thread(statsTask, "admin-dashboard-stats").start();
+    }
+
+    private void finishDashboardLoad() {
+        dashboardLoading = false;
+        boolean refreshAgain = dashboardRefreshPending
+                && paneDashboard != null
+                && paneDashboard.isVisible();
+        dashboardRefreshPending = false;
+        if (refreshAgain) {
+            loadDashboardData();
+        }
     }
 
     private void applyStats(DashboardStatsFX stats) {
@@ -511,6 +645,11 @@ public class AdminController {
     // [Nzchupa | 2026-06-13] Loading-Spinner während Datenladen — bessere UX
     // Show spinner while loading, restore empty-state placeholder on finish
     private void loadTickets() {
+        if (ticketLoading) {
+            ticketRefreshPending = true;
+            return;
+        }
+        ticketLoading = true;
         ticketTable.setPlaceholder(buildLoadingNode());
         Task<List<TicketFX>> task = new Task<>() {
             @Override
@@ -523,12 +662,25 @@ public class AdminController {
             ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
+            finishTicketLoad();
         });
         task.setOnFailed(e -> {
             ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
             AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden.");
+            finishTicketLoad();
         });
         new Thread(task, "admin-load-tickets").start();
+    }
+
+    private void finishTicketLoad() {
+        ticketLoading = false;
+        boolean refreshAgain = ticketRefreshPending
+                && paneTickets != null
+                && paneTickets.isVisible();
+        ticketRefreshPending = false;
+        if (refreshAgain) {
+            loadTickets();
+        }
     }
 
     private javafx.scene.Node buildLoadingNode() {
@@ -788,7 +940,11 @@ public class AdminController {
     @FXML public void showDashboard() { switchTab(paneDashboard, navDashboard, dotDashboard, labelDashboard, "Dashboard"); loadDashboardData(); }
     @FXML public void showTickets() { switchTab(paneTickets, navTickets, dotTickets, labelTickets, "Alle Tickets"); loadTickets(); }
     @FXML public void showUsers() { switchTab(paneUsers, navUsers, dotUsers, labelUsers, "Benutzer"); loadUsers(); }
-    @FXML public void showCategories() { switchTab(paneCategories, navCategories, dotCategories, labelCategories, "Kategorien"); loadCategories(); }
+    @FXML public void showCategories() {
+        switchTab(paneCategories, navCategories, dotCategories, labelCategories, "Kategorien");
+        loadCategories();
+        loadWorkflowOptionsAdmin();
+    }
     @FXML
     public void showReports() {
         switchTab(paneReports, navReports, dotReports, labelReports, "Berichte");
@@ -798,12 +954,47 @@ public class AdminController {
         }
 
         loadKnowledgeBaseAdmin();
-        loadWorkflowOptionsAdmin();
     }
     @FXML public void showAuditLog() { switchTab(paneAuditLog, navAuditLog, dotAuditLog, labelAuditLog, "Audit-Log"); loadAuditLogs(); }
     // Feature 32 – System-Aktivitätsprotokoll
     @FXML public void showSystemAuditLog() { switchTab(paneSystemAuditLog, navSystemAuditLog, dotSystemAuditLog, labelSystemAuditLog, "Aktivitätsprotokoll"); loadSystemAuditLogs(); }
     @FXML public void handleRefreshDashboard() { loadDashboardData(); loadUnreadNotifications(); }
+
+    @FXML
+    public void handleDashboardAssignAgent() {
+        TicketFX ticket = dashboardTicketCombo == null ? null : dashboardTicketCombo.getValue();
+        UserFX agent = dashboardAgentCombo == null ? null : dashboardAgentCombo.getValue();
+
+        if (ticket == null || agent == null) {
+            AlertHelper.showError("Fehlende Auswahl", "Bitte zuerst ein Ticket und einen Agenten auswählen.");
+            return;
+        }
+
+        if (dashboardAssignButton != null) dashboardAssignButton.setDisable(true);
+        if (dashboardAssignmentHint != null) dashboardAssignmentHint.setText("Zuweisung wird gespeichert …");
+
+        Task<TicketFX> task = new Task<>() {
+            @Override
+            protected TicketFX call() throws Exception {
+                return ticketService.assignTicket(ticket.getId(), agent.getId());
+            }
+        };
+        task.setOnSucceeded(e -> {
+            if (dashboardAssignButton != null) dashboardAssignButton.setDisable(false);
+            if (dashboardAssignmentHint != null) {
+                dashboardAssignmentHint.setText("Ticket wurde erfolgreich " + agent.getUsername() + " zugewiesen.");
+            }
+            AlertHelper.showInfo("Agent zugewiesen", "Das Ticket wurde " + agent.getUsername() + " zugewiesen.");
+            loadDashboardData();
+        });
+        task.setOnFailed(e -> {
+            if (dashboardAssignButton != null) dashboardAssignButton.setDisable(false);
+            if (dashboardAssignmentHint != null) dashboardAssignmentHint.setText("Zuweisung fehlgeschlagen.");
+            String message = task.getException() == null ? "Unbekannter Fehler" : task.getException().getMessage();
+            AlertHelper.showError("Zuweisung fehlgeschlagen", message);
+        });
+        new Thread(task, "admin-dashboard-assign-agent").start();
+    }
 
     @FXML public void handleGenerateDemoData() {
         new Thread(() -> {
