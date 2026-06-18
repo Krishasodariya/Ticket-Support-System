@@ -23,5 +23,7 @@ public class DashboardStatsFX {
     private Map<String, Long> ticketsByAgent;
     private Map<String, Long> ticketsByCategory;
     private Map<String, Long> resolvedByAgent;
+    // Aufgabe 3 – Top-Kunden nach Ticket-Anzahl
+    private Map<String, Long> topCustomersByTickets;
 }
 

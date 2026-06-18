@@ -78,6 +78,22 @@ public class DashboardService {
                 .filter(ticket -> ticket.getCreatedAt() != null && !ticket.getCreatedAt().isBefore(start) && ticket.getCreatedAt().isBefore(end))
                 .count();
 
+        // Aufgabe 3 – Top-Kunden nach Ticket-Anzahl (absteigend sortiert, max 10)
+        Map<String, Long> topCustomersByTickets = allTickets.stream()
+                .collect(Collectors.groupingBy(
+                        ticket -> ticket.getCreatedBy() != null ? ticket.getCreatedBy().getUsername() : "Unbekannt",
+                        Collectors.counting()
+                ))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(10)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+
         return DashboardStatsResponse.builder()
                 .totalTickets(ticketRepository.count())
                 .openTickets(byStatus.getOrDefault(TicketStatus.OPEN.name(), 0L))
@@ -96,6 +112,7 @@ public class DashboardService {
                 .ticketsByAgent(byAgent)
                 .ticketsByCategory(byCategory)
                 .resolvedByAgent(resolvedByAgent)
+                .topCustomersByTickets(topCustomersByTickets)
                 .build();
     }
 }
