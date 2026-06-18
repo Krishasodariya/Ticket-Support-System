@@ -142,6 +142,19 @@ public class CustomerController {
         if (newEmail != null) newEmail.setText("");
 
         quickPriorityCombo.getItems().setAll(TicketPriority.values());
+        // Aufgabe 1 – Deutsche Prioritätsbezeichnungen im Schnellticket
+        quickPriorityCombo.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override protected void updateItem(TicketPriority item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : LabelHelper.priorityToGerman(item.name()));
+            }
+        });
+        quickPriorityCombo.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            @Override protected void updateItem(TicketPriority item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : LabelHelper.priorityToGerman(item.name()));
+            }
+        });
 
         // Aufgabe 16: "Automatisch ermitteln" als erste Option in der Priority-ComboBox
         newPriorityCombo.getItems().clear();
@@ -232,7 +245,7 @@ public class CustomerController {
             // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen
             // Show German labels in filter combo; keep enum names as values so filtering still works
             javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
-                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+                    lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
             filterStatusCombo.setCellFactory(statusCF);
             filterStatusCombo.setButtonCell(statusCF.call(null));
             // [Nzchupa | 2026-06-13] Echtzeit-Filter und Suche — sofortige Reaktion ohne Button
@@ -245,7 +258,7 @@ public class CustomerController {
             // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
             // Show German labels in priority filter combo
             javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
-                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+                    lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
             filterPriorityCombo.setCellFactory(priorityCF);
             filterPriorityCombo.setButtonCell(priorityCF.call(null));
             filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyFilter());
@@ -683,7 +696,7 @@ public class CustomerController {
     @FXML public void handleProfile() {
         if (!confirmDiscardNewTicketIfNeeded()) return;
         Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
-            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
+                () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
     }
 
     // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen

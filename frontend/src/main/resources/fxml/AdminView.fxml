@@ -89,7 +89,7 @@
                 <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
                 <!-- Theme toggle button added to topbar -->
                 <Button fx:id="themeToggleBtn" text="☀" onAction="#handleToggleTheme" styleClass="btn-ghost"
-                        style="-fx-font-size: 14px; -fx-padding: 4 8;" />
+                        style="-fx-font-size: 14px; -fx-padding: 4 8; -fx-text-fill: white;" />
                 <!-- [V1] notificationButton з fx:id і оригінальним handler -->
                 <StackPane fx:id="notificationButton" styleClass="notification-pill" onMouseClicked="#handleNotifications" style="-fx-cursor: hand;">
                     <Label text="🔔" style="-fx-font-size: 16px;" />
@@ -290,6 +290,18 @@
                                     maxWidth="Infinity" styleClass="btn-primary"/>
                         </VBox>
                     </HBox>
+
+                    <!-- Aufgabe 3 – TOP-NUTZER STATISTIK -->
+                    <VBox styleClass="dashboard-chart-card" spacing="12">
+                        <Label text="TOP-KUNDEN (MEISTE TICKETS)" styleClass="dashboard-chart-title"/>
+                        <TableView fx:id="topCustomersTable" prefHeight="200" styleClass="table-view modern-table">
+                            <columns>
+                                <TableColumn fx:id="topColRank"     text="Rang"         prefWidth="80"/>
+                                <TableColumn fx:id="topColUsername" text="Benutzername"  prefWidth="250"/>
+                                <TableColumn fx:id="topColCount"    text="Tickets"       prefWidth="120"/>
+                            </columns>
+                        </TableView>
+                    </VBox>
                 </VBox>
             </ScrollPane>
 
