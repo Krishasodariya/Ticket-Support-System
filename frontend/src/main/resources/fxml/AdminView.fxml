@@ -437,8 +437,8 @@
                         <Label text="STATUS-TYPEN VERWALTEN" styleClass="label-uppercase" />
                         <ListView fx:id="statusOptionList" prefHeight="140" styleClass="list-view" />
                         <HBox spacing="8">
-                            <TextField fx:id="statusNameField" promptText="Name, z.B. ESCALATED" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="statusLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="statusNameField" promptText="Name, z.B. ESKALIERT" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="statusLabelField" promptText="Bezeichnung" styleClass="text-field" HBox.hgrow="ALWAYS" />
                             <Button text="+" onAction="#handleAddStatusOption" styleClass="btn-primary" />
                             <Button text="-" onAction="#handleDeleteStatusOption" styleClass="btn-ghost" />
                         </HBox>
@@ -447,8 +447,8 @@
                         <Label text="PRIORITÄTEN VERWALTEN" styleClass="label-uppercase" />
                         <ListView fx:id="priorityOptionList" prefHeight="140" styleClass="list-view" />
                         <HBox spacing="8">
-                            <TextField fx:id="priorityNameField" promptText="Name, z.B. BLOCKER" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <TextField fx:id="priorityLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="priorityNameField" promptText="Name, z.B. BLOCKIEREND" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <TextField fx:id="priorityLabelField" promptText="Bezeichnung" styleClass="text-field" HBox.hgrow="ALWAYS" />
                             <Button text="+" onAction="#handleAddPriorityOption" styleClass="btn-primary" />
                             <Button text="-" onAction="#handleDeletePriorityOption" styleClass="btn-ghost" />
                         </HBox>
@@ -473,15 +473,15 @@
                     </VBox>
                     <HBox spacing="20">
                         <VBox styleClass="card" prefWidth="360" minWidth="280" spacing="10">
-                            <Label text="KNOWLEDGE BASE CRUD" styleClass="label-uppercase" />
+                            <Label text="WISSENSDATENBANK" styleClass="label-uppercase" />
                             <ListView fx:id="kbAdminList" prefHeight="200" styleClass="list-view" />
                             <Button text="Ausgewählten Artikel deaktivieren" onAction="#handleDeleteKnowledgeBase" styleClass="btn-ghost" />
                         </VBox>
                         <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="280" spacing="10">
-                            <Label text="NEUER KNOWLEDGE-BASE-ARTIKEL" styleClass="label-uppercase" />
+                            <Label text="NEUER WISSENSDATENBANK-ARTIKEL" styleClass="label-uppercase" />
                             <TextField fx:id="kbTitleField" promptText="Titel, z.B. VPN verbindet nicht" styleClass="text-field" />
                             <TextField fx:id="kbCategoryField" promptText="Kategorie, z.B. Netzwerk" styleClass="text-field" />
-                            <TextField fx:id="kbKeywordsField" promptText="Keywords, z.B. vpn, wlan, netzwerk" styleClass="text-field" />
+                            <TextField fx:id="kbKeywordsField" promptText="Schlüsselwörter, z.B. vpn, wlan, netzwerk" styleClass="text-field" />
                             <TextArea fx:id="kbSolutionArea" promptText="Lösungsschritte" prefRowCount="4" wrapText="true" styleClass="text-area" />
                             <TextArea fx:id="kbTemplateArea" promptText="Antwort-Vorlage für Agenten" prefRowCount="3" wrapText="true" styleClass="text-area" />
                             <Button text="Artikel hinzufügen" onAction="#handleAddKnowledgeBase" styleClass="btn-primary" />

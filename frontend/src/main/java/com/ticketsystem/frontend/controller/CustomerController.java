@@ -573,7 +573,10 @@ public class CustomerController {
             resetNewTicketForm();
             showMyTickets();
         });
-        task.setOnFailed(e -> AlertHelper.showError("Fehler", "Ticket erstellen fehlgeschlagen.\n" + task.getException().getMessage()));
+        task.setOnFailed(e -> AlertHelper.showError(
+        	    "Fehler",
+        	    "Beim Erstellen des Tickets ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+        	));
         new Thread(task, "customer-create-ticket").start();
     }
 
