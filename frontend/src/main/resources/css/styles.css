@@ -64,6 +64,22 @@
     -fx-font-weight: normal;
 }
 
+/* Aufgabe D - SLA-Ampel Farbklassen */
+.text-danger {
+    -fx-text-fill: #EF4444;
+    -fx-font-weight: bold;
+}
+
+.text-warning {
+    -fx-text-fill: #F97316;
+    -fx-font-weight: bold;
+}
+
+.text-success {
+    -fx-text-fill: #22C55E;
+    -fx-font-weight: bold;
+}
+
 .text-muted,
 .label-uppercase,
 .nav-section-label,
@@ -1946,4 +1962,63 @@
 
 .priority-chart .default-color3.chart-pie {
     -fx-pie-color: #84CC16;
+}
+
+/* ── Footer (HomeView) ─────────────────────────────────────── */
+.start-footer {
+    -fx-background-color: #0F172A;
+}
+
+.start-footer-top {
+    -fx-background-color: #0F172A;
+}
+
+.start-footer-logo {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F1F5F9;
+}
+
+.start-footer-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #94A3B8;
+}
+
+.start-footer-heading {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #94A3B8;
+    -fx-letter-spacing: 1px;
+}
+
+.start-footer-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #CBD5E1;
+    -fx-font-size: 13px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.start-footer-link:hover {
+    -fx-text-fill: #0EA5E9;
+}
+
+.start-footer-link-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #CBD5E1;
+}
+
+.start-footer-separator {
+    -fx-background-color: #1E293B;
+    -fx-padding: 0;
+}
+
+.start-footer-bottom {
+    -fx-background-color: #0F172A;
+}
+
+.start-footer-copy {
+    -fx-font-size: 12px;
+    -fx-text-fill: #475569;
 }

@@ -31,7 +31,6 @@
                 <Label text="Alle offenen Tickets" styleClass="text-secondary" fx:id="labelAllTickets" />
             </HBox>
 
-            <Label text="TOOLS" styleClass="nav-section-label" />
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showKnowledgeBase" fx:id="navKnowledgeBase" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#475569" fx:id="dotKnowledgeBase" />
@@ -79,7 +78,6 @@
             <Label fx:id="breadcrumb" text="Agent  /  Meine Tickets" styleClass="text-muted" style="-fx-font-size: 12px;" />
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
-                <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
                 <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
                 <!-- Theme toggle button added to topbar -->
                 <Button fx:id="themeToggleBtn" text="☀" onAction="#handleToggleTheme" styleClass="btn-ghost"
