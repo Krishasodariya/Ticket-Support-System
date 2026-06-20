@@ -80,7 +80,6 @@
             <Label fx:id="breadcrumb" text="Customer  /  Übersicht" styleClass="text-muted" style="-fx-font-size: 12px;"/>
             <Region HBox.hgrow="ALWAYS"/>
             <HBox spacing="12" alignment="CENTER">
-                <TextField promptText="Suche..." styleClass="text-field topbar-search" prefWidth="190"/>
                 <Button fx:id="themeToggleButton" text="🌙" onAction="#handleToggleTheme" styleClass="theme-toggle-button"/>
                 <StackPane fx:id="notificationButton" styleClass="notification-pill" onMouseClicked="#handleNotifications" style="-fx-cursor: hand;">
                     <Label text="🔔" style="-fx-font-size: 16px;"/>
