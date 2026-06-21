@@ -55,7 +55,7 @@
 
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
-                <StackPane>
+                <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9"/>
                     <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false"/>
                     <Label fx:id="sidebarInitials" text="C" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;"/>
