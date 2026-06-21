@@ -305,7 +305,25 @@ public class CustomerController {
         Task<List<CategoryFX>> task = new Task<>() {
             @Override protected List<CategoryFX> call() throws Exception { return categoryService.getAllCategories(); }
         };
-        task.setOnSucceeded(e -> { if (newCategoryCombo != null) newCategoryCombo.getItems().setAll(task.getValue()); });
+        task.setOnSucceeded(e -> {
+
+            if (newCategoryCombo != null) {
+                newCategoryCombo.getItems().setAll(task.getValue());
+
+                newCategoryCombo.valueProperty().addListener(
+                    (obs, oldValue, newValue) -> {
+
+                        if (newValue != null && newDescField != null) {
+                            newDescField.setText(
+                                newValue.getTemplateText()
+                            );
+                        }
+
+                    }
+                );
+            }
+
+        });
         new Thread(task, "customer-load-categories").start();
     }
 
