@@ -100,7 +100,7 @@
                 <VBox spacing="20" styleClass="customer-content">
                     <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
                     <VBox spacing="5">
-                        <Label fx:id="greetingLabel" text="Hallo, customer! 👋" styleClass="heading-lg"/>
+                        <Label fx:id="greetingLabel" text="Hallo, Kunde! 👋" styleClass="heading-lg"/>
                         <Label text="Hier ist die Übersicht Ihrer Tickets und Aktivitäten." styleClass="text-muted"/>
                     </VBox>
 
