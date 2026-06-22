@@ -80,7 +80,8 @@
             <Label fx:id="breadcrumb" text="Customer  /  Übersicht" styleClass="text-muted" style="-fx-font-size: 12px;"/>
             <Region HBox.hgrow="ALWAYS"/>
             <HBox spacing="12" alignment="CENTER">
-                <Button fx:id="themeToggleButton" text="🌙" onAction="#handleToggleTheme" styleClass="theme-toggle-button"/>
+                <Button fx:id="themeToggleButton" text="🌙" onAction="#handleToggleTheme" styleClass="btn-ghost"
+                        style="-fx-font-size: 16px; -fx-padding: 6 10;"/>
                 <StackPane fx:id="notificationButton" styleClass="notification-pill" onMouseClicked="#handleNotifications" style="-fx-cursor: hand;">
                     <Label text="🔔" style="-fx-font-size: 16px;"/>
                     <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT"/>

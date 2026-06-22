@@ -5,14 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b62c2da4-d7dd-4fd3-ba0d-77bad100df37" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/ticketsystem/dto/response/DashboardStatsResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/ticketsystem/dto/response/DashboardStatsResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/ticketsystem/service/DashboardService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/ticketsystem/service/DashboardService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/main/java/com/ticketsystem/frontend/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main/java/com/ticketsystem/frontend/controller/AdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/main/java/com/ticketsystem/frontend/controller/CustomerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main/java/com/ticketsystem/frontend/controller/CustomerController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/main/java/com/ticketsystem/frontend/model/DashboardStatsFX.java" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main/java/com/ticketsystem/frontend/model/DashboardStatsFX.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/main/resources/fxml/AdminView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main/resources/fxml/AdminView.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/main/resources/fxml/AgentView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main/resources/fxml/AgentView.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/main/resources/fxml/CustomerView.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/main/resources/fxml/CustomerView.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -56,19 +53,6 @@
     &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;
   }
 }</component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="backend" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="backend" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="b62c2da4-d7dd-4fd3-ba0d-77bad100df37" name="Changes" comment="" />
