@@ -54,11 +54,19 @@
                 <Circle radius="4" fill="#475569" fx:id="dotSystemAuditLog" />
                 <Label text="Aktivitätsprotokoll" styleClass="text-secondary" fx:id="labelSystemAuditLog" />
             </HBox>
+            <Label text="KONTO" styleClass="nav-section-label" />
+
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleProfile" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" />
+                <Label text="Mein Profil" styleClass="text-secondary" />
+            </HBox>
+
             <VBox VBox.vgrow="ALWAYS" />
             <Separator styleClass="separator" />
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
-                <StackPane>
+                <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9" />
                     <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false" />
                     <Label fx:id="sidebarInitials" text="AD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
