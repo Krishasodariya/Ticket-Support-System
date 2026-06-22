@@ -39,8 +39,8 @@
     </top>
 
     <center>
-        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" styleClass="start-scroll">
-            <VBox spacing="42" styleClass="start-content">
+        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" fitToHeight="true" styleClass="start-scroll">
+            <VBox spacing="42" styleClass="start-content" minHeight="700">
                 <padding>
                     <Insets top="60" right="70" bottom="50" left="70"/>
                 </padding>
@@ -221,53 +221,44 @@
                     <Button text="Kontakt aufnehmen" onAction="#handleLogin" styleClass="start-btn-primary start-btn-large"/>
                 </VBox>
 
+
+                <!-- Spacer: schiebt Footer ans Ende der Seite -->
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- Footer - fest am Ende des Seiteninhalts -->
+                <VBox styleClass="start-footer">
+                    <HBox spacing="60" alignment="TOP_LEFT" styleClass="start-footer-top">
+                        <padding><Insets top="32" right="70" bottom="24" left="70"/></padding>
+                        <VBox spacing="10" prefWidth="240" HBox.hgrow="ALWAYS">
+                            <Label text="💬  Ticket Support System" styleClass="start-footer-logo"/>
+                            <Label text="Ein studentisches Projekt zur&#10;Verwaltung von Support-Tickets." wrapText="true" styleClass="start-footer-text"/>
+                        </VBox>
+                        <VBox spacing="8" prefWidth="160">
+                            <Label text="QUICK LINKS" styleClass="start-footer-heading"/>
+                            <Button text="Startseite"  onAction="#scrollToHome"     styleClass="start-footer-link"/>
+                            <Button text="Funktionen"  onAction="#scrollToFeatures" styleClass="start-footer-link"/>
+                            <Button text="Rollen"      onAction="#scrollToRoles"    styleClass="start-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" prefWidth="160">
+                            <Label text="PROJEKT" styleClass="start-footer-heading"/>
+                            <Button text="Über uns" onAction="#scrollToAbout"   styleClass="start-footer-link"/>
+                            <Button text="Kontakt"  onAction="#scrollToContact" styleClass="start-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" prefWidth="160">
+                            <Label text="RECHTLICHES" styleClass="start-footer-heading"/>
+                            <Label text="Datenschutz"         styleClass="start-footer-link-label"/>
+                            <Label text="Nutzungsbedingungen" styleClass="start-footer-link-label"/>
+                        </VBox>
+                    </HBox>
+                    <Separator styleClass="start-footer-separator"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="start-footer-bottom">
+                        <padding><Insets top="12" right="70" bottom="12" left="70"/></padding>
+                        <Label text="© 2026 Ticket Support System. Alle Rechte vorbehalten." styleClass="start-footer-copy"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Ein studentisches Projekt." styleClass="start-footer-copy"/>
+                    </HBox>
+                </VBox>
             </VBox>
         </ScrollPane>
     </center>
-
-    <bottom>
-        <VBox styleClass="start-footer">
-            <HBox spacing="60" alignment="TOP_LEFT" styleClass="start-footer-top">
-                <padding><Insets top="32" right="70" bottom="24" left="70"/></padding>
-
-                <!-- Spalte 1: Logo + Beschreibung -->
-                <VBox spacing="10" prefWidth="240" HBox.hgrow="ALWAYS">
-                    <Label text="💬  Ticket Support System" styleClass="start-footer-logo"/>
-                    <Label text="Ein studentisches Projekt zur&#10;Verwaltung von Support-Tickets."
-                           wrapText="true" styleClass="start-footer-text"/>
-                </VBox>
-
-                <!-- Spalte 2: Quick Links -->
-                <VBox spacing="8" prefWidth="160">
-                    <Label text="QUICK LINKS" styleClass="start-footer-heading"/>
-                    <Button text="Startseite"  onAction="#scrollToHome"     styleClass="start-footer-link"/>
-                    <Button text="Funktionen"  onAction="#scrollToFeatures" styleClass="start-footer-link"/>
-                    <Button text="Rollen"      onAction="#scrollToRoles"    styleClass="start-footer-link"/>
-                </VBox>
-
-                <!-- Spalte 3: Projekt -->
-                <VBox spacing="8" prefWidth="160">
-                    <Label text="PROJEKT" styleClass="start-footer-heading"/>
-                    <Button text="Über uns" onAction="#scrollToAbout"   styleClass="start-footer-link"/>
-                    <Button text="Kontakt"  onAction="#scrollToContact" styleClass="start-footer-link"/>
-                </VBox>
-
-                <!-- Spalte 4: Rechtliches -->
-                <VBox spacing="8" prefWidth="160">
-                    <Label text="RECHTLICHES" styleClass="start-footer-heading"/>
-                    <Label text="Datenschutz"         styleClass="start-footer-link-label"/>
-                    <Label text="Nutzungsbedingungen" styleClass="start-footer-link-label"/>
-                </VBox>
-            </HBox>
-
-            <Separator styleClass="start-footer-separator"/>
-
-            <HBox alignment="CENTER_LEFT" styleClass="start-footer-bottom">
-                <padding><Insets top="12" right="70" bottom="12" left="70"/></padding>
-                <Label text="© 2026 Ticket Support System. Alle Rechte vorbehalten." styleClass="start-footer-copy"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Ein studentisches Projekt." styleClass="start-footer-copy"/>
-            </HBox>
-        </VBox>
-    </bottom>
 </BorderPane>

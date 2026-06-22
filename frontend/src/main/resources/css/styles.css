@@ -1299,6 +1299,13 @@
 
 .start-root {
     -fx-background-color: #F8FAFC;
+    -fx-min-height: 100%;
+    -fx-pref-height: 100%;
+}
+
+/* Footer immer unten fixiert - ScrollPane darf nicht die gesamte Höhe übernehmen */
+.start-scroll {
+    -fx-fit-to-height: false;
 }
 
 .start-navbar {
@@ -1340,9 +1347,12 @@
     -fx-border-color: #2563EB;
 }
 
-.start-scroll,
 .start-scroll .viewport {
     -fx-background-color: #F8FAFC;
+}
+.start-scroll {
+    -fx-background-color: #F8FAFC;
+    -fx-fit-to-height: false;
 }
 
 .start-content {
