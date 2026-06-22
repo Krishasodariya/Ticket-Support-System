@@ -1433,6 +1433,16 @@
     -fx-background-radius: 17;
 }
 
+.start-step-number {
+    -fx-text-fill: #2563EB;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.theme-dark .start-step-number {
+    -fx-text-fill: #2563EB;
+}
+
 .start-section-title {
     -fx-font-size: 25px;
     -fx-font-weight: bold;

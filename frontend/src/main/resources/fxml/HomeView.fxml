@@ -63,35 +63,39 @@
                         <Label text="🛡 Sicher. Zuverlässig. Immer für Sie da." styleClass="start-small-info"/>
                     </VBox>
 
-                    <!-- Mockup Card -->
+                    <!-- [Nzchupa | 2026-06-22] TS-009: Fake-Ticket-Mockup durch "So funktioniert es" ersetzt -->
+                    <!-- Replaced the hardcoded fake-ticket mockup with a real "How it works" steps card -->
                     <VBox spacing="14" styleClass="start-mockup" prefWidth="430">
                         <HBox alignment="CENTER_LEFT">
-                            <Label text="Ticket #1234" styleClass="start-mockup-title"/>
+                            <Label text="So funktioniert es" styleClass="start-mockup-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="In Bearbeitung" styleClass="badge badge-progress"/>
+                            <Label text="3 Schritte" styleClass="badge badge-progress"/>
                         </HBox>
 
                         <Separator/>
 
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="👤" styleClass="start-avatar-small"/>
+                            <Label text="1" styleClass="start-avatar-small, start-step-number"/>
                             <VBox spacing="4">
-                                <Label text="Problem wurde aufgenommen" styleClass="start-mockup-line-title"/>
-                                <Label text="vor 10 min" styleClass="start-mockup-muted"/>
+                                <Label text="Ticket erstellen" styleClass="start-mockup-line-title"/>
+                                <Label text="Beschreiben Sie Ihr Problem in wenigen Sekunden" styleClass="start-mockup-muted"/>
                             </VBox>
                         </HBox>
 
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="👨‍💻" styleClass="start-avatar-small"/>
+                            <Label text="2" styleClass="start-avatar-small, start-step-number"/>
                             <VBox spacing="4">
-                                <Label text="Agent prüft die Anfrage" styleClass="start-mockup-line-title"/>
-                                <Label text="vor 5 min" styleClass="start-mockup-muted"/>
+                                <Label text="Agent übernimmt" styleClass="start-mockup-line-title"/>
+                                <Label text="Status wird live verfolgt und aktualisiert" styleClass="start-mockup-muted"/>
                             </VBox>
                         </HBox>
 
-                        <HBox spacing="10">
-                            <TextField promptText="Antwort schreiben..." HBox.hgrow="ALWAYS" styleClass="text-field"/>
-                            <Button text="➜" styleClass="start-btn-primary"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Label text="3" styleClass="start-avatar-small, start-step-number"/>
+                            <VBox spacing="4">
+                                <Label text="Lösung erhalten" styleClass="start-mockup-line-title"/>
+                                <Label text="Benachrichtigung sobald Ihr Ticket gelöst ist" styleClass="start-mockup-muted"/>
+                            </VBox>
                         </HBox>
                     </VBox>
                 </HBox>
