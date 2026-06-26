@@ -13,6 +13,7 @@ import com.ticketsystem.model.enums.UserRole;
 import com.ticketsystem.repository.AuditLogRepository;
 import com.ticketsystem.repository.CategoryRepository;
 import com.ticketsystem.repository.TicketRepository;
+import com.ticketsystem.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,8 @@ class TicketServiceTest {
     private UserService userService;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TicketService ticketService;

@@ -582,6 +582,12 @@ public class TicketService {
         if (current == null || next == null) {
             throw new InvalidStatusTransitionException("Invalid ticket status");
         }
+        // Aufgabe 38: Ein geschlossenes Ticket darf nicht direkt umgeschaltet werden,
+        // dafuer gibt es die dedizierte reopenTicket()-Funktion.
+        if (current == TicketStatus.CLOSED) {
+            throw new InvalidStatusTransitionException(
+                    "Ein geschlossenes Ticket kann nicht direkt geaendert werden. Bitte zuerst wiedereroeffnen.");
+        }
     }
 
     private void createAuditLog(Ticket ticket, User user, String type, String oldVal, String newVal) {
