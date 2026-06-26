@@ -31,11 +31,18 @@
                 <Label text="Alle offenen Tickets" styleClass="text-secondary" fx:id="labelAllTickets" />
             </HBox>
 
-            <Label text="TOOLS" styleClass="nav-section-label" />
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showKnowledgeBase" fx:id="navKnowledgeBase" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#475569" fx:id="dotKnowledgeBase" />
                 <Label text="Wissensdatenbank" styleClass="text-secondary" fx:id="labelKnowledgeBase" />
+            </HBox>
+
+            <Label text="KONTO" styleClass="nav-section-label" />
+
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleProfile" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" />
+                <Label text="Mein Profil" styleClass="text-secondary" />
             </HBox>
 
             <VBox VBox.vgrow="ALWAYS" />
@@ -43,7 +50,7 @@
 
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
-                <StackPane>
+                <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9" />
                     <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false" />
                     <Label fx:id="sidebarInitials" text="AG" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
@@ -57,13 +64,6 @@
                 </VBox>
             </HBox>
 
-            <!-- [Nzchupa | 2026-06-12] TS-006: Profil-Navigationseintrag in der Sidebar hinzugefügt -->
-            <!-- Added Profile navigation item to agent sidebar -->
-            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleProfile" styleClass="nav-item">
-                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
-                <Circle radius="4" fill="#475569" />
-                <Label text="Mein Profil" styleClass="text-secondary" />
-            </HBox>
             <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleLogout" styleClass="nav-item">
                 <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
                 <Circle radius="4" fill="#EF4444" />
@@ -79,25 +79,24 @@
             <Label fx:id="breadcrumb" text="Agent  /  Meine Tickets" styleClass="text-muted" style="-fx-font-size: 12px;" />
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
-                <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
- <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
+                <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
                 <!-- Theme toggle button added to topbar -->
                 <Button fx:id="themeToggleBtn" text="☀" onAction="#handleToggleTheme" styleClass="btn-ghost"
                         style="-fx-font-size: 14px; -fx-padding: 4 8;" />
                 <StackPane fx:id="notificationButton"
-           styleClass="notification-pill"
-           onMouseClicked="#handleNotifications"
-           style="-fx-cursor: hand;">
+                           styleClass="notification-pill"
+                           onMouseClicked="#handleNotifications"
+                           style="-fx-cursor: hand;">
 
-    <Label text="🔔"
-           style="-fx-font-size: 16px;" />
+                    <Label text="🔔"
+                           style="-fx-font-size: 16px;" />
 
-    <Label fx:id="notificationCountLabel"
-           text="0"
-           styleClass="notification-count"
-           StackPane.alignment="TOP_RIGHT" />
+                    <Label fx:id="notificationCountLabel"
+                           text="0"
+                           styleClass="notification-count"
+                           StackPane.alignment="TOP_RIGHT" />
 
-</StackPane>
+                </StackPane>
                 <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
                     <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9" />
                     <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false" />

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.TicketDetailController" stylesheets="@../css/styles.css" styleClass="main-container">
@@ -38,7 +39,10 @@
                     <Label fx:id="priorityLabel"  styleClass="badge"        GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                     <Label fx:id="createdByLabel" styleClass="text-primary" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                     <Label fx:id="assignedToLabel" styleClass="text-primary" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
-                    <Label fx:id="slaLabel" text="-" styleClass="text-warning" GridPane.columnIndex="4" GridPane.rowIndex="1"/>
+                    <HBox spacing="6" alignment="CENTER_LEFT" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                        <Circle fx:id="slaIndicator" radius="5" fill="#94A3B8"/>
+                        <Label fx:id="slaLabel" text="-" styleClass="text-warning"/>
+                    </HBox>
                 </GridPane>
                 <Separator/>
                 <GridPane hgap="0" vgap="5">

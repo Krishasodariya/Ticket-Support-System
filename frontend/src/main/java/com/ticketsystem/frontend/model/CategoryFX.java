@@ -7,6 +7,7 @@ public class CategoryFX {
     private Long id;
     private String name;
     private String description;
+    private String templateText;
     
     @Override
     public String toString() {

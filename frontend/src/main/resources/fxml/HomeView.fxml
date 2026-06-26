@@ -39,8 +39,8 @@
     </top>
 
     <center>
-        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" styleClass="start-scroll">
-            <VBox spacing="42" styleClass="start-content">
+        <ScrollPane fx:id="mainScrollPane" fitToWidth="true" fitToHeight="true" styleClass="start-scroll">
+            <VBox spacing="42" styleClass="start-content" minHeight="700">
                 <padding>
                     <Insets top="60" right="70" bottom="50" left="70"/>
                 </padding>
@@ -63,35 +63,39 @@
                         <Label text="🛡 Sicher. Zuverlässig. Immer für Sie da." styleClass="start-small-info"/>
                     </VBox>
 
-                    <!-- Mockup Card -->
+                    <!-- [Nzchupa | 2026-06-22] TS-009: Fake-Ticket-Mockup durch "So funktioniert es" ersetzt -->
+                    <!-- Replaced the hardcoded fake-ticket mockup with a real "How it works" steps card -->
                     <VBox spacing="14" styleClass="start-mockup" prefWidth="430">
                         <HBox alignment="CENTER_LEFT">
-                            <Label text="Ticket #1234" styleClass="start-mockup-title"/>
+                            <Label text="So funktioniert es" styleClass="start-mockup-title"/>
                             <Region HBox.hgrow="ALWAYS"/>
-                            <Label text="In Bearbeitung" styleClass="badge badge-progress"/>
+                            <Label text="3 Schritte" styleClass="badge badge-progress"/>
                         </HBox>
 
                         <Separator/>
 
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="👤" styleClass="start-avatar-small"/>
+                            <Label text="1" styleClass="start-avatar-small, start-step-number"/>
                             <VBox spacing="4">
-                                <Label text="Problem wurde aufgenommen" styleClass="start-mockup-line-title"/>
-                                <Label text="vor 10 min" styleClass="start-mockup-muted"/>
+                                <Label text="Ticket erstellen" styleClass="start-mockup-line-title"/>
+                                <Label text="Beschreiben Sie Ihr Problem in wenigen Sekunden" styleClass="start-mockup-muted"/>
                             </VBox>
                         </HBox>
 
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="👨‍💻" styleClass="start-avatar-small"/>
+                            <Label text="2" styleClass="start-avatar-small, start-step-number"/>
                             <VBox spacing="4">
-                                <Label text="Agent prüft die Anfrage" styleClass="start-mockup-line-title"/>
-                                <Label text="vor 5 min" styleClass="start-mockup-muted"/>
+                                <Label text="Agent übernimmt" styleClass="start-mockup-line-title"/>
+                                <Label text="Status wird live verfolgt und aktualisiert" styleClass="start-mockup-muted"/>
                             </VBox>
                         </HBox>
 
-                        <HBox spacing="10">
-                            <TextField promptText="Antwort schreiben..." HBox.hgrow="ALWAYS" styleClass="text-field"/>
-                            <Button text="➜" styleClass="start-btn-primary"/>
+                        <HBox spacing="12" alignment="CENTER_LEFT">
+                            <Label text="3" styleClass="start-avatar-small, start-step-number"/>
+                            <VBox spacing="4">
+                                <Label text="Lösung erhalten" styleClass="start-mockup-line-title"/>
+                                <Label text="Benachrichtigung sobald Ihr Ticket gelöst ist" styleClass="start-mockup-muted"/>
+                            </VBox>
                         </HBox>
                     </VBox>
                 </HBox>
@@ -217,6 +221,43 @@
                     <Button text="Kontakt aufnehmen" onAction="#handleLogin" styleClass="start-btn-primary start-btn-large"/>
                 </VBox>
 
+
+                <!-- Spacer: schiebt Footer ans Ende der Seite -->
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- Footer - fest am Ende des Seiteninhalts -->
+                <VBox styleClass="start-footer">
+                    <HBox spacing="60" alignment="TOP_LEFT" styleClass="start-footer-top">
+                        <padding><Insets top="32" right="70" bottom="24" left="70"/></padding>
+                        <VBox spacing="10" prefWidth="240" HBox.hgrow="ALWAYS">
+                            <Label text="💬  Ticket Support System" styleClass="start-footer-logo"/>
+                            <Label text="Ein studentisches Projekt zur&#10;Verwaltung von Support-Tickets." wrapText="true" styleClass="start-footer-text"/>
+                        </VBox>
+                        <VBox spacing="8" prefWidth="160">
+                            <Label text="QUICK LINKS" styleClass="start-footer-heading"/>
+                            <Button text="Startseite"  onAction="#scrollToHome"     styleClass="start-footer-link"/>
+                            <Button text="Funktionen"  onAction="#scrollToFeatures" styleClass="start-footer-link"/>
+                            <Button text="Rollen"      onAction="#scrollToRoles"    styleClass="start-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" prefWidth="160">
+                            <Label text="PROJEKT" styleClass="start-footer-heading"/>
+                            <Button text="Über uns" onAction="#scrollToAbout"   styleClass="start-footer-link"/>
+                            <Button text="Kontakt"  onAction="#scrollToContact" styleClass="start-footer-link"/>
+                        </VBox>
+                        <VBox spacing="8" prefWidth="160">
+                            <Label text="RECHTLICHES" styleClass="start-footer-heading"/>
+                            <Label text="Datenschutz"         styleClass="start-footer-link-label"/>
+                            <Label text="Nutzungsbedingungen" styleClass="start-footer-link-label"/>
+                        </VBox>
+                    </HBox>
+                    <Separator styleClass="start-footer-separator"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="start-footer-bottom">
+                        <padding><Insets top="12" right="70" bottom="12" left="70"/></padding>
+                        <Label text="© 2026 Ticket Support System. Alle Rechte vorbehalten." styleClass="start-footer-copy"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Ein studentisches Projekt." styleClass="start-footer-copy"/>
+                    </HBox>
+                </VBox>
             </VBox>
         </ScrollPane>
     </center>

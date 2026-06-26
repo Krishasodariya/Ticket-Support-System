@@ -38,6 +38,7 @@ public class CategoryService {
         Category category = new Category();
         category.setName(name);
         category.setDescription(request.getDescription() == null ? "" : request.getDescription().trim());
+        category.setTemplateText(request.getTemplateText());
         return categoryMapper.toResponse(categoryRepository.save(category));
     }
 

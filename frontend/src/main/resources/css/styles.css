@@ -64,6 +64,22 @@
     -fx-font-weight: normal;
 }
 
+/* Aufgabe D - SLA-Ampel Farbklassen */
+.text-danger {
+    -fx-text-fill: #EF4444;
+    -fx-font-weight: bold;
+}
+
+.text-warning {
+    -fx-text-fill: #F97316;
+    -fx-font-weight: bold;
+}
+
+.text-success {
+    -fx-text-fill: #22C55E;
+    -fx-font-weight: bold;
+}
+
 .text-muted,
 .label-uppercase,
 .nav-section-label,
@@ -1283,6 +1299,13 @@
 
 .start-root {
     -fx-background-color: #F8FAFC;
+    -fx-min-height: 100%;
+    -fx-pref-height: 100%;
+}
+
+/* Footer immer unten fixiert - ScrollPane darf nicht die gesamte Höhe übernehmen */
+.start-scroll {
+    -fx-fit-to-height: false;
 }
 
 .start-navbar {
@@ -1324,9 +1347,12 @@
     -fx-border-color: #2563EB;
 }
 
-.start-scroll,
 .start-scroll .viewport {
     -fx-background-color: #F8FAFC;
+}
+.start-scroll {
+    -fx-background-color: #F8FAFC;
+    -fx-fit-to-height: false;
 }
 
 .start-content {
@@ -1415,6 +1441,16 @@
     -fx-alignment: center;
     -fx-background-color: #EFF6FF;
     -fx-background-radius: 17;
+}
+
+.start-step-number {
+    -fx-text-fill: #2563EB;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.theme-dark .start-step-number {
+    -fx-text-fill: #2563EB;
 }
 
 .start-section-title {
@@ -1946,4 +1982,63 @@
 
 .priority-chart .default-color3.chart-pie {
     -fx-pie-color: #84CC16;
+}
+
+/* ── Footer (HomeView) ─────────────────────────────────────── */
+.start-footer {
+    -fx-background-color: #0F172A;
+}
+
+.start-footer-top {
+    -fx-background-color: #0F172A;
+}
+
+.start-footer-logo {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #F1F5F9;
+}
+
+.start-footer-text {
+    -fx-font-size: 12px;
+    -fx-text-fill: #94A3B8;
+}
+
+.start-footer-heading {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #94A3B8;
+    -fx-letter-spacing: 1px;
+}
+
+.start-footer-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #CBD5E1;
+    -fx-font-size: 13px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.start-footer-link:hover {
+    -fx-text-fill: #0EA5E9;
+}
+
+.start-footer-link-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #CBD5E1;
+}
+
+.start-footer-separator {
+    -fx-background-color: #1E293B;
+    -fx-padding: 0;
+}
+
+.start-footer-bottom {
+    -fx-background-color: #0F172A;
+}
+
+.start-footer-copy {
+    -fx-font-size: 12px;
+    -fx-text-fill: #475569;
 }

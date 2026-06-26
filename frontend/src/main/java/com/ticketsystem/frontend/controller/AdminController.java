@@ -84,6 +84,9 @@ public class AdminController {
     @FXML private ProgressBar progressCritical, progressHigh, progressMedium, progressLow;
     @FXML private TableView<TicketFX> dashTicketTable;
     @FXML private TableColumn<TicketFX, String> dashColId, dashColTitle, dashColStatus;
+    // Aufgabe 3 – Top-Kunden Tabelle
+    @FXML private TableView<javafx.beans.property.SimpleStringProperty[]> topCustomersTable;
+    @FXML private TableColumn<javafx.beans.property.SimpleStringProperty[], String> topColRank, topColUsername, topColCount;
     @FXML private ComboBox<TicketFX> dashboardTicketCombo;
     @FXML private ComboBox<UserFX> dashboardAgentCombo;
     @FXML private Button dashboardAssignButton;
@@ -263,7 +266,7 @@ public class AdminController {
             // [Nzchupa | 2026-06-13] TSS-003: Deutsche Labels in Status-Filter anzeigen, interne Enum-Namen für Filter-Logik behalten
             // Show German labels in filter combo; keep enum names as values so filtering still works
             javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> statusCF =
-                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
+                    lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.statusToGerman(s)); } };
             filterStatusCombo.setCellFactory(statusCF);
             filterStatusCombo.setButtonCell(statusCF.call(null));
             // [Nzchupa | 2026-06-13] Echtzeit-Filter — Tabelle aktualisiert sich sofort ohne Button-Klick
@@ -276,7 +279,7 @@ public class AdminController {
             // [Nzchupa | 2026-06-13] TSS-004: Deutsche Labels in Priorität-Filter anzeigen
             // Show German labels in priority filter combo
             javafx.util.Callback<javafx.scene.control.ListView<String>, ListCell<String>> priorityCF =
-                lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
+                    lv -> new ListCell<>() { @Override protected void updateItem(String s, boolean e) { super.updateItem(s, e); setText(e || s == null ? null : "Alle".equals(s) ? "Alle" : LabelHelper.priorityToGerman(s)); } };
             filterPriorityCombo.setCellFactory(priorityCF);
             filterPriorityCombo.setButtonCell(priorityCF.call(null));
             filterPriorityCombo.valueProperty().addListener((obs, old, val) -> applyTicketFilter());
@@ -548,6 +551,28 @@ public class AdminController {
 
         updateStatusChart(total, resolved, openNormal, overdue);
         updatePriorityChart(total, critical, high, medium, low);
+
+        // Aufgabe 3 – Top-Kunden Tabelle befüllen
+        if (topCustomersTable != null && stats.getTopCustomersByTickets() != null) {
+            topColRank.setCellValueFactory(data ->
+                    new javafx.beans.property.SimpleStringProperty(data.getValue()[0].get()));
+            topColUsername.setCellValueFactory(data ->
+                    new javafx.beans.property.SimpleStringProperty(data.getValue()[1].get()));
+            topColCount.setCellValueFactory(data ->
+                    new javafx.beans.property.SimpleStringProperty(data.getValue()[2].get()));
+
+            javafx.collections.ObservableList<javafx.beans.property.SimpleStringProperty[]> rows =
+                    javafx.collections.FXCollections.observableArrayList();
+            int[] rank = {1};
+            stats.getTopCustomersByTickets().forEach((username, count) -> {
+                rows.add(new javafx.beans.property.SimpleStringProperty[]{
+                        new javafx.beans.property.SimpleStringProperty(String.valueOf(rank[0]++)),
+                        new javafx.beans.property.SimpleStringProperty(username),
+                        new javafx.beans.property.SimpleStringProperty(String.valueOf(count))
+                });
+            });
+            topCustomersTable.setItems(rows);
+        }
     }
     // [Nzchupa | 2026-06-13] TSS-013: Explizite Slice-Farben nach Platform.runLater — verhindert Farb-Reset
     // After getData().clear()+addAll() JavaFX re-assigns default-color CSS classes.
@@ -620,7 +645,7 @@ public class AdminController {
         for (int i = 0; i < colors.length; i++) {
             final String color = colors[i];
             chart.lookupAll(".default-color" + i + ".chart-legend-item-symbol")
-                 .forEach(node -> node.setStyle("-fx-background-color: " + color + ";"));
+                    .forEach(node -> node.setStyle("-fx-background-color: " + color + ";"));
         }
     }
 
@@ -1180,7 +1205,7 @@ public class AdminController {
     // Refresh topbar/sidebar avatar after profile modal closes (picks up new picture from SessionManager)
     @FXML public void handleProfile() {
         Navigator.openModal("ProfileView.fxml", "Profil & Sicherheit",
-            () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
+                () -> updateAvatarDisplay(SessionManager.getProfilePicture()));
     }
     // [Nzchupa | 2026-06-13] Logout-Bestätigung — verhindert versehentliches Ausloggen
     // Logout confirmation dialog to prevent accidental logouts

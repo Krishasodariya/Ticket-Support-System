@@ -22,6 +22,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class TicketDetailController {
     @FXML private Label createdByLabel;
     @FXML private Label assignedToLabel;
     @FXML private Label dueDateLabel, slaLabel, solutionLabel, ratingLabel;
+    @FXML private Circle slaIndicator;
     // [Nzchupa | 2026-06-13] TSS-016: Hyperlink statt Label — öffnet Datei per Desktop.open()
     // Hyperlink replaces plain Label so agents/admins can click to open the attachment
     @FXML private javafx.scene.control.Hyperlink attachmentLink;
@@ -247,10 +249,10 @@ public class TicketDetailController {
             javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(3);
             card.setPadding(new javafx.geometry.Insets(6, 10, 8, 10));
             card.setStyle(
-                "-fx-background-color: " + cardBg + ";" +
-                "-fx-border-color: " + cardBord + ";" +
-                "-fx-border-radius: 6;" +
-                "-fx-background-radius: 6;"
+                    "-fx-background-color: " + cardBg + ";" +
+                            "-fx-border-color: " + cardBord + ";" +
+                            "-fx-border-radius: 6;" +
+                            "-fx-background-radius: 6;"
             );
             javafx.scene.layout.HBox.setHgrow(card, javafx.scene.layout.Priority.ALWAYS);
 
@@ -268,8 +270,8 @@ public class TicketDetailController {
 
             // timestamp
             String ts = log.getTimestamp() != null
-                ? log.getTimestamp().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
-                : "-";
+                    ? log.getTimestamp().format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+                    : "-";
             javafx.scene.control.Label tsLbl = new javafx.scene.control.Label(ts);
             tsLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: " + textSub + ";");
 
@@ -340,7 +342,41 @@ public class TicketDetailController {
                     createdByLabel.setText(currentTicket.getCreatedByUser() != null ? currentTicket.getCreatedByUser().getUsername() : currentTicket.getCreatedBy());
                     assignedToLabel.setText(currentTicket.getAssignedTo() != null ? currentTicket.getAssignedTo() : "Noch nicht zugewiesen");
                     if (dueDateLabel != null) dueDateLabel.setText(currentTicket.getDueAt() != null ? currentTicket.getDueAt().toString() : "Keine SLA");
-                    if (slaLabel != null) slaLabel.setText(currentTicket.getSlaLabel() + (currentTicket.isEscalated() ? " / Eskaliert" : ""));
+                    if (slaLabel != null) {
+                        slaLabel.getStyleClass().removeAll("text-danger", "text-warning", "text-success", "text-muted");
+                        String status = currentTicket.getStatus();
+                        boolean isClosedOrResolved = "RESOLVED".equalsIgnoreCase(status) || "CLOSED".equalsIgnoreCase(status);
+                        if (isClosedOrResolved) {
+                            // Aufgabe D – Bei gelösten/geschlossenen Tickets ist eine SLA nicht mehr relevant
+                            slaLabel.setText("Kein SLA (Ticket abgeschlossen)");
+                            slaLabel.getStyleClass().add("text-muted");
+                            if (slaIndicator != null) slaIndicator.setFill(javafx.scene.paint.Color.web("#94A3B8"));
+                        } else {
+                            String slaText = currentTicket.getSlaLabel() + (currentTicket.isEscalated() ? " / Eskaliert" : "");
+                            slaLabel.setText(slaText);
+                            // Aufgabe D – SLA-Ampel: Farbe (Text + Kreis) je nach verbleibender Zeit setzen
+                            java.time.LocalDateTime due = currentTicket.getDueAt();
+                            if (due == null) {
+                                slaLabel.getStyleClass().add("text-muted");
+                                if (slaIndicator != null) slaIndicator.setFill(javafx.scene.paint.Color.web("#94A3B8"));
+                            } else {
+                                long minutesLeft = java.time.Duration.between(java.time.LocalDateTime.now(), due).toMinutes();
+                                if (minutesLeft < 0) {
+                                    // Überfällig → rot
+                                    slaLabel.getStyleClass().add("text-danger");
+                                    if (slaIndicator != null) slaIndicator.setFill(javafx.scene.paint.Color.web("#EF4444"));
+                                } else if (minutesLeft < 60) {
+                                    // Weniger als 1 Stunde → gelb/orange
+                                    slaLabel.getStyleClass().add("text-warning");
+                                    if (slaIndicator != null) slaIndicator.setFill(javafx.scene.paint.Color.web("#F97316"));
+                                } else {
+                                    // Noch genug Zeit → grün
+                                    slaLabel.getStyleClass().add("text-success");
+                                    if (slaIndicator != null) slaIndicator.setFill(javafx.scene.paint.Color.web("#22C55E"));
+                                }
+                            }
+                        }
+                    }
                     // [Nzchupa | 2026-06-13] TSS-016: Anhang als Hyperlink — bei Klick wird Datei geöffnet
                     // If attachment exists show filename as blue link; otherwise show grey placeholder
                     if (attachmentLink != null) {
