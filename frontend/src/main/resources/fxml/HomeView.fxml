@@ -20,13 +20,15 @@
 
             <Region HBox.hgrow="ALWAYS"/>
 
-            <Button text="Startseite" onAction="#scrollToHome" styleClass="start-nav-button"/>
-            <Button text="Funktionen" onAction="#scrollToFeatures" styleClass="start-nav-button"/>
+            <!-- [Nzchupa | 2026-06-26] TS-202 (KAT-38): fx:id für jeden Nav-Button, damit der aktive Punkt per Code hervorgehoben werden kann -->
+            <!-- Added fx:id to each nav button so the controller can highlight the active section -->
+            <Button fx:id="navHomeBtn" text="Startseite" onAction="#scrollToHome" styleClass="start-nav-button"/>
+            <Button fx:id="navFeaturesBtn" text="Funktionen" onAction="#scrollToFeatures" styleClass="start-nav-button"/>
             <!-- [Nzchupa | 2026-06-12] TS-008: "Rollen" Navbar-Button hinzugefügt -->
             <!-- Added "Rollen" navbar button for the new roles section -->
-            <Button text="Rollen" onAction="#scrollToRoles" styleClass="start-nav-button"/>
-            <Button text="Über uns" onAction="#scrollToAbout" styleClass="start-nav-button"/>
-            <Button text="Kontakt" onAction="#scrollToContact" styleClass="start-nav-button"/>
+            <Button fx:id="navRolesBtn" text="Rollen" onAction="#scrollToRoles" styleClass="start-nav-button"/>
+            <Button fx:id="navAboutBtn" text="Über uns" onAction="#scrollToAbout" styleClass="start-nav-button"/>
+            <Button fx:id="navContactBtn" text="Kontakt" onAction="#scrollToContact" styleClass="start-nav-button"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
@@ -57,7 +59,9 @@
 
                         <HBox spacing="16">
                             <Button text="Ticket erstellen  +" onAction="#handleCreateTicket" styleClass="start-btn-primary start-btn-large"/>
-                            <Button text="Meine Tickets  ☰" onAction="#handleMyTickets" styleClass="start-btn-outline start-btn-large"/>
+                            <!-- [Nzchupa | 2026-06-26] TS-201 (KAT-02): fx:id hinzugefügt, damit der Button für nicht angemeldete Nutzer ausgeblendet werden kann -->
+                            <!-- Added fx:id so the button can be hidden for guests via setVisible/setManaged -->
+                            <Button fx:id="myTicketsBtn" text="Meine Tickets  ☰" onAction="#handleMyTickets" styleClass="start-btn-outline start-btn-large"/>
                         </HBox>
 
                         <Label text="🛡 Sicher. Zuverlässig. Immer für Sie da." styleClass="start-small-info"/>
@@ -136,27 +140,32 @@
                 </VBox>
 
                 <!-- About / Stats -->
-                <HBox fx:id="aboutSection" spacing="24" styleClass="start-stats-box">
-                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
-                        <Label text="1.250+" styleClass="start-stat-value"/>
-                        <Label text="Zufriedene Kunden" styleClass="start-stat-label"/>
-                    </VBox>
+                <!-- [Nzchupa | 2026-06-26] TS-208 (KAT-108): Unrealistische Werte (4.320+ Tickets) durch realistische Demo-Werte ersetzt + Kennzeichnung als Demo-Daten -->
+                <!-- Replaced unrealistic numbers with believable demo values and labeled them as demo data -->
+                <VBox fx:id="aboutSection" spacing="14">
+                    <HBox spacing="24" styleClass="start-stats-box">
+                        <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="42+" styleClass="start-stat-value"/>
+                            <Label text="Zufriedene Kunden" styleClass="start-stat-label"/>
+                        </VBox>
 
-                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
-                        <Label text="4.320+" styleClass="start-stat-value"/>
-                        <Label text="Gelöste Tickets" styleClass="start-stat-label"/>
-                    </VBox>
+                        <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="65+" styleClass="start-stat-value"/>
+                            <Label text="Gelöste Tickets" styleClass="start-stat-label"/>
+                        </VBox>
 
-                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
-                        <Label text="98%" styleClass="start-stat-value"/>
-                        <Label text="Zufriedenheitsrate" styleClass="start-stat-label"/>
-                    </VBox>
+                        <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="95%" styleClass="start-stat-value"/>
+                            <Label text="Zufriedenheitsrate" styleClass="start-stat-label"/>
+                        </VBox>
 
-                    <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
-                        <Label text="24/7" styleClass="start-stat-value"/>
-                        <Label text="Support verfügbar" styleClass="start-stat-label"/>
-                    </VBox>
-                </HBox>
+                        <VBox HBox.hgrow="ALWAYS" alignment="CENTER">
+                            <Label text="24/7" styleClass="start-stat-value"/>
+                            <Label text="Support verfügbar" styleClass="start-stat-label"/>
+                        </VBox>
+                    </HBox>
+                    <Label text="* Demo-Daten aus der Testphase des studentischen Projekts" styleClass="start-mockup-muted"/>
+                </VBox>
 
                 <!-- [Nzchupa | 2026-06-12] TS-008: Neue Sektion "Rollen im System" hinzugefügt -->
                 <!-- New "Roles in the system" section with Admin / Agent / Customer cards -->
@@ -188,9 +197,11 @@
 
                 <!-- [Nzchupa | 2026-06-12] TS-008: Projektinformations-Sektion hinzugefügt -->
                 <!-- Project info section with team and tech stack info -->
+                <!-- [Nzchupa | 2026-06-26] TS-205 (KAT-110): Projektbeschreibung um 3-5 Sätze ergänzt -->
+                <!-- Expanded the project description with a few more sentences for context -->
                 <VBox spacing="14" alignment="CENTER" styleClass="start-contact-box">
                     <Label text="Über das Projekt" styleClass="start-section-title"/>
-                    <Label text="Ticket Support System ist ein studentisches Teamprojekt, entwickelt mit Java 21, Spring Boot und JavaFX."
+                    <Label text="Ticket Support System ist ein studentisches Teamprojekt, entwickelt mit Java 21, Spring Boot und JavaFX. Ziel ist es, den kompletten Lebenszyklus eines Support-Tickets abzubilden – von der Erstellung durch den Kunden bis zur Lösung durch den Agenten. Das Projekt entstand im Rahmen eines Hochschulkurses und wird von einem kleinen Team über Git-Branches, Pull Requests und Code-Reviews gemeinsam weiterentwickelt. Im Fokus stehen ein klar strukturiertes Rollenmodell (Admin, Agent, Kunde), eine REST-API mit JWT-Authentifizierung sowie ein durchgängiges Dark- und Light-Mode-Design."
                            wrapText="true" styleClass="start-feature-text"/>
                     <HBox spacing="30" alignment="CENTER">
                         <VBox alignment="CENTER" spacing="4">
@@ -213,14 +224,49 @@
                 </VBox>
 
                 <!-- Contact -->
+                <!-- [Nzchupa | 2026-06-26] TS-206 (KAT-110): Kontaktbereich um kurzen Hinweistext ergänzt -->
+                <!-- Added a short additional sentence to the contact section -->
                 <VBox fx:id="contactSection" spacing="12" alignment="CENTER" styleClass="start-contact-box">
                     <Label text="Kontakt" styleClass="start-section-title"/>
-                    <Label text="Bei Fragen zum Ticket Support System können Sie sich an das Projektteam wenden."
+                    <Label text="Bei Fragen zum Ticket Support System können Sie sich an das Projektteam wenden. Melden Sie sich an, um direkt ein Ticket zu erstellen, oder schreiben Sie uns vorab eine kurze Nachricht."
                            wrapText="true"
                            styleClass="start-feature-text"/>
                     <Button text="Kontakt aufnehmen" onAction="#handleLogin" styleClass="start-btn-primary start-btn-large"/>
                 </VBox>
 
+                <!-- [Nzchupa | 2026-06-26] TS-220 (KAT-112): Platzhalter-Bereich für Screenshots der Anwendung -->
+                <!-- Placeholder area for application screenshots — team should replace icons with real ImageViews -->
+                <VBox spacing="18" alignment="CENTER">
+                    <Label text="Ein Blick in die Anwendung" styleClass="start-section-title"/>
+                    <Label text="Screenshots der wichtigsten Ansichten folgen in Kürze."
+                           wrapText="true" styleClass="start-feature-text"/>
+                    <HBox spacing="22">
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="8">
+                            <Label text="🖼" styleClass="start-feature-icon"/>
+                            <Label text="Dashboard" styleClass="start-feature-title"/>
+                        </VBox>
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="8">
+                            <Label text="🖼" styleClass="start-feature-icon"/>
+                            <Label text="Ticketansicht" styleClass="start-feature-title"/>
+                        </VBox>
+                        <VBox styleClass="start-feature-card" HBox.hgrow="ALWAYS" alignment="CENTER" spacing="8">
+                            <Label text="🖼" styleClass="start-feature-icon"/>
+                            <Label text="Knowledge Base" styleClass="start-feature-title"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- [Nzchupa | 2026-06-26] TS-209 (KAT-109): Abschluss-CTA am Seitenende ergänzt -->
+                <!-- Final call-to-action section before the footer -->
+                <VBox spacing="14" alignment="CENTER" styleClass="start-stats-box">
+                    <Label text="Bereit, loszulegen?" styleClass="start-section-title"/>
+                    <Label text="Erstellen Sie jetzt Ihr erstes Ticket oder registrieren Sie sich kostenlos."
+                           wrapText="true" styleClass="start-feature-text"/>
+                    <HBox spacing="16" alignment="CENTER">
+                        <Button text="Jetzt Ticket erstellen  +" onAction="#handleCreateTicket" styleClass="start-btn-primary start-btn-large"/>
+                        <Button text="Registrieren" onAction="#handleRegister" styleClass="start-btn-outline start-btn-large"/>
+                    </HBox>
+                </VBox>
 
                 <!-- Spacer: schiebt Footer ans Ende der Seite -->
                 <Region VBox.vgrow="ALWAYS"/>
@@ -244,10 +290,13 @@
                             <Button text="Über uns" onAction="#scrollToAbout"   styleClass="start-footer-link"/>
                             <Button text="Kontakt"  onAction="#scrollToContact" styleClass="start-footer-link"/>
                         </VBox>
+                        <!-- [Nzchupa | 2026-06-26] TS-216/TS-238 (KAT-03): Labels durch klickbare Buttons ersetzt + Impressum ergänzt -->
+                        <!-- Replaced static labels with clickable buttons and added an "Impressum" placeholder link -->
                         <VBox spacing="8" prefWidth="160">
                             <Label text="RECHTLICHES" styleClass="start-footer-heading"/>
-                            <Label text="Datenschutz"         styleClass="start-footer-link-label"/>
-                            <Label text="Nutzungsbedingungen" styleClass="start-footer-link-label"/>
+                            <Button text="Impressum"           onAction="#handleImpressum"     styleClass="start-footer-link"/>
+                            <Button text="Datenschutz"         onAction="#handleDatenschutz"   styleClass="start-footer-link"/>
+                            <Button text="Nutzungsbedingungen" onAction="#handleNutzungsbedingungen" styleClass="start-footer-link"/>
                         </VBox>
                     </HBox>
                     <Separator styleClass="start-footer-separator"/>
@@ -255,7 +304,10 @@
                         <padding><Insets top="12" right="70" bottom="12" left="70"/></padding>
                         <Label text="© 2026 Ticket Support System. Alle Rechte vorbehalten." styleClass="start-footer-copy"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Label text="Ein studentisches Projekt." styleClass="start-footer-copy"/>
+                        <!-- [Nzchupa | 2026-06-26] TS-215 (KAT-113): Statische Versionsnummer ergänzt -->
+                        <!-- Added a static version number constant -->
+                        <Label text="v1.0.0" styleClass="start-footer-copy"/>
+                        <Label text="  •  Ein studentisches Projekt." styleClass="start-footer-copy"/>
                     </HBox>
                 </VBox>
             </VBox>
