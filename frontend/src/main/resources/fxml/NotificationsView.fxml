@@ -21,6 +21,7 @@
             <Label fx:id="unreadCountLabel" text="" styleClass="text-muted" style="-fx-font-size: 12px;"/>
             <HBox spacing="8" alignment="CENTER">
                 <padding><Insets left="12"/></padding>
+                <Button fx:id="filterButton" text="Nur ungelesen" onAction="#handleToggleFilter" styleClass="btn-ghost"/>
                 <Button text="Alle als gelesen markieren" onAction="#handleMarkAllRead" styleClass="btn-ghost"/>
             </HBox>
         </HBox>

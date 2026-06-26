@@ -66,6 +66,19 @@ public class NotificationService {
         return toResponse(notificationRepository.save(notification));
     }
 
+    // [Nzchupa | 2026-06-26] KAT-91: Einzelne Benachrichtigung löschen
+    // Deletes a single notification — only the recipient may delete their own notification
+    @Transactional
+    public void deleteNotification(UUID id, String username) {
+        User user = userService.findUserEntityByUsername(username);
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+        if (!notification.getRecipient().getId().equals(user.getId())) {
+            throw new ResourceNotFoundException("Notification not found");
+        }
+        notificationRepository.delete(notification);
+    }
+
     private NotificationResponse toResponse(Notification notification) {
         NotificationResponse response = new NotificationResponse();
         response.setId(notification.getId());

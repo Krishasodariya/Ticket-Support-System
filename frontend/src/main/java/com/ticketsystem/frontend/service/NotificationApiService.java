@@ -30,6 +30,12 @@ public class NotificationApiService {
         }
     }
 
+    // [Nzchupa | 2026-06-26] KAT-91: Einzelne Benachrichtigung löschen
+    // Deletes a single notification via the new DELETE endpoint
+    public void deleteNotification(String id) throws Exception {
+        ApiClient.delete("/notifications/" + id);
+    }
+
     @SuppressWarnings("unchecked")
     public long getUnreadCount() throws Exception {
         Map<String, Object> result = ApiClient.get("/notifications/unread-count", Map.class);
