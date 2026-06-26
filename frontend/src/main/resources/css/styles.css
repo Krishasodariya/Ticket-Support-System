@@ -1299,13 +1299,6 @@
 
 .start-root {
     -fx-background-color: #F8FAFC;
-    -fx-min-height: 100%;
-    -fx-pref-height: 100%;
-}
-
-/* Footer immer unten fixiert - ScrollPane darf nicht die gesamte Höhe übernehmen */
-.start-scroll {
-    -fx-fit-to-height: false;
 }
 
 .start-navbar {
@@ -1333,19 +1326,6 @@
     -fx-text-fill: #2563EB;
 }
 
-/* [Nzchupa | 2026-06-26] TS-202 (KAT-38): Hervorhebung des aktiven Nav-Punkts auf der Startseite */
-/* Highlights the active nav item on the landing page */
-.start-nav-button-active {
-    -fx-text-fill: #2563EB;
-    -fx-border-color: transparent transparent #2563EB transparent;
-    -fx-border-width: 0 0 2 0;
-}
-
-.theme-dark.start-root .start-nav-button-active {
-    -fx-text-fill: #38BDF8;
-    -fx-border-color: transparent transparent #38BDF8 transparent;
-}
-
 .start-theme-button {
     -fx-background-color: #F1F5F9;
     -fx-text-fill: #0F172A;
@@ -1360,12 +1340,9 @@
     -fx-border-color: #2563EB;
 }
 
+.start-scroll,
 .start-scroll .viewport {
     -fx-background-color: #F8FAFC;
-}
-.start-scroll {
-    -fx-background-color: #F8FAFC;
-    -fx-fit-to-height: false;
 }
 
 .start-content {
@@ -1998,60 +1975,40 @@
 }
 
 /* ── Footer (HomeView) ─────────────────────────────────────── */
-/* [Nzchupa | 2026-06-26] TS-204 (KAT-41, zum zweiten Mal reopened): Der Footer-Hintergrund war
-   bisher IMMER dunkel (#0F172A), egal welches Theme aktiv ist — das wirkte im Light Mode wie ein
-   Fremdkörper (dunkler Block auf einer sonst hellen Seite). Footer-Hintergrund und Textfarben sind
-   jetzt an .theme-light / .theme-dark gekoppelt, genau wie der Rest der Seite.
-
-   The footer background used to be hardcoded dark (#0F172A) regardless of theme, which looked out
-   of place on an otherwise light page in Light Mode. Background and text colors are now coupled to
-   .theme-light / .theme-dark, consistent with the rest of the page. */
-.theme-light .start-footer,
-.theme-light .start-footer-top,
-.theme-light .start-footer-bottom {
-    -fx-background-color: #F1F5F9;
+.start-footer {
+    -fx-background-color: #0F172A;
 }
 
-.theme-dark .start-footer,
-.theme-dark .start-footer-top,
-.theme-dark .start-footer-bottom {
+.start-footer-top {
     -fx-background-color: #0F172A;
 }
 
 .start-footer-logo {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
+    -fx-text-fill: #F1F5F9;
 }
-
-.theme-light .start-footer-logo { -fx-text-fill: #0F172A; }
-.theme-dark .start-footer-logo  { -fx-text-fill: #F1F5F9; }
 
 .start-footer-text {
     -fx-font-size: 12px;
+    -fx-text-fill: #94A3B8;
 }
-
-.theme-light .start-footer-text { -fx-text-fill: #64748B; }
-.theme-dark .start-footer-text  { -fx-text-fill: #94A3B8; }
 
 .start-footer-heading {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
+    -fx-text-fill: #94A3B8;
     -fx-letter-spacing: 1px;
 }
 
-.theme-light .start-footer-heading { -fx-text-fill: #64748B; }
-.theme-dark .start-footer-heading  { -fx-text-fill: #94A3B8; }
-
 .start-footer-link {
     -fx-background-color: transparent;
+    -fx-text-fill: #CBD5E1;
     -fx-font-size: 13px;
     -fx-padding: 0;
     -fx-cursor: hand;
     -fx-alignment: CENTER_LEFT;
 }
-
-.theme-light .start-footer-link { -fx-text-fill: #334155; }
-.theme-dark .start-footer-link  { -fx-text-fill: #CBD5E1; }
 
 .start-footer-link:hover {
     -fx-text-fill: #0EA5E9;
@@ -2059,21 +2016,32 @@
 
 .start-footer-link-label {
     -fx-font-size: 13px;
+    -fx-text-fill: #CBD5E1;
 }
 
-.theme-light .start-footer-link-label { -fx-text-fill: #334155; }
-.theme-dark .start-footer-link-label  { -fx-text-fill: #CBD5E1; }
-
 .start-footer-separator {
+    -fx-background-color: #1E293B;
     -fx-padding: 0;
 }
 
-.theme-light .start-footer-separator { -fx-background-color: #E2E8F0; }
-.theme-dark .start-footer-separator  { -fx-background-color: #1E293B; }
+.start-footer-bottom {
+    -fx-background-color: #0F172A;
+}
 
 .start-footer-copy {
     -fx-font-size: 12px;
+    -fx-text-fill: #475569;
 }
-
-.theme-light .start-footer-copy { -fx-text-fill: #94A3B8; }
-.theme-dark .start-footer-copy  { -fx-text-fill: #475569; }
+/* ── Footer Theme-Anpassung ─────────────────────────────────── */
+.theme-light.start-root .start-footer,
+.theme-light.start-root .start-footer-top,
+.theme-light.start-root .start-footer-bottom {
+    -fx-background-color: #E2E8F0;
+}
+.theme-light.start-root .start-footer-logo { -fx-text-fill: #0F172A; }
+.theme-light.start-root .start-footer-text { -fx-text-fill: #475569; }
+.theme-light.start-root .start-footer-heading { -fx-text-fill: #64748B; }
+.theme-light.start-root .start-footer-link { -fx-text-fill: #334155; }
+.theme-light.start-root .start-footer-link-label { -fx-text-fill: #334155; }
+.theme-light.start-root .start-footer-separator { -fx-background-color: #CBD5E1; }
+.theme-light.start-root .start-footer-copy { -fx-text-fill: #64748B; }
