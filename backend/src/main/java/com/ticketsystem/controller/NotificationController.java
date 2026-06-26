@@ -33,4 +33,12 @@ public class NotificationController {
     public ResponseEntity<NotificationResponse> markAsRead(@PathVariable UUID id, Authentication authentication) {
         return ResponseEntity.ok(notificationService.markAsRead(id, authentication.getName()));
     }
+
+    // [Nzchupa | 2026-06-26] KAT-91: Endpoint zum Löschen einer einzelnen Benachrichtigung
+    // Deletes a single notification belonging to the authenticated user
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteNotification(@PathVariable UUID id, Authentication authentication) {
+        notificationService.deleteNotification(id, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
 }
