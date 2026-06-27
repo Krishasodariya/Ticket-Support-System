@@ -35,6 +35,7 @@ public class AuthService {
         this.systemAuditLogService = systemAuditLogService;
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -44,6 +45,9 @@ public class AuthService {
             String jwt = jwtTokenProvider.generateToken(authentication);
 
             User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
+            // KAT-116: Zeitpunkt des letzten Logins aktualisieren
+            user.setLastLogin(java.time.LocalDateTime.now());
+            userRepository.save(user);
             // Feature 32 – Login-Erfolg protokollieren
             systemAuditLogService.log(user.getUsername(), "LOGIN_SUCCESS",
                     "Erfolgreicher Login für Benutzer " + user.getUsername());

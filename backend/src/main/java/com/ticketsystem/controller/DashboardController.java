@@ -46,4 +46,19 @@ public class DashboardController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=tickets.pdf")
                 .body(exportService.exportTicketsPdf(status, priority, q));
     }
+
+    // KAT-131: Audit-Log CSV/PDF-Export
+    @GetMapping(value = "/export/audit-log.csv", produces = "text/csv")
+    public ResponseEntity<byte[]> exportAuditLogCsv() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=audit-log.csv")
+                .body(exportService.exportAuditLogCsv());
+    }
+
+    @GetMapping(value = "/export/audit-log.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> exportAuditLogPdf() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=audit-log.pdf")
+                .body(exportService.exportAuditLogPdf());
+    }
 }

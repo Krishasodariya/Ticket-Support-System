@@ -132,7 +132,9 @@
                                 <Label text="SCHNELL-TICKET ERSTELLEN" styleClass="label-uppercase"/>
                                 <TextField fx:id="quickTitleField" promptText="Kurzbeschreibung des Problems..." styleClass="text-field"/>
                                 <ComboBox fx:id="quickPriorityCombo" promptText="Priorität" styleClass="combo-box" maxWidth="Infinity"/>
-                                <Button text="Ticket erstellen" onAction="#handleQuickCreate" styleClass="btn-primary" maxWidth="Infinity"/>
+                                <!-- KAT-101: Fehlertext, falls Titel oder Priorität fehlen (vorher stilles return ohne Hinweis) -->
+                                <Label fx:id="quickErrorLabel" text="Bitte Titel und Priorität ausfüllen." styleClass="text-danger" visible="false" managed="false" wrapText="true"/>
+                                <Button fx:id="quickCreateBtn" text="Ticket erstellen" onAction="#handleQuickCreate" styleClass="btn-primary" maxWidth="Infinity"/>
                             </VBox>
                             <VBox styleClass="customer-card" spacing="12" VBox.vgrow="ALWAYS">
                                 <HBox alignment="CENTER_LEFT"><Label text="LETZTE AKTIVITÄTEN" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button fx:id="showAllActivitiesButton" text="Alle anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>

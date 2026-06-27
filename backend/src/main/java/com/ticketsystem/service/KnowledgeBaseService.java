@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,7 @@ public class KnowledgeBaseService {
                 .title(request.getTitle().trim())
                 .category(request.getCategory().trim())
                 .solution(request.getSolution().trim())
-                .keywords(clean(request.getKeywords()))
+                .keywords(cleanKeywords(request.getKeywords()))
                 .answerTemplate(StringUtils.hasText(request.getAnswerTemplate()) ? request.getAnswerTemplate().trim() : request.getSolution().trim())
                 .active(request.isActive())
                 .build();
@@ -56,7 +58,7 @@ public class KnowledgeBaseService {
         article.setTitle(request.getTitle().trim());
         article.setCategory(request.getCategory().trim());
         article.setSolution(request.getSolution().trim());
-        article.setKeywords(clean(request.getKeywords()));
+        article.setKeywords(cleanKeywords(request.getKeywords()));
         article.setAnswerTemplate(StringUtils.hasText(request.getAnswerTemplate()) ? request.getAnswerTemplate().trim() : request.getSolution().trim());
         article.setActive(request.isActive());
         return toResponse(repository.save(article));
@@ -79,6 +81,22 @@ public class KnowledgeBaseService {
 
     private String clean(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    // KAT-125: Duplikate in der komma-separierten Keyword-Liste entfernen (case-insensitive geprüft,
+    // ursprüngliche Schreibweise bleibt erhalten, Reihenfolge bleibt erhalten)
+    private String cleanKeywords(String value) {
+        if (value == null || value.isBlank()) return "";
+        Set<String> seenLowerCase = new LinkedHashSet<>();
+        List<String> result = new java.util.ArrayList<>();
+        for (String raw : value.split(",")) {
+            String keyword = raw.trim();
+            if (keyword.isEmpty()) continue;
+            if (seenLowerCase.add(keyword.toLowerCase())) {
+                result.add(keyword);
+            }
+        }
+        return String.join(",", result);
     }
 
     private KnowledgeBaseResponse toResponse(KnowledgeBaseArticle article) {

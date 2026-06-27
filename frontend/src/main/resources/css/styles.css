@@ -753,6 +753,27 @@
     -fx-text-fill: #22C55E;
 }
 
+/* KAT-132: Farbcodierung der Aktionstypen im Audit-Log */
+.badge-audit-create {
+    -fx-background-color: rgba(34, 197, 94, 0.18);
+    -fx-text-fill: #22C55E;
+}
+
+.badge-audit-update {
+    -fx-background-color: rgba(245, 158, 11, 0.18);
+    -fx-text-fill: #F59E0B;
+}
+
+.badge-audit-delete {
+    -fx-background-color: rgba(239, 68, 68, 0.18);
+    -fx-text-fill: #EF4444;
+}
+
+.badge-audit-assigned {
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-text-fill: #3B82F6;
+}
+
 
 /* =========================================================
    9. LOGIN / REGISTER

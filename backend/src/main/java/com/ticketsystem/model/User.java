@@ -54,4 +54,8 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // KAT-116: Zeitpunkt des letzten erfolgreichen Logins (nur Zeitstempel, kein Online-Status)
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
 }

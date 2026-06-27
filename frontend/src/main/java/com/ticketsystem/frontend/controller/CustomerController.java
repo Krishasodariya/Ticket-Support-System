@@ -86,6 +86,10 @@ public class CustomerController {
 
     @FXML private TextField quickTitleField;
     @FXML private ComboBox<TicketPriority> quickPriorityCombo;
+    // KAT-101: fehlende Felder sollen sichtbar gemacht werden, nicht nur stillschweigend ignoriert
+    @FXML private Label quickErrorLabel;
+    // KAT-99: Doppelklick-Schutz für das Schnell-Ticket-Formular
+    @FXML private Button quickCreateBtn;
 
     @FXML private TableView<TicketFX> ticketTable;
 
@@ -541,8 +545,21 @@ public class CustomerController {
 
     @FXML
     public void handleQuickCreate() {
+        // KAT-101: bisher stilles return ohne Hinweis, wenn Titel/Priorität fehlen
         if (quickTitleField.getText() == null || quickTitleField.getText().trim().isEmpty()
-                || quickPriorityCombo.getValue() == null) return;
+                || quickPriorityCombo.getValue() == null) {
+            if (quickErrorLabel != null) {
+                quickErrorLabel.setVisible(true);
+                quickErrorLabel.setManaged(true);
+            }
+            return;
+        }
+        if (quickErrorLabel != null) {
+            quickErrorLabel.setVisible(false);
+            quickErrorLabel.setManaged(false);
+        }
+        // KAT-99: Doppelklick-Schutz, sonst kann das Schnell-Ticket mehrfach erstellt werden
+        if (quickCreateBtn != null) quickCreateBtn.setDisable(true);
         String title = quickTitleField.getText().trim();
         String desc = "Schnell-Ticket: " + title;
         checkDuplicatesAndCreate(title, desc, () -> doQuickSubmit(title));
@@ -589,7 +606,12 @@ public class CustomerController {
     private void showDuplicateDialog(String title, List<TicketFX> tickets, Runnable createAction) {
         String names = tickets.stream().map(t -> "• " + t.getTitle()).limit(3).collect(Collectors.joining("\n"));
         boolean confirmed = AlertHelper.showConfirm(title, names + "\n\nTrotzdem ein neues Ticket erstellen?", "Erstellen");
-        if (confirmed) createAction.run();
+        if (confirmed) {
+            createAction.run();
+        } else if (quickCreateBtn != null) {
+            // KAT-99: Bei Abbruch muss der Button wieder aktiviert werden
+            quickCreateBtn.setDisable(false);
+        }
     }
 
     private void submitFullTicket(String title, String desc) {
@@ -621,12 +643,16 @@ public class CustomerController {
         task.setOnSucceeded(e -> {
             AlertHelper.showInfo("Erfolg", "Ticket erfolgreich erstellt.");
             resetNewTicketForm();
+            if (quickCreateBtn != null) quickCreateBtn.setDisable(false);
             showMyTickets();
         });
-        task.setOnFailed(e -> AlertHelper.showError(
+        task.setOnFailed(e -> {
+            AlertHelper.showError(
         	    "Fehler",
         	    "Beim Erstellen des Tickets ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
-        	));
+        	);
+            if (quickCreateBtn != null) quickCreateBtn.setDisable(false);
+        });
         new Thread(task, "customer-create-ticket").start();
     }
 
@@ -692,6 +718,8 @@ public class CustomerController {
 
     private void resetNewTicketForm() {
         if (quickTitleField != null) quickTitleField.clear();
+        if (quickPriorityCombo != null) quickPriorityCombo.setValue(null);
+        if (quickErrorLabel != null) { quickErrorLabel.setVisible(false); quickErrorLabel.setManaged(false); }
         if (newTitleField != null) newTitleField.clear();
         if (newDescField != null) newDescField.clear();
         if (newPriorityCombo != null) newPriorityCombo.setValue(null); // zurück auf "Automatisch ermitteln"

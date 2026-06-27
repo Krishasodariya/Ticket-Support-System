@@ -1,8 +1,10 @@
 package com.ticketsystem.service;
 
+import com.ticketsystem.model.AuditLog;
 import com.ticketsystem.model.Ticket;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
+import com.ticketsystem.repository.AuditLogRepository;
 import com.ticketsystem.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +16,48 @@ import java.util.List;
 @Service
 public class ExportService {
     private final TicketRepository ticketRepository;
+    private final AuditLogRepository auditLogRepository;
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public ExportService(TicketRepository ticketRepository) {
+    public ExportService(TicketRepository ticketRepository, AuditLogRepository auditLogRepository) {
         this.ticketRepository = ticketRepository;
+        this.auditLogRepository = auditLogRepository;
+    }
+
+    // KAT-131: Audit-Log als CSV exportieren
+    public byte[] exportAuditLogCsv() {
+        StringBuilder sb = new StringBuilder("﻿Ticket;Geändert von;Aktion;Alter Wert;Neuer Wert;Zeitstempel\r\n");
+        for (AuditLog log : auditLogRepository.findAllByOrderByTimestampDesc()) {
+            sb.append(csv(log.getTicket() != null ? nvl(log.getTicket().getTitle()) : "")).append(';')
+              .append(csv(log.getChangedBy() != null ? log.getChangedBy().getUsername() : "")).append(';')
+              .append(csv(nvl(log.getChangeType()))).append(';')
+              .append(csv(nvl(log.getOldValue()))).append(';')
+              .append(csv(nvl(log.getNewValue()))).append(';')
+              .append(csv(log.getTimestamp() != null ? log.getTimestamp().format(FMT) : ""))
+              .append("\r\n");
+        }
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    // KAT-131: Audit-Log als PDF exportieren
+    public byte[] exportAuditLogPdf() {
+        List<AuditLog> logs = auditLogRepository.findAllByOrderByTimestampDesc();
+        List<String> lines = new ArrayList<>();
+        lines.add("Ticket Support System - Audit-Log Export");
+        lines.add("Einträge: " + logs.size());
+        lines.add("");
+        if (logs.isEmpty()) {
+            lines.add("Keine Audit-Log-Einträge vorhanden.");
+        } else {
+            int index = 1;
+            for (AuditLog log : logs.stream().limit(35).toList()) {
+                lines.add(index++ + ". " + (log.getTicket() != null ? safe(log.getTicket().getTitle()) : "-")
+                        + " | " + log.getChangeType()
+                        + " | " + (log.getChangedBy() != null ? log.getChangedBy().getUsername() : "-")
+                        + " | " + (log.getTimestamp() != null ? log.getTimestamp().format(FMT) : "-"));
+            }
+        }
+        return buildSimplePdf(lines);
     }
 
     public byte[] exportTicketsCsv() {

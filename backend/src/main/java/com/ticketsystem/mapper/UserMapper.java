@@ -17,6 +17,7 @@ public class UserMapper {
         response.setProfilePicture(user.getProfilePicture());
         response.setBirthDate(user.getBirthDate());
         response.setCreatedAt(user.getCreatedAt());
+        response.setLastLogin(user.getLastLogin());
         return response;
     }
 }

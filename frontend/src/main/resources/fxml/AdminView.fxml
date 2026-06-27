@@ -289,7 +289,8 @@
                         </VBox>
 
                         <!-- Agent assignment -->
-                        <VBox styleClass="dashboard-chart-card" spacing="10" prefWidth="430">
+                        <!-- KAT-135: minWidth verhindert, dass die Karte bei kleineren Fenstergrößen zusammengedrückt wird -->
+                        <VBox styleClass="dashboard-chart-card" spacing="10" prefWidth="430" minWidth="320">
                             <Label text="AGENT-ZUWEISUNG" styleClass="dashboard-chart-title"/>
                             <Label text="Ticket und aktiven Agenten auswählen. Die Zuweisung wird direkt gespeichert."
                                    wrapText="true" styleClass="text-muted"/>
@@ -306,16 +307,25 @@
                         </VBox>
                     </HBox>
 
-                    <!-- Aufgabe 3 – TOP-NUTZER STATISTIK -->
+                    <!-- KAT-107 – TOP-KUNDEN STATISTIK mit Detailinfos -->
                     <VBox styleClass="dashboard-chart-card" spacing="12">
                         <Label text="TOP-KUNDEN (MEISTE TICKETS)" styleClass="dashboard-chart-title"/>
                         <TableView fx:id="topCustomersTable" prefHeight="200" styleClass="table-view modern-table">
                             <columns>
-                                <TableColumn fx:id="topColRank"     text="Rang"         prefWidth="80"/>
-                                <TableColumn fx:id="topColUsername" text="Benutzername"  prefWidth="250"/>
-                                <TableColumn fx:id="topColCount"    text="Tickets"       prefWidth="120"/>
+                                <TableColumn fx:id="topColRank"         text="Rang"            prefWidth="60"/>
+                                <TableColumn fx:id="topColUsername"     text="Benutzername"    prefWidth="180"/>
+                                <TableColumn fx:id="topColCount"        text="Tickets"          prefWidth="80"/>
+                                <TableColumn fx:id="topColOpen"         text="Offen"            prefWidth="80"/>
+                                <TableColumn fx:id="topColResolved"     text="Gelöst"           prefWidth="80"/>
+                                <TableColumn fx:id="topColLastActivity" text="Letzte Aktivität" prefWidth="150"/>
                             </columns>
                         </TableView>
+                    </VBox>
+
+                    <!-- KAT-103 – Bewertungsverteilung -->
+                    <VBox styleClass="dashboard-chart-card" spacing="8">
+                        <Label text="BEWERTUNGSVERTEILUNG" styleClass="dashboard-chart-title"/>
+                        <Label fx:id="statRatingDistribution" text="-" styleClass="text-muted"/>
                     </VBox>
                 </VBox>
             </ScrollPane>
@@ -430,11 +440,14 @@
                     <TextField fx:id="specializationField" promptText="Spezialisierung, z.B. Software,Netzwerk" prefWidth="220" styleClass="text-field" />
                     <Button text="Spezialisierung setzen" onAction="#handleUpdateSpecialization" styleClass="btn-primary" />
                 </HBox>
+                <!-- KAT-117: Agentenstatistik bei Auswahl eines Agenten -->
+                <Label fx:id="agentStatsLabel" text="" styleClass="text-muted" />
                 <TableView fx:id="userTable" VBox.vgrow="ALWAYS" styleClass="table-view">
                     <columns>
                         <TableColumn fx:id="colUsername" text="Benutzername" prefWidth="150" />
                         <TableColumn fx:id="colEmail" text="E-Mail" prefWidth="220" />
                         <TableColumn fx:id="colRole" text="Rolle" prefWidth="120" />
+                        <TableColumn fx:id="colLastLogin" text="Letzter Login" prefWidth="150" />
                     </columns>
                 </TableView>
             </VBox>
@@ -502,8 +515,9 @@
                             <ComboBox fx:id="exportStatusCombo" promptText="Status" prefWidth="140" styleClass="combo-box" />
                             <ComboBox fx:id="exportPriorityCombo" promptText="Priorität" prefWidth="140" styleClass="combo-box" />
                             <TextField fx:id="exportSearchField" promptText="Suche: Kunde, Agent, Kategorie..." prefWidth="260" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <Button text="CSV exportieren" onAction="#handleExportCsv" styleClass="btn-primary" />
-                            <Button text="PDF exportieren" onAction="#handleExportPdf" styleClass="btn-ghost" />
+                            <!-- KAT-115: fx:id, um Mehrfachklicks während des Exports zu verhindern -->
+                            <Button fx:id="exportCsvBtn" text="CSV exportieren" onAction="#handleExportCsv" styleClass="btn-primary" />
+                            <Button fx:id="exportPdfBtn" text="PDF exportieren" onAction="#handleExportPdf" styleClass="btn-ghost" />
                         </HBox>
                     </VBox>
                     <HBox spacing="20">
@@ -537,6 +551,9 @@
                     <ComboBox fx:id="auditTypeFilter" promptText="Alle Aktionen" prefWidth="180" styleClass="combo-box" />
                     <Button text="Filtern" onAction="#handleFilterAuditLog" styleClass="btn-primary" />
                     <Button text="Zurücksetzen" onAction="#handleClearAuditFilter" styleClass="btn-ghost" />
+                    <!-- KAT-131: CSV/PDF-Export für das Audit-Log -->
+                    <Button fx:id="auditExportCsvBtn" text="CSV exportieren" onAction="#handleExportAuditLogCsv" styleClass="btn-ghost" />
+                    <Button fx:id="auditExportPdfBtn" text="PDF exportieren" onAction="#handleExportAuditLogPdf" styleClass="btn-ghost" />
                 </HBox>
                 <TableView fx:id="auditLogTable" VBox.vgrow="ALWAYS" styleClass="table-view">
                     <columns>
