@@ -2,6 +2,7 @@ package com.ticketsystem.frontend.model;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -23,7 +24,9 @@ public class DashboardStatsFX {
     private Map<String, Long> ticketsByAgent;
     private Map<String, Long> ticketsByCategory;
     private Map<String, Long> resolvedByAgent;
-    // Aufgabe 3 – Top-Kunden nach Ticket-Anzahl
-    private Map<String, Long> topCustomersByTickets;
+    // KAT-107: Top-Kunden jetzt mit Detailinfos statt nur Ticket-Anzahl
+    private List<TopCustomerStatFX> topCustomers;
+    // KAT-103: Bewertungsverteilung (1-5 Sterne -> Anzahl Tickets)
+    private Map<String, Long> ratingDistribution;
 }
 

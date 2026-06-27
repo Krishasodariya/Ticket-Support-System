@@ -24,6 +24,15 @@ public class DashboardApiService {
         return ApiClient.downloadBytes(exportPath("/dashboard/export/tickets.pdf", status, priority, query));
     }
 
+    // KAT-131: Audit-Log CSV/PDF-Export
+    public byte[] exportAuditLogCsv() throws Exception {
+        return ApiClient.downloadBytes("/dashboard/export/audit-log.csv");
+    }
+
+    public byte[] exportAuditLogPdf() throws Exception {
+        return ApiClient.downloadBytes("/dashboard/export/audit-log.pdf");
+    }
+
     private String exportPath(String base, String status, String priority, String query) {
         StringBuilder path = new StringBuilder(base).append("?");
         if (status != null && !status.isBlank() && !"Alle".equals(status)) path.append("status=").append(status).append("&");

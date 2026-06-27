@@ -24,7 +24,7 @@
 
             <!-- Username -->
             <VBox spacing="4">
-                <Label text="Benutzername" styleClass="register-field-label" />
+                <Label text="Benutzername *" styleClass="register-field-label" />
                 <TextField fx:id="usernameField" promptText="z.B. max_mustermann"
                            styleClass="text-field, register-input"
                            onKeyPressed="#handleEnterKey" />
@@ -32,7 +32,7 @@
 
             <!-- Email -->
             <VBox spacing="4">
-                <Label text="E-Mail-Adresse" styleClass="register-field-label" />
+                <Label text="E-Mail-Adresse *" styleClass="register-field-label" />
                 <TextField fx:id="emailField" promptText="max@beispiel.de"
                            styleClass="text-field, register-input"
                            onKeyPressed="#handleEnterKey" />
@@ -40,7 +40,7 @@
 
             <!-- Password -->
             <VBox spacing="4">
-                <Label text="Passwort" styleClass="register-field-label" />
+                <Label text="Passwort *" styleClass="register-field-label" />
                 <PasswordField fx:id="passwordField" promptText="Mindestens 8 Zeichen"
                                styleClass="text-field, register-input"
                                onKeyPressed="#handleEnterKey" />
@@ -48,11 +48,15 @@
 
             <!-- Confirm Password -->
             <VBox spacing="4">
-                <Label text="Passwort bestätigen" styleClass="register-field-label" />
+                <Label text="Passwort bestätigen *" styleClass="register-field-label" />
                 <PasswordField fx:id="confirmPasswordField" promptText="Passwort wiederholen"
                                styleClass="text-field, register-input"
                                onKeyPressed="#handleEnterKey" />
             </VBox>
+
+            <!-- KAT-04: Zustimmung zu den Nutzungsbedingungen -->
+            <CheckBox fx:id="termsCheckBox" text="Ich akzeptiere die Nutzungsbedingungen"
+                      styleClass="register-terms-checkbox" />
 
             <!-- Error label -->
             <Label fx:id="errorLabel" text="" styleClass="register-error" visible="false" wrapText="true" />
@@ -61,6 +65,8 @@
             <Button text="Konto erstellen" onAction="#handleRegister"
                     styleClass="btn-primary, register-button" maxWidth="Infinity"
                     defaultButton="true" />
+
+            <Label text="* Pflichtfeld" styleClass="register-required-hint" />
         </VBox>
 
         <!-- Login + Home links -->

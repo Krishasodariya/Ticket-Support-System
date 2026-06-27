@@ -178,6 +178,27 @@
     -fx-text-fill: #94A3B8;
 }
 
+/* KAT-48: Breadcrumb als klickbarer Hyperlink, soll wie ein normaler text-muted-Label aussehen */
+.breadcrumb-link {
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: false;
+}
+
+.theme-light .breadcrumb-link {
+    -fx-text-fill: #6B7280;
+}
+
+.theme-dark .breadcrumb-link {
+    -fx-text-fill: #94A3B8;
+}
+
+.breadcrumb-link:hover {
+    -fx-text-fill: #0EA5E9;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
 
 /* =========================================================
    3. LAYOUT: SIDEBAR / TOPBAR / CARDS
@@ -732,6 +753,27 @@
     -fx-text-fill: #22C55E;
 }
 
+/* KAT-132: Farbcodierung der Aktionstypen im Audit-Log */
+.badge-audit-create {
+    -fx-background-color: rgba(34, 197, 94, 0.18);
+    -fx-text-fill: #22C55E;
+}
+
+.badge-audit-update {
+    -fx-background-color: rgba(245, 158, 11, 0.18);
+    -fx-text-fill: #F59E0B;
+}
+
+.badge-audit-delete {
+    -fx-background-color: rgba(239, 68, 68, 0.18);
+    -fx-text-fill: #EF4444;
+}
+
+.badge-audit-assigned {
+    -fx-background-color: rgba(59, 130, 246, 0.18);
+    -fx-text-fill: #3B82F6;
+}
+
 
 /* =========================================================
    9. LOGIN / REGISTER
@@ -842,6 +884,34 @@
 
 .theme-dark .register-error {
     -fx-text-fill: #FCA5A5;
+}
+
+/* KAT-16: visuelles Feedback bei ungueltiger Live-Validierung */
+/* Selektor muss genauso spezifisch sein wie .theme-light/.theme-dark .register-card .text-field,
+   sonst gewinnt die Theme-Regel und die rote Rahmenfarbe wird ignoriert. */
+.theme-light .register-card .text-field.text-field-error,
+.theme-dark .register-card .text-field.text-field-error,
+.text-field-error {
+    -fx-border-color: #EF4444;
+    -fx-border-width: 1.5px;
+}
+
+/* KAT-18: Hinweis auf Pflichtfelder */
+.register-required-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #94A3B8;
+}
+
+.register-terms-checkbox {
+    -fx-font-size: 12px;
+}
+
+.theme-light .register-terms-checkbox {
+    -fx-text-fill: #374151;
+}
+
+.theme-dark .register-terms-checkbox {
+    -fx-text-fill: #CBD5E1;
 }
 
 /* Login/Register inputs */

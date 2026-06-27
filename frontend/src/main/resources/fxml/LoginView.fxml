@@ -10,10 +10,11 @@
         <Label text="Anmelden" styleClass="register-title" />
         <Label text="Melden Sie sich an, um Tickets, Dashboard und Support-Aufgaben zu verwalten." styleClass="register-subtitle" wrapText="true" textAlignment="CENTER" />
         <VBox spacing="12" maxWidth="330">
-            <TextField fx:id="usernameField" promptText="Benutzername" styleClass="text-field, register-input" />
-            <PasswordField fx:id="passwordField" promptText="Passwort" styleClass="text-field, register-input" />
+            <TextField fx:id="usernameField" promptText="Benutzername *" styleClass="text-field, register-input" />
+            <PasswordField fx:id="passwordField" promptText="Passwort *" styleClass="text-field, register-input" />
             <Label fx:id="errorLabel" text="Fehler" styleClass="register-error" visible="false" wrapText="true" />
             <Button text="Anmelden" onAction="#handleLogin" styleClass="btn-primary, register-button" maxWidth="Infinity" />
+            <Label text="* Pflichtfeld" styleClass="register-required-hint" />
         </VBox>
         <Hyperlink text="Noch kein Konto? Registrieren" onAction="#handleRegisterLink" styleClass="register-link" />
         <Label text="Demo: admin/admin123 · agent/agent123 · customer/customer123" styleClass="register-subtitle" wrapText="true" textAlignment="CENTER" />

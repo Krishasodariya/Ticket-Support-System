@@ -22,6 +22,23 @@ public class LoginController {
     @FXML
     public void initialize() {
         errorLabel.setVisible(false);
+        // KAT-12: Fokus automatisch auf das erste Feld setzen
+        Platform.runLater(() -> usernameField.requestFocus());
+
+        // KAT-16: Leeres Pflichtfeld beim Verlassen rot markieren (kein Format zu pruefen, nur Pflicht)
+        usernameField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) markIfEmpty(usernameField);
+        });
+        passwordField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) markIfEmpty(passwordField);
+        });
+    }
+
+    private void markIfEmpty(javafx.scene.control.TextInputControl field) {
+        field.getStyleClass().remove("text-field-error");
+        if (field.getText().isEmpty()) {
+            field.getStyleClass().add("text-field-error");
+        }
     }
 
     @FXML

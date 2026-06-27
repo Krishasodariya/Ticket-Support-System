@@ -6,6 +6,7 @@ import com.ticketsystem.exception.ResourceNotFoundException;
 import com.ticketsystem.mapper.CategoryMapper;
 import com.ticketsystem.model.Category;
 import com.ticketsystem.repository.CategoryRepository;
+import com.ticketsystem.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,15 +16,23 @@ import java.util.stream.Collectors;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final TicketRepository ticketRepository;
 
-    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper,
+                            TicketRepository ticketRepository) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.ticketRepository = ticketRepository;
     }
 
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(categoryMapper::toResponse)
+                .map(category -> {
+                    CategoryResponse response = categoryMapper.toResponse(category);
+                    // KAT-121: Anzahl Tickets pro Kategorie ergänzen
+                    response.setTicketCount(ticketRepository.countByCategory(category));
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 

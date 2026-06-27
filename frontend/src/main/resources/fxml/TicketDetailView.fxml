@@ -106,7 +106,7 @@
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <CheckBox fx:id="internalCheckBox" text="Interner Kommentar" />
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Button text="Senden" onAction="#handleAddComment" styleClass="btn-primary"/>
+                        <Button fx:id="sendCommentBtn" text="Senden" onAction="#handleAddComment" styleClass="btn-primary"/>
                     </HBox>
                     <Separator />
                     <Label text="Feedback nach Lösung" styleClass="section-title"/>

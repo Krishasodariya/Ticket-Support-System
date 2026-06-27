@@ -1,5 +1,6 @@
 package com.ticketsystem.repository;
 
+import com.ticketsystem.model.Category;
 import com.ticketsystem.model.Ticket;
 import com.ticketsystem.model.User;
 import com.ticketsystem.model.enums.TicketPriority;
@@ -20,4 +21,6 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     long countByPriority(TicketPriority priority);
     long countByResolvedAtBetween(LocalDateTime start, LocalDateTime end);
     long countByAssignedToIsNull();
+    // KAT-121: Anzahl Tickets pro Kategorie
+    long countByCategory(Category category);
 }

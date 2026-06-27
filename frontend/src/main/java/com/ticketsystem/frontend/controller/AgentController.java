@@ -45,7 +45,8 @@ public class AgentController {
     @FXML private HBox navMyTickets, navAllTickets, navKnowledgeBase;
     @FXML private Circle dotMyTickets, dotAllTickets, dotKnowledgeBase;
     @FXML private Label labelMyTickets, labelAllTickets, labelKnowledgeBase;
-    @FXML private Label breadcrumb;
+    // KAT-48: Breadcrumb ist jetzt klickbar (Hyperlink statt Label) -> springt zu "Meine Tickets"
+    @FXML private Hyperlink breadcrumb;
 
     // [Nzchupa | 2026-06-12] TS-002: notificationButton für Theme-Toggle-Root benötigt
     @FXML private StackPane notificationButton;
@@ -94,6 +95,11 @@ public class AgentController {
         topbarInitials.setText(initial);
         sidebarName.setText(username);
         updateAvatarDisplay(SessionManager.getProfilePicture());
+
+        // KAT-64: StackPane besitzt keine tooltip-Property -> Tooltip per Code installieren
+        if (notificationButton != null) {
+            Tooltip.install(notificationButton, new Tooltip("Benachrichtigungen anzeigen"));
+        }
 
         initTable();
         initFilters();

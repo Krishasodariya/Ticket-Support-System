@@ -1,6 +1,7 @@
 package com.ticketsystem.service;
 
 import com.ticketsystem.dto.response.DashboardStatsResponse;
+import com.ticketsystem.dto.response.TopCustomerStatResponse;
 import com.ticketsystem.model.Ticket;
 import com.ticketsystem.model.enums.TicketPriority;
 import com.ticketsystem.model.enums.TicketStatus;
@@ -10,9 +11,11 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,21 +81,47 @@ public class DashboardService {
                 .filter(ticket -> ticket.getCreatedAt() != null && !ticket.getCreatedAt().isBefore(start) && ticket.getCreatedAt().isBefore(end))
                 .count();
 
-        // Aufgabe 3 – Top-Kunden nach Ticket-Anzahl (absteigend sortiert, max 10)
-        Map<String, Long> topCustomersByTickets = allTickets.stream()
-                .collect(Collectors.groupingBy(
-                        ticket -> ticket.getCreatedBy() != null ? ticket.getCreatedBy().getUsername() : "Unbekannt",
-                        Collectors.counting()
-                ))
-                .entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+        // KAT-107 – Top-Kunden mit Detailinfos (offene/gelöste Tickets, letzte Aktivität), max 10
+        Map<String, List<Ticket>> ticketsByCustomer = allTickets.stream()
+                .filter(ticket -> ticket.getCreatedBy() != null)
+                .collect(Collectors.groupingBy(ticket -> ticket.getCreatedBy().getUsername()));
+
+        List<TopCustomerStatResponse> topCustomers = ticketsByCustomer.entrySet().stream()
+                .map(entry -> {
+                    String username = entry.getKey();
+                    List<Ticket> customerTickets = entry.getValue();
+                    long open = customerTickets.stream()
+                            .filter(ticket -> ticket.getStatus() != TicketStatus.RESOLVED && ticket.getStatus() != TicketStatus.CLOSED)
+                            .count();
+                    long resolved = customerTickets.stream()
+                            .filter(ticket -> ticket.getStatus() == TicketStatus.RESOLVED || ticket.getStatus() == TicketStatus.CLOSED)
+                            .count();
+                    LocalDateTime lastActivity = customerTickets.stream()
+                            .map(ticket -> ticket.getUpdatedAt() != null ? ticket.getUpdatedAt() : ticket.getCreatedAt())
+                            .filter(Objects::nonNull)
+                            .max(Comparator.naturalOrder())
+                            .orElse(null);
+                    return TopCustomerStatResponse.builder()
+                            .username(username)
+                            .totalTickets(customerTickets.size())
+                            .openTickets(open)
+                            .resolvedTickets(resolved)
+                            .lastActivity(lastActivity)
+                            .build();
+                })
+                .sorted(Comparator.comparingLong(TopCustomerStatResponse::getTotalTickets).reversed())
                 .limit(10)
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+                .collect(Collectors.toList());
+
+        // KAT-103 – Bewertungsverteilung (1-5 Sterne -> Anzahl Tickets)
+        Map<String, Long> ratingDistribution = new LinkedHashMap<>();
+        for (int rating = 1; rating <= 5; rating++) {
+            ratingDistribution.put(String.valueOf(rating), 0L);
+        }
+        allTickets.stream()
+                .filter(ticket -> ticket.getCustomerRating() != null
+                        && ticket.getCustomerRating() >= 1 && ticket.getCustomerRating() <= 5)
+                .forEach(ticket -> ratingDistribution.merge(String.valueOf(ticket.getCustomerRating()), 1L, Long::sum));
 
         return DashboardStatsResponse.builder()
                 .totalTickets(ticketRepository.count())
@@ -112,7 +141,8 @@ public class DashboardService {
                 .ticketsByAgent(byAgent)
                 .ticketsByCategory(byCategory)
                 .resolvedByAgent(resolvedByAgent)
-                .topCustomersByTickets(topCustomersByTickets)
+                .topCustomers(topCustomers)
+                .ratingDistribution(ratingDistribution)
                 .build();
     }
 }

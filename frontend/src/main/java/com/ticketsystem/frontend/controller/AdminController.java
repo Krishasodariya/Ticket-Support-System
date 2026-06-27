@@ -67,7 +67,8 @@ public class AdminController {
     @FXML private Circle dotSystemAuditLog; // Feature 32
     @FXML private Label labelDashboard, labelTickets, labelUsers, labelCategories, labelReports, labelAuditLog;
     @FXML private Label labelSystemAuditLog; // Feature 32
-    @FXML private Label breadcrumb;
+    // KAT-48: Breadcrumb ist jetzt klickbar (Hyperlink statt Label) -> springt zum Dashboard
+    @FXML private Hyperlink breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
     @FXML private ImageView sidebarProfileImage, topbarProfileImage;
@@ -85,8 +86,11 @@ public class AdminController {
     @FXML private TableView<TicketFX> dashTicketTable;
     @FXML private TableColumn<TicketFX, String> dashColId, dashColTitle, dashColStatus;
     // Aufgabe 3 – Top-Kunden Tabelle
-    @FXML private TableView<javafx.beans.property.SimpleStringProperty[]> topCustomersTable;
-    @FXML private TableColumn<javafx.beans.property.SimpleStringProperty[], String> topColRank, topColUsername, topColCount;
+    @FXML private TableView<com.ticketsystem.frontend.model.TopCustomerStatFX> topCustomersTable;
+    @FXML private TableColumn<com.ticketsystem.frontend.model.TopCustomerStatFX, String> topColRank, topColUsername, topColCount;
+    @FXML private TableColumn<com.ticketsystem.frontend.model.TopCustomerStatFX, String> topColOpen, topColResolved, topColLastActivity;
+    // KAT-103: Bewertungsverteilung
+    @FXML private Label statRatingDistribution;
     @FXML private ComboBox<TicketFX> dashboardTicketCombo;
     @FXML private ComboBox<UserFX> dashboardAgentCombo;
     @FXML private Button dashboardAssignButton;
@@ -96,17 +100,22 @@ public class AdminController {
     @FXML private TableColumn<TicketFX, String> colId, colTitle, colPriority, colStatus, colCategory, colAgent, colCreatedAt;
     @FXML private ComboBox<String> filterStatusCombo, filterPriorityCombo;
     @FXML private TextField searchField;
+    @FXML private Label doubleClickHintLabel;
     // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suchfeld — delegiert an aktiven Pane-Filter
     // Topbar search field reference — delegates to whichever pane is currently active
     @FXML private TextField topbarSearchField;
 
     @FXML private TableView<UserFX> userTable;
     @FXML private TableColumn<UserFX, String> colUsername, colEmail, colRole;
+    // KAT-116: letzter Login pro Benutzer
+    @FXML private TableColumn<UserFX, String> colLastLogin;
     @FXML private ComboBox<String> roleCombo;
     // [Nzchupa | 2026-06-13] TSS-015: Alle Benutzer speichern für clientseitige Topbar-Suche
     // Store all users so topbar search can filter without re-fetching
     private List<UserFX> allUsers = new java.util.ArrayList<>();
     @FXML private Label selectedUserLabel;
+    // KAT-117: Agentenstatistik bei Auswahl eines Agenten in der Benutzerliste
+    @FXML private Label agentStatsLabel;
     @FXML private TextField specializationField;
 
     @FXML private ListView<CategoryFX> categoryList;
@@ -168,6 +177,11 @@ public class AdminController {
         greetingLabel.setText("Willkommen zurück, " + username + "!");
         updateAvatarDisplay(SessionManager.getProfilePicture());
 
+        // KAT-64: StackPane besitzt keine tooltip-Property -> Tooltip per Code installieren
+        if (notificationButton != null) {
+            Tooltip.install(notificationButton, new Tooltip("Benachrichtigungen anzeigen"));
+        }
+
         initTable();
         initFiltersAndUserActions();
         // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suche — Echtzeit-Listener, delegiert an aktiven Pane
@@ -217,10 +231,20 @@ public class AdminController {
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colRole.setCellValueFactory(new PropertyValueFactory<>("role"));
         colRole.setCellFactory(c -> badgeCell());
+        // KAT-116: letzter Login formatiert anzeigen (oder "-" wenn noch nie eingeloggt)
+        if (colLastLogin != null) {
+            java.time.format.DateTimeFormatter loginFmt = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+            colLastLogin.setCellValueFactory(data -> {
+                java.time.LocalDateTime lastLogin = data.getValue().getLastLogin();
+                return new javafx.beans.property.SimpleStringProperty(lastLogin != null ? lastLogin.format(loginFmt) : "-");
+            });
+        }
 
         auditColTicket.setCellValueFactory(new PropertyValueFactory<>("ticketTitle"));
         auditColUser.setCellValueFactory(new PropertyValueFactory<>("changedBy"));
         auditColType.setCellValueFactory(new PropertyValueFactory<>("changeType"));
+        // KAT-132: Aktionstyp farblich kennzeichnen (CREATE/UPDATE/DELETE/ASSIGNED)
+        auditColType.setCellFactory(c -> auditActionBadgeCell());
         auditColOld.setCellValueFactory(new PropertyValueFactory<>("oldValue"));
         auditColNew.setCellValueFactory(new PropertyValueFactory<>("newValue"));
         auditColTime.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
@@ -246,6 +270,18 @@ public class AdminController {
                 Navigator.navigateTo("TicketDetailView.fxml");
             }
         });
+
+        // KAT-130: Doppelklick im Audit-Log öffnet das zugehörige Ticket (analog zu KAT-89)
+        if (auditLogTable != null) {
+            auditLogTable.setOnMouseClicked(e -> {
+                AuditLogFX selected = auditLogTable.getSelectionModel().getSelectedItem();
+                if (e.getClickCount() == 2 && selected != null
+                        && selected.getTicketId() != null && !selected.getTicketId().isBlank()) {
+                    TicketDetailController.setCurrentTicketId(selected.getTicketId());
+                    Navigator.navigateTo("TicketDetailView.fxml");
+                }
+            });
+        }
 
         if (dashTicketTable != null) {
             dashTicketTable.getSelectionModel().selectedItemProperty().addListener((obs, oldTicket, ticket) -> {
@@ -317,8 +353,30 @@ public class AdminController {
                     selectedUserLabel.setText("Ausgewählt: " + user.getUsername());
                     roleCombo.setValue(user.getRole());
                 }
+                updateAgentStatsLabel(user);
             });
         }
+    }
+
+    // KAT-117: Ticketanzahl (gesamt/offen/gelöst) für den ausgewählten Agenten anzeigen
+    private void updateAgentStatsLabel(UserFX user) {
+        if (agentStatsLabel == null) return;
+        if (user == null || !"AGENT".equalsIgnoreCase(user.getRole())) {
+            agentStatsLabel.setText("");
+            return;
+        }
+        long total = 0, open = 0, resolved = 0;
+        for (TicketFX ticket : allTickets) {
+            if (!user.getUsername().equals(ticket.getAssignedTo())) continue;
+            total++;
+            String status = ticket.getStatus();
+            if ("RESOLVED".equals(status) || "CLOSED".equals(status)) {
+                resolved++;
+            } else {
+                open++;
+            }
+        }
+        agentStatsLabel.setText("Tickets gesamt: " + total + "   Offen: " + open + "   Gelöst: " + resolved);
     }
 
     private <T> TableCell<T, String> badgeCell() {
@@ -337,6 +395,38 @@ public class AdminController {
                 setGraphic(createBadge(item));
             }
         };
+    }
+
+    // KAT-132: Audit-Log Aktionstyp farblich kennzeichnen (CREATE/UPDATE/DELETE/ASSIGNED)
+    private <T> TableCell<T, String> auditActionBadgeCell() {
+        return new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(null);
+                setGraphic(null);
+                if (empty || item == null || item.isBlank()) return;
+                setGraphic(createAuditActionBadge(item));
+            }
+        };
+    }
+
+    private Label createAuditActionBadge(String changeType) {
+        String value = changeType == null ? "" : changeType.toUpperCase();
+        Label badge = new Label(changeType);
+        badge.getStyleClass().add("badge");
+
+        if (value.contains("DELETE") || value.contains("REMOVED")) {
+            badge.getStyleClass().add("badge-audit-delete");
+        } else if (value.equals("ASSIGNED")) {
+            badge.getStyleClass().add("badge-audit-assigned");
+        } else if (value.contains("CREATED")) {
+            badge.getStyleClass().add("badge-audit-create");
+        } else {
+            // alle übrigen Aktionen (z.B. STATUS_CHANGED, TITLE_CHANGED) gelten als UPDATE
+            badge.getStyleClass().add("badge-audit-update");
+        }
+        return badge;
     }
 
     private ListCell<TicketFX> dashboardTicketCell() {
@@ -549,28 +639,47 @@ public class AdminController {
         if (statEscalated != null)   statEscalated.setText(String.valueOf(stats.getEscalatedTickets()));
         if (statAvgResolution != null) statAvgResolution.setText(stats.getAverageResolutionHours() + " h");
 
+        // KAT-103: Bewertungsverteilung anzeigen, z.B. "1★:0  2★:1  3★:4  4★:9  5★:12"
+        if (statRatingDistribution != null && stats.getRatingDistribution() != null) {
+            StringBuilder sb = new StringBuilder();
+            for (int rating = 1; rating <= 5; rating++) {
+                long count = stats.getRatingDistribution().getOrDefault(String.valueOf(rating), 0L);
+                if (sb.length() > 0) sb.append("   ");
+                sb.append(rating).append("★: ").append(count);
+            }
+            statRatingDistribution.setText(sb.toString());
+        }
+
         updateStatusChart(total, resolved, openNormal, overdue);
         updatePriorityChart(total, critical, high, medium, low);
 
-        // Aufgabe 3 – Top-Kunden Tabelle befüllen
-        if (topCustomersTable != null && stats.getTopCustomersByTickets() != null) {
+        // KAT-107 – Top-Kunden Tabelle mit Detailinfos befüllen
+        if (topCustomersTable != null && stats.getTopCustomers() != null) {
+            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
             topColRank.setCellValueFactory(data ->
-                    new javafx.beans.property.SimpleStringProperty(data.getValue()[0].get()));
+                    new javafx.beans.property.SimpleStringProperty(
+                            String.valueOf(topCustomersTable.getItems().indexOf(data.getValue()) + 1)));
             topColUsername.setCellValueFactory(data ->
-                    new javafx.beans.property.SimpleStringProperty(data.getValue()[1].get()));
+                    new javafx.beans.property.SimpleStringProperty(data.getValue().getUsername()));
             topColCount.setCellValueFactory(data ->
-                    new javafx.beans.property.SimpleStringProperty(data.getValue()[2].get()));
-
-            javafx.collections.ObservableList<javafx.beans.property.SimpleStringProperty[]> rows =
-                    javafx.collections.FXCollections.observableArrayList();
-            int[] rank = {1};
-            stats.getTopCustomersByTickets().forEach((username, count) -> {
-                rows.add(new javafx.beans.property.SimpleStringProperty[]{
-                        new javafx.beans.property.SimpleStringProperty(String.valueOf(rank[0]++)),
-                        new javafx.beans.property.SimpleStringProperty(username),
-                        new javafx.beans.property.SimpleStringProperty(String.valueOf(count))
+                    new javafx.beans.property.SimpleStringProperty(String.valueOf(data.getValue().getTotalTickets())));
+            if (topColOpen != null) {
+                topColOpen.setCellValueFactory(data ->
+                        new javafx.beans.property.SimpleStringProperty(String.valueOf(data.getValue().getOpenTickets())));
+            }
+            if (topColResolved != null) {
+                topColResolved.setCellValueFactory(data ->
+                        new javafx.beans.property.SimpleStringProperty(String.valueOf(data.getValue().getResolvedTickets())));
+            }
+            if (topColLastActivity != null) {
+                topColLastActivity.setCellValueFactory(data -> {
+                    java.time.LocalDateTime last = data.getValue().getLastActivity();
+                    return new javafx.beans.property.SimpleStringProperty(last != null ? last.format(fmt) : "-");
                 });
-            });
+            }
+
+            javafx.collections.ObservableList<com.ticketsystem.frontend.model.TopCustomerStatFX> rows =
+                    javafx.collections.FXCollections.observableArrayList(stats.getTopCustomers());
             topCustomersTable.setItems(rows);
         }
     }
@@ -687,14 +796,28 @@ public class AdminController {
             ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
+            updateTicketEmptyStateBindings();
             finishTicketLoad();
         });
         task.setOnFailed(e -> {
             ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
             AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden.");
+            updateTicketEmptyStateBindings();
             finishTicketLoad();
         });
         new Thread(task, "admin-load-tickets").start();
+    }
+
+    // KAT-35/36: Filter und Doppelklick-Hinweis sind nur sinnvoll, wenn ueberhaupt Tickets vorhanden sind
+    private void updateTicketEmptyStateBindings() {
+        boolean empty = allTickets.isEmpty();
+        if (doubleClickHintLabel != null) {
+            doubleClickHintLabel.setVisible(!empty);
+            doubleClickHintLabel.setManaged(!empty);
+        }
+        if (filterStatusCombo != null) filterStatusCombo.setDisable(empty);
+        if (filterPriorityCombo != null) filterPriorityCombo.setDisable(empty);
+        if (searchField != null) searchField.setDisable(empty);
     }
 
     private void finishTicketLoad() {
@@ -872,6 +995,10 @@ public class AdminController {
         CategoryFX selected = categoryList.getSelectionModel().getSelectedItem();
         if (selected == null) {
             AlertHelper.showError("Fehler", "Bitte Kategorie auswählen.");
+            return;
+        }
+        // KAT-114: Löschen war bisher ohne Bestätigung möglich -> Klick auf falsche Zeile löscht sofort
+        if (!AlertHelper.showConfirm("Kategorie löschen", "Möchten Sie die Kategorie \"" + selected.getName() + "\" wirklich löschen?", "Löschen")) {
             return;
         }
         new Thread(() -> {
@@ -1066,18 +1193,43 @@ public class AdminController {
         breadcrumb.setText("Admin  /  " + crumbTitle);
     }
 
-    @FXML public void handleExportCsv() { exportFile("tickets.csv", () -> dashboardService.exportTicketsCsv(exportStatus(), exportPriority(), exportSearch())); }
-    @FXML public void handleExportPdf() { exportFile("tickets.pdf", () -> dashboardService.exportTicketsPdf(exportStatus(), exportPriority(), exportSearch())); }
+    // KAT-115: fx:id-Felder für den Doppelklick-Schutz beim Export
+    @FXML private Button exportCsvBtn;
+    @FXML private Button exportPdfBtn;
+
+    @FXML public void handleExportCsv() {
+        if (exportCsvBtn != null) exportCsvBtn.setDisable(true);
+        exportFile("tickets.csv", () -> dashboardService.exportTicketsCsv(exportStatus(), exportPriority(), exportSearch()), exportCsvBtn);
+    }
+    @FXML public void handleExportPdf() {
+        if (exportPdfBtn != null) exportPdfBtn.setDisable(true);
+        exportFile("tickets.pdf", () -> dashboardService.exportTicketsPdf(exportStatus(), exportPriority(), exportSearch()), exportPdfBtn);
+    }
+
+    // KAT-131: Audit-Log CSV/PDF-Export
+    @FXML private Button auditExportCsvBtn;
+    @FXML private Button auditExportPdfBtn;
+
+    @FXML public void handleExportAuditLogCsv() {
+        if (auditExportCsvBtn != null) auditExportCsvBtn.setDisable(true);
+        exportFile("audit-log.csv", dashboardService::exportAuditLogCsv, auditExportCsvBtn);
+    }
+    @FXML public void handleExportAuditLogPdf() {
+        if (auditExportPdfBtn != null) auditExportPdfBtn.setDisable(true);
+        exportFile("audit-log.pdf", dashboardService::exportAuditLogPdf, auditExportPdfBtn);
+    }
 
     private String exportStatus() { return exportStatusCombo == null ? null : exportStatusCombo.getValue(); }
     private String exportPriority() { return exportPriorityCombo == null ? null : exportPriorityCombo.getValue(); }
     private String exportSearch() { return exportSearchField == null ? null : exportSearchField.getText(); }
 
-    private void exportFile(String defaultName, ExportSupplier supplier) {
+    private void exportFile(String defaultName, ExportSupplier supplier, Button triggerBtn) {
         Task<byte[]> task = new Task<>() {
             @Override protected byte[] call() throws Exception { return supplier.get(); }
         };
         task.setOnSucceeded(e -> {
+            // KAT-115: Button erst nach Abschluss des Hintergrund-Requests wieder freigeben
+            if (triggerBtn != null) triggerBtn.setDisable(false);
             FileChooser chooser = new FileChooser();
             chooser.setInitialFileName(defaultName);
             if (defaultName.endsWith(".csv")) chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Datei", "*.csv"));
@@ -1092,7 +1244,10 @@ public class AdminController {
                 }
             }
         });
-        task.setOnFailed(e -> AlertHelper.showError("Export fehlgeschlagen", task.getException().getMessage()));
+        task.setOnFailed(e -> {
+            if (triggerBtn != null) triggerBtn.setDisable(false);
+            AlertHelper.showError("Export fehlgeschlagen", task.getException().getMessage());
+        });
         new Thread(task, "admin-export").start();
     }
 
@@ -1128,6 +1283,10 @@ public class AdminController {
     @FXML public void handleDeleteKnowledgeBase() {
         KnowledgeBaseFX selected = kbAdminList == null ? null : kbAdminList.getSelectionModel().getSelectedItem();
         if (selected == null) { AlertHelper.showError("Fehler", "Bitte Artikel auswählen."); return; }
+        // KAT-114: Löschen war bisher ohne Bestätigung möglich
+        if (!AlertHelper.showConfirm("Artikel löschen", "Möchten Sie den Artikel \"" + selected.getTitle() + "\" wirklich löschen?", "Löschen")) {
+            return;
+        }
         new Thread(() -> {
             try {
                 knowledgeBaseService.delete(selected.getId());
@@ -1183,6 +1342,10 @@ public class AdminController {
     private void deleteWorkflowOption(ListView<WorkflowOptionFX> list) {
         WorkflowOptionFX selected = list == null ? null : list.getSelectionModel().getSelectedItem();
         if (selected == null) { AlertHelper.showError("Fehler", "Bitte Option auswählen."); return; }
+        // KAT-114: Löschen war bisher ohne Bestätigung möglich (gilt für Status- und Prioritäts-Optionen)
+        if (!AlertHelper.showConfirm("Option löschen", "Möchten Sie die Option \"" + selected + "\" wirklich deaktivieren?", "Deaktivieren")) {
+            return;
+        }
         new Thread(() -> {
             try {
                 workflowOptionService.delete(selected.getId());

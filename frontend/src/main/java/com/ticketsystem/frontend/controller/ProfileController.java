@@ -37,6 +37,7 @@ public class ProfileController {
     @FXML private Label avatarInitials;
     @FXML private Label nameLabel;
     @FXML private Label roleBadge;
+    @FXML private javafx.scene.control.Button saveButton;
 
     private final UserApiService userService = new UserApiService();
 
@@ -59,7 +60,40 @@ public class ProfileController {
 
         setupProfilePicturePreview();
         updateProfilePicturePreview(SessionManager.getProfilePicture());
+        setupBirthDatePicker();
+        setupSaveButtonDirtyTracking();
         loadProfile();
+    }
+
+    // KAT-30: "Speichern" nur aktiv, wenn es tatsächlich ungespeicherte Änderungen gibt
+    private void setupSaveButtonDirtyTracking() {
+        if (saveButton == null) return;
+        saveButton.setDisable(true);
+        emailField.textProperty().addListener((obs, o, n) -> updateSaveButtonState());
+        profilePicField.textProperty().addListener((obs, o, n) -> updateSaveButtonState());
+        birthDatePicker.valueProperty().addListener((obs, o, n) -> updateSaveButtonState());
+        currentPasswordField.textProperty().addListener((obs, o, n) -> updateSaveButtonState());
+        newPasswordField.textProperty().addListener((obs, o, n) -> updateSaveButtonState());
+        confirmPasswordField.textProperty().addListener((obs, o, n) -> updateSaveButtonState());
+    }
+
+    private void updateSaveButtonState() {
+        if (saveButton != null) saveButton.setDisable(!hasUnsavedChanges());
+    }
+
+    // KAT-21 + KAT-22: Formatbeispiel anzeigen und zukünftige Tage sperren
+    private void setupBirthDatePicker() {
+        birthDatePicker.getEditor().setPromptText("TT.MM.JJJJ");
+        birthDatePicker.setDayCellFactory(picker -> new javafx.scene.control.DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                if (date != null && date.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                    setStyle("-fx-opacity: 0.4;");
+                }
+            }
+        });
     }
 
     private void loadProfile() {
@@ -74,6 +108,7 @@ public class ProfileController {
             SessionManager.setProfilePicture(profilePicField.getText());
             updateProfilePicturePreview(profilePicField.getText());
             rememberSavedState();
+            updateSaveButtonState();
         });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Profil konnte nicht geladen werden."));
         new Thread(task).start();
@@ -101,6 +136,7 @@ public class ProfileController {
             SessionManager.setProfilePicture(profilePicField.getText());
             updateProfilePicturePreview(profilePicField.getText());
             rememberSavedState();
+            updateSaveButtonState();
             AlertHelper.showInfo("Erfolg", "Profil erfolgreich aktualisiert.");
         });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Profil-Update fehlgeschlagen.\n" + task.getException().getMessage()));
@@ -136,6 +172,7 @@ public class ProfileController {
             currentPasswordField.clear();
             newPasswordField.clear();
             confirmPasswordField.clear();
+            updateSaveButtonState();
             AlertHelper.showInfo("Erfolg", "Passwort wurde geändert.");
         });
         task.setOnFailed(e -> AlertHelper.showError("Fehler", "Passwort konnte nicht geändert werden.\n" + task.getException().getMessage()));

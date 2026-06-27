@@ -5,6 +5,7 @@ import com.ticketsystem.frontend.util.AlertHelper;
 import com.ticketsystem.frontend.util.Navigator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -16,13 +17,45 @@ public class RegisterController {
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private PasswordField confirmPasswordField;
+    @FXML private CheckBox termsCheckBox;
     @FXML private Label errorLabel;
+
+    private static final String USERNAME_PATTERN = "^[A-Za-z0-9_.-]+$";
+    private static final String EMAIL_PATTERN = "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$";
 
     private final AuthApiService authService = new AuthApiService();
 
     @FXML
     public void initialize() {
         errorLabel.setVisible(false);
+        // KAT-12: Fokus automatisch auf das erste Feld setzen
+        Platform.runLater(() -> usernameField.requestFocus());
+
+        // KAT-16: Live-Validierung von Benutzername und E-Mail beim Verlassen des Feldes
+        usernameField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) validateUsernameLive();
+        });
+        emailField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) validateEmailLive();
+        });
+    }
+
+    private void validateUsernameLive() {
+        String username = usernameField.getText().trim();
+        boolean valid = username.isEmpty() || (username.length() >= 3 && username.matches(USERNAME_PATTERN));
+        usernameField.getStyleClass().remove("text-field-error");
+        if (!valid) {
+            usernameField.getStyleClass().add("text-field-error");
+        }
+    }
+
+    private void validateEmailLive() {
+        String email = emailField.getText().trim();
+        boolean valid = email.isEmpty() || email.matches(EMAIL_PATTERN);
+        emailField.getStyleClass().remove("text-field-error");
+        if (!valid) {
+            emailField.getStyleClass().add("text-field-error");
+        }
     }
 
     @FXML
@@ -38,12 +71,12 @@ public class RegisterController {
             showError("Alle Felder sind Pflichtfelder.");
             return;
         }
-        if (username.length() < 3 || !username.matches("^[A-Za-z0-9_.-]+$")) {
+        if (username.length() < 3 || !username.matches(USERNAME_PATTERN)) {
             usernameField.getStyleClass().add("text-field-error");
             showError("Benutzername: mindestens 3 Zeichen, nur Buchstaben, Zahlen, Punkt, Unterstrich oder Bindestrich.");
             return;
         }
-        if (!email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+        if (!email.matches(EMAIL_PATTERN)) {
             emailField.getStyleClass().add("text-field-error");
             showError("Bitte eine gültige E-Mail-Adresse eingeben.");
             return;
@@ -57,6 +90,11 @@ public class RegisterController {
             passwordField.getStyleClass().add("text-field-error");
             confirmPasswordField.getStyleClass().add("text-field-error");
             showError("Passwörter stimmen nicht überein.");
+            return;
+        }
+        // KAT-04: Zustimmung zu den Nutzungsbedingungen ist Pflicht
+        if (!termsCheckBox.isSelected()) {
+            showError("Bitte akzeptieren Sie die Nutzungsbedingungen.");
             return;
         }
 

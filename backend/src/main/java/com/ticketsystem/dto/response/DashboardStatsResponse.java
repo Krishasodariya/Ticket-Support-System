@@ -3,6 +3,7 @@ package com.ticketsystem.dto.response;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -25,7 +26,10 @@ public class DashboardStatsResponse {
     private Map<String, Long> ticketsByAgent;
     private Map<String, Long> ticketsByCategory;
     private Map<String, Long> resolvedByAgent;
-    // Aufgabe 3 – Top-Kunden nach Ticket-Anzahl
-    private Map<String, Long> topCustomersByTickets;
+    // KAT-107: Top-Kunden jetzt mit Detailinfos statt nur Ticket-Anzahl
+    private List<TopCustomerStatResponse> topCustomers;
+    // KAT-103: Bewertungsverteilung (1-5 Sterne -> Anzahl Tickets). Antwortzeit bewusst weggelassen,
+    // da im Backend kein Zeitstempel für "erste Antwort" existiert.
+    private Map<String, Long> ratingDistribution;
 }
 

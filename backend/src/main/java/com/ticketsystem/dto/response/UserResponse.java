@@ -15,4 +15,6 @@ public class UserResponse {
     private String profilePicture;
     private LocalDate birthDate;
     private LocalDateTime createdAt;
+    // KAT-116: Zeitpunkt des letzten Logins
+    private LocalDateTime lastLogin;
 }
