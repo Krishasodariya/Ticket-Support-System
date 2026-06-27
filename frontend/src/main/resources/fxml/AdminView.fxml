@@ -374,7 +374,7 @@
                     <Button text="🔎 Filtern" onAction="#handleApplyTicketFilter" styleClass="btn-ghost" />
                     <Button text="Zurücksetzen" onAction="#handleClearTicketFilter" styleClass="btn-ghost" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label text="Doppelklick öffnet Details." styleClass="text-muted" />
+                    <Label fx:id="doubleClickHintLabel" text="Doppelklick öffnet Details." styleClass="text-muted" />
                 </HBox>
                 <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view modern-table">
                     <placeholder>

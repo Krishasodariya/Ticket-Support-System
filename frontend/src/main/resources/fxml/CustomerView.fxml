@@ -114,7 +114,7 @@
 
                     <HBox spacing="16">
                         <VBox styleClass="customer-card" HBox.hgrow="ALWAYS" spacing="14">
-                            <HBox alignment="CENTER_LEFT"><Label text="MEINE AKTIVEN TICKETS" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button text="Alle Tickets anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>
+                            <HBox alignment="CENTER_LEFT"><Label text="MEINE AKTIVEN TICKETS" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button fx:id="showAllTicketsButton" text="Alle Tickets anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>
                             <VBox fx:id="activeTicketsContainer" spacing="10"/>
                         </VBox>
 
@@ -126,7 +126,7 @@
                                 <Button text="Ticket erstellen" onAction="#handleQuickCreate" styleClass="btn-primary" maxWidth="Infinity"/>
                             </VBox>
                             <VBox styleClass="customer-card" spacing="12" VBox.vgrow="ALWAYS">
-                                <HBox alignment="CENTER_LEFT"><Label text="LETZTE AKTIVITÄTEN" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button text="Alle anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>
+                                <HBox alignment="CENTER_LEFT"><Label text="LETZTE AKTIVITÄTEN" styleClass="label-uppercase"/><Region HBox.hgrow="ALWAYS"/><Button fx:id="showAllActivitiesButton" text="Alle anzeigen →" onAction="#showMyTickets" styleClass="link-button"/></HBox>
                                 <VBox fx:id="activityContainer" spacing="10"/>
                             </VBox>
                         </VBox>
@@ -143,7 +143,7 @@
                     <Button text="Filtern" onAction="#handleApplyFilter" styleClass="btn-primary"/>
                     <Button text="Zurücksetzen" onAction="#handleClearFilter" styleClass="btn-ghost"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label text="Doppelklick öffnet die Ticketdetails." styleClass="text-muted"/>
+                    <Label fx:id="doubleClickHintLabel" text="Doppelklick öffnet die Ticketdetails." styleClass="text-muted"/>
                 </HBox>
 
                 <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view modern-table customer-ticket-table">
@@ -177,6 +177,8 @@
                             <TextField fx:id="newAttachmentNameField" promptText="Kein Anhang ausgewählt" styleClass="text-field" editable="false" HBox.hgrow="ALWAYS"/>
                             <Button text="📎 Datei auswählen" onAction="#handleBrowseAttachment" styleClass="btn-ghost"/>
                         </HBox>
+                        <!-- KAT-24: Dateigröße des ausgewählten Anhangs anzeigen -->
+                        <Label fx:id="newAttachmentSizeLabel" styleClass="text-muted" visible="false" managed="false"/>
                         <Label fx:id="newErrorLabel" text="Bitte Titel, Beschreibung und Priorität ausfüllen." styleClass="text-danger" visible="false"/>
                         <Separator styleClass="separator"/>
                         <Label text="IHRE KONTAKTDATEN" styleClass="label-uppercase"/>

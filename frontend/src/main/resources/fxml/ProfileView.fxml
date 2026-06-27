@@ -89,7 +89,7 @@
                             </GridPane>
                             <HBox alignment="CENTER_RIGHT" spacing="10">
                                 <Button text="Abbrechen" onAction="#handleBack" styleClass="btn-ghost" />
-                                <Button text="Profil speichern" onAction="#handleSave" styleClass="btn-primary" />
+                                <Button fx:id="saveButton" text="Profil speichern" onAction="#handleSave" styleClass="btn-primary" />
                             </HBox>
                         </VBox>
 

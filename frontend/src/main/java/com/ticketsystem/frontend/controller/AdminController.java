@@ -96,6 +96,7 @@ public class AdminController {
     @FXML private TableColumn<TicketFX, String> colId, colTitle, colPriority, colStatus, colCategory, colAgent, colCreatedAt;
     @FXML private ComboBox<String> filterStatusCombo, filterPriorityCombo;
     @FXML private TextField searchField;
+    @FXML private Label doubleClickHintLabel;
     // [Nzchupa | 2026-06-13] TSS-015: Topbar-Suchfeld — delegiert an aktiven Pane-Filter
     // Topbar search field reference — delegates to whichever pane is currently active
     @FXML private TextField topbarSearchField;
@@ -687,14 +688,28 @@ public class AdminController {
             ticketTable.setPlaceholder(buildEmptyNode("Keine Tickets gefunden."));
             updateAdminTicketStatistics(allTickets);
             applyTicketFilter();
+            updateTicketEmptyStateBindings();
             finishTicketLoad();
         });
         task.setOnFailed(e -> {
             ticketTable.setPlaceholder(buildEmptyNode("Fehler beim Laden."));
             AlertHelper.showError("Fehler", "Tickets konnten nicht geladen werden.");
+            updateTicketEmptyStateBindings();
             finishTicketLoad();
         });
         new Thread(task, "admin-load-tickets").start();
+    }
+
+    // KAT-35/36: Filter und Doppelklick-Hinweis sind nur sinnvoll, wenn ueberhaupt Tickets vorhanden sind
+    private void updateTicketEmptyStateBindings() {
+        boolean empty = allTickets.isEmpty();
+        if (doubleClickHintLabel != null) {
+            doubleClickHintLabel.setVisible(!empty);
+            doubleClickHintLabel.setManaged(!empty);
+        }
+        if (filterStatusCombo != null) filterStatusCombo.setDisable(empty);
+        if (filterPriorityCombo != null) filterPriorityCombo.setDisable(empty);
+        if (searchField != null) searchField.setDisable(empty);
     }
 
     private void finishTicketLoad() {
