@@ -57,10 +57,12 @@ public class CustomerController {
     @FXML private Label labelOverview;
     @FXML private Label labelMyTickets;
     @FXML private Label labelNewTicket;
-    @FXML private Label breadcrumb;
+    // KAT-48: Breadcrumb ist jetzt klickbar (Hyperlink statt Label) -> springt zur Übersicht
+    @FXML private Hyperlink breadcrumb;
 
     @FXML private Button themeToggleButton;
     @FXML private Label ticketCounterLabel;
+    @FXML private StackPane notificationButton;
 
     @FXML private Label sidebarInitials;
     @FXML private Label sidebarName;
@@ -141,6 +143,11 @@ public class CustomerController {
         greetingLabel.setText("Hallo, " + username + "! 👋");
 
         updateAvatarDisplay(SessionManager.getProfilePicture());
+
+        // KAT-64: StackPane besitzt keine tooltip-Property -> Tooltip per Code installieren
+        if (notificationButton != null) {
+            Tooltip.install(notificationButton, new Tooltip("Benachrichtigungen anzeigen"));
+        }
 
         if (newFirstName != null) newFirstName.setText(username);
         if (newEmail != null) newEmail.setText("");

@@ -88,14 +88,21 @@
     <top>
         <HBox styleClass="topbar" prefHeight="48" alignment="CENTER_LEFT">
             <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
-            <Label fx:id="breadcrumb" text="Admin  /  Dashboard" styleClass="text-muted" style="-fx-font-size: 12px;" />
+            <!-- KAT-48: Breadcrumb klickbar -> führt zurück zum Dashboard -->
+            <Hyperlink fx:id="breadcrumb" text="Admin  /  Dashboard" onAction="#showDashboard" styleClass="text-muted, breadcrumb-link" style="-fx-font-size: 12px;">
+                <tooltip><Tooltip text="Zurück zum Dashboard" /></tooltip>
+            </Hyperlink>
             <Region HBox.hgrow="ALWAYS" />
             <HBox spacing="12" alignment="CENTER">
                 <!-- [Nzchupa | 2026-06-12] TS-002: Theme-Toggle-Button im Topbar hinzugefügt -->
                 <!-- Theme toggle button added to topbar -->
+                <!-- KAT-44: Tooltip für Theme-Umschalter -->
                 <Button fx:id="themeToggleBtn" text="☀" onAction="#handleToggleTheme" styleClass="btn-ghost"
-                        style="-fx-font-size: 14px; -fx-padding: 4 8;" />
+                        style="-fx-font-size: 14px; -fx-padding: 4 8;">
+                    <tooltip><Tooltip text="Hell-/Dunkelmodus umschalten" /></tooltip>
+                </Button>
                 <!-- [V1] notificationButton з fx:id і оригінальним handler -->
+                <!-- KAT-64: Tooltip wird in initialize() per Tooltip.install() gesetzt, da StackPane keine tooltip-Property besitzt -->
                 <StackPane fx:id="notificationButton" styleClass="notification-pill" onMouseClicked="#handleNotifications" style="-fx-cursor: hand;">
                     <Label text="🔔" style="-fx-font-size: 16px;" />
                     <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
@@ -123,7 +130,10 @@
                     <VBox spacing="6">
                         <Label fx:id="greetingLabel" text="Willkommen zurück, admin!" styleClass="heading-lg"/>
                         <Label text="Live-Überblick über Tickets, Prioritäten und offene Aufgaben." styleClass="text-muted"/>
-                        <Button text="↻  Dashboard aktualisieren" onAction="#handleRefreshDashboard" styleClass="btn-ghost"/>
+                        <!-- KAT-51: Tooltip erklärt, was der Aktualisieren-Button tut -->
+                        <Button text="↻  Dashboard aktualisieren" onAction="#handleRefreshDashboard" styleClass="btn-ghost">
+                            <tooltip><Tooltip text="Lädt die aktuellen Dashboard-Daten neu" /></tooltip>
+                        </Button>
                     </VBox>
 
                     <!-- KPI CARDS: V1 + statCritical + statCreatedToday з V2 -->
@@ -315,9 +325,12 @@
                 <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                 <!-- Ticket Statistics -->
                 <HBox spacing="12">
+                    <!-- KAT-63: Tooltip auf dem Icon-Label erklärt die Kennzahl -->
                     <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="🎫" styleClass="stat-icon stat-icon-blue" />
+                            <Label text="🎫" styleClass="stat-icon stat-icon-blue">
+                                <tooltip><Tooltip text="Gesamtanzahl aller Tickets im System" /></tooltip>
+                            </Label>
                             <VBox spacing="2">
                                 <Label fx:id="adminTotalTicketsLabel" text="-" styleClass="stat-value" />
                                 <Label text="Alle Tickets" styleClass="stat-label" />
@@ -327,7 +340,9 @@
                     </VBox>
                     <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="📂" styleClass="stat-icon stat-icon-green" />
+                            <Label text="📂" styleClass="stat-icon stat-icon-green">
+                                <tooltip><Tooltip text="Tickets, die noch nicht bearbeitet wurden" /></tooltip>
+                            </Label>
                             <VBox spacing="2">
                                 <Label fx:id="adminOpenTicketsLabel" text="-" styleClass="stat-value" />
                                 <Label text="Offen" styleClass="stat-label" />
@@ -337,7 +352,9 @@
                     </VBox>
                     <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="🛠" styleClass="stat-icon stat-icon-orange" />
+                            <Label text="🛠" styleClass="stat-icon stat-icon-orange">
+                                <tooltip><Tooltip text="Tickets, die aktuell von einem Agenten bearbeitet werden" /></tooltip>
+                            </Label>
                             <VBox spacing="2">
                                 <Label fx:id="adminProgressTicketsLabel" text="-" styleClass="stat-value" />
                                 <Label text="In Bearbeitung" styleClass="stat-label" />
@@ -347,7 +364,9 @@
                     </VBox>
                     <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="⏳" styleClass="stat-icon stat-icon-purple" />
+                            <Label text="⏳" styleClass="stat-icon stat-icon-purple">
+                                <tooltip><Tooltip text="Tickets, die auf eine Kundenantwort warten" /></tooltip>
+                            </Label>
                             <VBox spacing="2">
                                 <Label fx:id="adminWaitingTicketsLabel" text="-" styleClass="stat-value" />
                                 <Label text="Wartend" styleClass="stat-label" />
@@ -357,7 +376,9 @@
                     </VBox>
                     <VBox styleClass="stat-card stat-card-modern" HBox.hgrow="ALWAYS">
                         <HBox spacing="12" alignment="CENTER_LEFT">
-                            <Label text="✅" styleClass="stat-icon stat-icon-cyan" />
+                            <Label text="✅" styleClass="stat-icon stat-icon-cyan">
+                                <tooltip><Tooltip text="Tickets, die erfolgreich gelöst wurden" /></tooltip>
+                            </Label>
                             <VBox spacing="2">
                                 <Label fx:id="adminResolvedTicketsLabel" text="-" styleClass="stat-value" />
                                 <Label text="Gelöst" styleClass="stat-label" />
@@ -444,8 +465,13 @@
                         <HBox spacing="8">
                             <TextField fx:id="statusNameField" promptText="Name, z.B. ESCALATED" styleClass="text-field" HBox.hgrow="ALWAYS" />
                             <TextField fx:id="statusLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <Button text="+" onAction="#handleAddStatusOption" styleClass="btn-primary" />
-                            <Button text="-" onAction="#handleDeleteStatusOption" styleClass="btn-ghost" />
+                            <!-- KAT-65: Icon-only Buttons brauchen einen Tooltip, da "+"/"-" allein nicht selbsterklärend ist -->
+                            <Button text="+" onAction="#handleAddStatusOption" styleClass="btn-primary">
+                                <tooltip><Tooltip text="Status-Option hinzufügen" /></tooltip>
+                            </Button>
+                            <Button text="-" onAction="#handleDeleteStatusOption" styleClass="btn-ghost">
+                                <tooltip><Tooltip text="Ausgewählte Status-Option löschen" /></tooltip>
+                            </Button>
                         </HBox>
                     </VBox>
                     <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
@@ -454,8 +480,12 @@
                         <HBox spacing="8">
                             <TextField fx:id="priorityNameField" promptText="Name, z.B. BLOCKER" styleClass="text-field" HBox.hgrow="ALWAYS" />
                             <TextField fx:id="priorityLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
-                            <Button text="+" onAction="#handleAddPriorityOption" styleClass="btn-primary" />
-                            <Button text="-" onAction="#handleDeletePriorityOption" styleClass="btn-ghost" />
+                            <Button text="+" onAction="#handleAddPriorityOption" styleClass="btn-primary">
+                                <tooltip><Tooltip text="Prioritäts-Option hinzufügen" /></tooltip>
+                            </Button>
+                            <Button text="-" onAction="#handleDeletePriorityOption" styleClass="btn-ghost">
+                                <tooltip><Tooltip text="Ausgewählte Prioritäts-Option löschen" /></tooltip>
+                            </Button>
                         </HBox>
                     </VBox>
                 </HBox>

@@ -67,7 +67,8 @@ public class AdminController {
     @FXML private Circle dotSystemAuditLog; // Feature 32
     @FXML private Label labelDashboard, labelTickets, labelUsers, labelCategories, labelReports, labelAuditLog;
     @FXML private Label labelSystemAuditLog; // Feature 32
-    @FXML private Label breadcrumb;
+    // KAT-48: Breadcrumb ist jetzt klickbar (Hyperlink statt Label) -> springt zum Dashboard
+    @FXML private Hyperlink breadcrumb;
 
     @FXML private Label sidebarInitials, sidebarName, topbarInitials, greetingLabel, notificationCountLabel;
     @FXML private ImageView sidebarProfileImage, topbarProfileImage;
@@ -168,6 +169,11 @@ public class AdminController {
         sidebarName.setText(username);
         greetingLabel.setText("Willkommen zurück, " + username + "!");
         updateAvatarDisplay(SessionManager.getProfilePicture());
+
+        // KAT-64: StackPane besitzt keine tooltip-Property -> Tooltip per Code installieren
+        if (notificationButton != null) {
+            Tooltip.install(notificationButton, new Tooltip("Benachrichtigungen anzeigen"));
+        }
 
         initTable();
         initFiltersAndUserActions();

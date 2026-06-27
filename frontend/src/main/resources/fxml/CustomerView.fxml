@@ -75,13 +75,21 @@
     </left>
 
     <top>
-        <HBox styleClass="topbar" prefHeight="52" alignment="CENTER_LEFT">
+        <!-- KAT-42: Topbar-Höhe auf 48px vereinheitlicht (war 52px, abweichend von Admin/Agent/Profile) -->
+        <HBox styleClass="topbar" prefHeight="48" alignment="CENTER_LEFT">
             <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
-            <Label fx:id="breadcrumb" text="Customer  /  Übersicht" styleClass="text-muted" style="-fx-font-size: 12px;"/>
+            <!-- KAT-48: Breadcrumb klickbar -> führt zurück zur Übersicht -->
+            <Hyperlink fx:id="breadcrumb" text="Customer  /  Übersicht" onAction="#showOverview" styleClass="text-muted, breadcrumb-link" style="-fx-font-size: 12px;">
+                <tooltip><Tooltip text="Zurück zur Übersicht" /></tooltip>
+            </Hyperlink>
             <Region HBox.hgrow="ALWAYS"/>
             <HBox spacing="12" alignment="CENTER">
+                <!-- KAT-44: Tooltip für Theme-Umschalter -->
                 <Button fx:id="themeToggleButton" text="🌙" onAction="#handleToggleTheme" styleClass="btn-ghost"
-                        style="-fx-font-size: 16px; -fx-padding: 6 10;"/>
+                        style="-fx-font-size: 16px; -fx-padding: 6 10;">
+                    <tooltip><Tooltip text="Hell-/Dunkelmodus umschalten" /></tooltip>
+                </Button>
+                <!-- KAT-64: Tooltip wird in initialize() per Tooltip.install() gesetzt, da StackPane keine tooltip-Property besitzt -->
                 <StackPane fx:id="notificationButton" styleClass="notification-pill" onMouseClicked="#handleNotifications" style="-fx-cursor: hand;">
                     <Label text="🔔" style="-fx-font-size: 16px;"/>
                     <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT"/>
@@ -105,11 +113,12 @@
                         <Label text="Hier ist die Übersicht Ihrer Tickets und Aktivitäten." styleClass="text-muted"/>
                     </VBox>
 
+                    <!-- KAT-63: Tooltip auf dem Icon-Label erklärt die Kennzahl -->
                     <HBox spacing="12">
-                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="📋" styleClass="customer-stat-icon stat-icon-blue"/><VBox spacing="2"><Label fx:id="statTotal" text="0" styleClass="customer-stat-value"/><Label text="Alle Tickets" styleClass="customer-stat-label"/><Label text="Gesamt" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
-                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="🕘" styleClass="customer-stat-icon stat-icon-orange"/><VBox spacing="2"><Label fx:id="statOpen" text="0" styleClass="customer-stat-value"/><Label text="Offen" styleClass="customer-stat-label"/><Label text="Warten auf Bearbeitung" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
-                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="👤" styleClass="customer-stat-icon stat-icon-blue"/><VBox spacing="2"><Label fx:id="statProgress" text="0" styleClass="customer-stat-value"/><Label text="In Bearbeitung" styleClass="customer-stat-label"/><Label text="Agent zugewiesen" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
-                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="✓" styleClass="customer-stat-icon stat-icon-green"/><VBox spacing="2"><Label fx:id="statResolved" text="0" styleClass="customer-stat-value"/><Label text="Gelöst" styleClass="customer-stat-label"/><Label text="Erfolgreich abgeschlossen" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="📋" styleClass="customer-stat-icon stat-icon-blue"><tooltip><Tooltip text="Gesamtanzahl Ihrer Tickets"/></tooltip></Label><VBox spacing="2"><Label fx:id="statTotal" text="0" styleClass="customer-stat-value"/><Label text="Alle Tickets" styleClass="customer-stat-label"/><Label text="Gesamt" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="🕘" styleClass="customer-stat-icon stat-icon-orange"><tooltip><Tooltip text="Tickets, die noch nicht bearbeitet wurden"/></tooltip></Label><VBox spacing="2"><Label fx:id="statOpen" text="0" styleClass="customer-stat-value"/><Label text="Offen" styleClass="customer-stat-label"/><Label text="Warten auf Bearbeitung" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="👤" styleClass="customer-stat-icon stat-icon-blue"><tooltip><Tooltip text="Tickets, die einem Agenten zugewiesen sind"/></tooltip></Label><VBox spacing="2"><Label fx:id="statProgress" text="0" styleClass="customer-stat-value"/><Label text="In Bearbeitung" styleClass="customer-stat-label"/><Label text="Agent zugewiesen" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
+                        <VBox styleClass="customer-stat-card" HBox.hgrow="ALWAYS"><HBox spacing="12" alignment="CENTER_LEFT"><Label text="✓" styleClass="customer-stat-icon stat-icon-green"><tooltip><Tooltip text="Tickets, die erfolgreich abgeschlossen wurden"/></tooltip></Label><VBox spacing="2"><Label fx:id="statResolved" text="0" styleClass="customer-stat-value"/><Label text="Gelöst" styleClass="customer-stat-label"/><Label text="Erfolgreich abgeschlossen" styleClass="customer-stat-subtitle"/></VBox></HBox></VBox>
                     </HBox>
 
                     <HBox spacing="16">
@@ -175,7 +184,9 @@
                         <!-- FileChooser button for attachment — select file directly instead of typing filename -->
                         <HBox spacing="8" alignment="CENTER_LEFT">
                             <TextField fx:id="newAttachmentNameField" promptText="Kein Anhang ausgewählt" styleClass="text-field" editable="false" HBox.hgrow="ALWAYS"/>
-                            <Button text="📎 Datei auswählen" onAction="#handleBrowseAttachment" styleClass="btn-ghost"/>
+                            <Button text="📎 Datei auswählen" onAction="#handleBrowseAttachment" styleClass="btn-ghost">
+                                <tooltip><Tooltip text="Datei vom Computer als Anhang auswählen"/></tooltip>
+                            </Button>
                         </HBox>
                         <!-- KAT-24: Dateigröße des ausgewählten Anhangs anzeigen -->
                         <Label fx:id="newAttachmentSizeLabel" styleClass="text-muted" visible="false" managed="false"/>

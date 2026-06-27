@@ -178,6 +178,27 @@
     -fx-text-fill: #94A3B8;
 }
 
+/* KAT-48: Breadcrumb als klickbarer Hyperlink, soll wie ein normaler text-muted-Label aussehen */
+.breadcrumb-link {
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: false;
+}
+
+.theme-light .breadcrumb-link {
+    -fx-text-fill: #6B7280;
+}
+
+.theme-dark .breadcrumb-link {
+    -fx-text-fill: #94A3B8;
+}
+
+.breadcrumb-link:hover {
+    -fx-text-fill: #0EA5E9;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
 
 /* =========================================================
    3. LAYOUT: SIDEBAR / TOPBAR / CARDS

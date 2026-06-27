@@ -81,9 +81,12 @@
                                     <Label text="Profilbild URL" styleClass="text-muted" />
                                     <HBox spacing="6" alignment="CENTER_LEFT">
                                         <TextField fx:id="profilePicField" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                        <!-- KAT-64/65: Icon-only Button braucht einen Tooltip -->
                                         <Button text="📁" onAction="#handleBrowseProfilePic" styleClass="btn-ghost"
                                                 prefWidth="36" prefHeight="36"
-                                                style="-fx-font-size: 14px;" />
+                                                style="-fx-font-size: 14px;">
+                                            <tooltip><Tooltip text="Profilbild vom Computer auswählen" /></tooltip>
+                                        </Button>
                                     </HBox>
                                 </VBox>
                             </GridPane>
