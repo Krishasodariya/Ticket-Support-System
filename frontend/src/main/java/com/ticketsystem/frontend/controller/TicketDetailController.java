@@ -71,6 +71,8 @@ public class TicketDetailController {
     @FXML private javafx.scene.layout.VBox timelineContainer;
     @FXML private TextArea newCommentArea;
     @FXML private CheckBox internalCheckBox;
+    // KAT-69: Senden-Button braucht fx:id, um ihn bei leerem Kommentar zu deaktivieren
+    @FXML private Button sendCommentBtn;
 
     private final TicketApiService ticketService = new TicketApiService();
     private final CommentApiService commentService = new CommentApiService();
@@ -125,12 +127,58 @@ public class TicketDetailController {
         }
 
         initListCells();
+        // KAT-72/KAT-69: Buttons nur aktiv, wenn es tatsächlich eine Änderung bzw. Eingabe gibt
+        setupDirtyTracking();
         RealtimeWebSocketClient.getInstance().setViewListener("ticket-detail", event -> {
             if (event.isTicketOrCommentEvent() && Objects.equals(currentTicketId, event.getTicketId())) {
                 loadTicket();
             }
         });
         loadTicket();
+    }
+
+    // KAT-72: "Status aktualisieren" / "Priorität aktualisieren" nur aktiv, wenn sich der Wert
+    // gegenüber dem aktuell gespeicherten Ticket tatsächlich unterscheidet
+    // KAT-69: "Senden" (Kommentar) nur aktiv, wenn das Textfeld nicht leer ist
+    private void setupDirtyTracking() {
+        if (statusCombo != null) {
+            statusCombo.valueProperty().addListener((obs, oldVal, newVal) -> updateStatusButtonState());
+        }
+        if (priorityCombo != null) {
+            priorityCombo.valueProperty().addListener((obs, oldVal, newVal) -> updatePriorityButtonState());
+        }
+        if (newCommentArea != null) {
+            newCommentArea.textProperty().addListener((obs, oldVal, newVal) -> updateSendCommentButtonState());
+        }
+        updateStatusButtonState();
+        updatePriorityButtonState();
+        updateSendCommentButtonState();
+        updateSendFeedbackButtonState();
+    }
+
+    private void updateStatusButtonState() {
+        if (updateStatusBtn == null) return;
+        boolean unchanged = currentTicket == null || statusCombo.getValue() == null
+                || statusCombo.getValue().name().equals(currentTicket.getStatus());
+        updateStatusBtn.setDisable(unchanged);
+    }
+
+    private void updatePriorityButtonState() {
+        if (updatePriorityBtn == null) return;
+        boolean unchanged = currentTicket == null || priorityCombo.getValue() == null
+                || priorityCombo.getValue().name().equals(currentTicket.getPriority());
+        updatePriorityBtn.setDisable(unchanged);
+    }
+
+    private void updateSendCommentButtonState() {
+        if (sendCommentBtn == null) return;
+        sendCommentBtn.setDisable(text(newCommentArea).isBlank());
+    }
+
+    // KAT-73: "Feedback senden" erst aktiv, wenn eine Sternebewertung ausgewählt wurde
+    private void updateSendFeedbackButtonState() {
+        if (sendFeedbackBtn == null) return;
+        sendFeedbackBtn.setDisable(selectedRating == 0);
     }
 
     private void initListCells() {
@@ -445,6 +493,8 @@ public class TicketDetailController {
         TicketStatus newStatus = statusCombo.getValue();
         if (newStatus == null) return;
 
+        // KAT-68: Button während der Anfrage deaktivieren, damit nicht mehrfach geklickt werden kann
+        updateStatusBtn.setDisable(true);
         new Thread(() -> {
             try {
                 UpdateTicketRequest req = new UpdateTicketRequest();
@@ -455,7 +505,10 @@ public class TicketDetailController {
                     loadTicket();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Status konnte nicht aktualisiert werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Status konnte nicht aktualisiert werden.\n" + e.getMessage());
+                    updateStatusButtonState();
+                });
             }
         }).start();
     }
@@ -465,6 +518,8 @@ public class TicketDetailController {
         TicketPriority newPriority = priorityCombo.getValue();
         if (newPriority == null) return;
 
+        // KAT-68: Button während der Anfrage deaktivieren, damit nicht mehrfach geklickt werden kann
+        updatePriorityBtn.setDisable(true);
         new Thread(() -> {
             try {
                 UpdateTicketRequest req = new UpdateTicketRequest();
@@ -475,7 +530,10 @@ public class TicketDetailController {
                     loadTicket();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Priorität konnte nicht aktualisiert werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Priorität konnte nicht aktualisiert werden.\n" + e.getMessage());
+                    updatePriorityButtonState();
+                });
             }
         }).start();
     }
@@ -487,6 +545,8 @@ public class TicketDetailController {
             AlertHelper.showError("Fehler", "Bitte zuerst einen Agenten auswählen.");
             return;
         }
+        // KAT-68: Doppelklick-Schutz während der Zuweisung läuft
+        assignAgentBtn.setDisable(true);
         new Thread(() -> {
             try {
                 ticketService.assignTicket(currentTicketId, selectedAgent.getId());
@@ -495,7 +555,10 @@ public class TicketDetailController {
                     loadTicket();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Zuweisung fehlgeschlagen.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Zuweisung fehlgeschlagen.\n" + e.getMessage());
+                    assignAgentBtn.setDisable(false);
+                });
             }
         }).start();
     }
@@ -503,12 +566,17 @@ public class TicketDetailController {
 
     @FXML
     public void handleTakeTicket() {
+        // KAT-68: Doppelklick-Schutz, sonst kann derselbe Klick zwei Anfragen auslösen
+        takeTicketBtn.setDisable(true);
         new Thread(() -> {
             try {
                 ticketService.takeTicket(currentTicketId);
                 Platform.runLater(() -> { AlertHelper.showInfo("Erfolg", "Ticket wurde übernommen."); loadTicket(); });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Ticket konnte nicht übernommen werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Ticket konnte nicht übernommen werden.\n" + e.getMessage());
+                    takeTicketBtn.setDisable(false);
+                });
             }
         }).start();
     }
@@ -580,6 +648,11 @@ public class TicketDetailController {
             AlertHelper.showError("Fehler", "Bitte einen Lösungsgrund eingeben.");
             return;
         }
+        // KAT-70: Schließen ist eine endgültige Statusänderung -> vorher bestätigen lassen
+        if (!AlertHelper.showConfirm("Ticket schließen", "Möchten Sie dieses Ticket wirklich mit dem angegebenen Lösungsgrund schließen?", "Schließen")) {
+            return;
+        }
+        closeWithSolutionBtn.setDisable(true);
         new Thread(() -> {
             try {
                 Map<String, Object> req = Map.of(
@@ -587,9 +660,17 @@ public class TicketDetailController {
                         "status", TicketStatus.RESOLVED
                 );
                 ticketService.updateTicket(currentTicketId, req);
-                Platform.runLater(() -> { solutionReasonArea.clear(); AlertHelper.showInfo("Gelöst", "Ticket wurde mit Lösungsgrund geschlossen."); loadTicket(); });
+                Platform.runLater(() -> {
+                    solutionReasonArea.clear();
+                    AlertHelper.showInfo("Gelöst", "Ticket wurde mit Lösungsgrund geschlossen.");
+                    closeWithSolutionBtn.setDisable(false);
+                    loadTicket();
+                });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Ticket konnte nicht geschlossen werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Ticket konnte nicht geschlossen werden.\n" + e.getMessage());
+                    closeWithSolutionBtn.setDisable(false);
+                });
             }
         }).start();
     }
@@ -601,6 +682,8 @@ public class TicketDetailController {
             return;
         }
         String feedback = feedbackArea == null || feedbackArea.getText() == null ? "" : feedbackArea.getText().trim();
+        // KAT-68: Doppelklick-Schutz für den Feedback-Button
+        if (sendFeedbackBtn != null) sendFeedbackBtn.setDisable(true);
         new Thread(() -> {
             try {
                 ticketService.sendFeedback(currentTicketId, selectedRating, feedback);
@@ -608,21 +691,27 @@ public class TicketDetailController {
                     if (feedbackArea != null) feedbackArea.clear();
                     selectedRating = 0;
                     updateStarDisplay(0);
+                    updateSendFeedbackButtonState();
                     AlertHelper.showInfo("Danke", "Feedback wurde gespeichert.");
                     loadTicket();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Feedback konnte nicht gespeichert werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Feedback konnte nicht gespeichert werden.\n" + e.getMessage());
+                    updateSendFeedbackButtonState();
+                });
             }
         }).start();
     }
 
     // ── Feature 23: Stern-Handler ─────────────────────────────────────────────
-    @FXML public void handleStar1() { selectedRating = 1; updateStarDisplay(1); }
-    @FXML public void handleStar2() { selectedRating = 2; updateStarDisplay(2); }
-    @FXML public void handleStar3() { selectedRating = 3; updateStarDisplay(3); }
-    @FXML public void handleStar4() { selectedRating = 4; updateStarDisplay(4); }
-    @FXML public void handleStar5() { selectedRating = 5; updateStarDisplay(5); }
+    // KAT-73: Nach Sternklick muss der Feedback-Button-Status neu geprüft werden,
+    // sonst bleibt er dauerhaft deaktiviert (setupDirtyTracking() prüft nur einmal beim Laden)
+    @FXML public void handleStar1() { selectedRating = 1; updateStarDisplay(1); updateSendFeedbackButtonState(); }
+    @FXML public void handleStar2() { selectedRating = 2; updateStarDisplay(2); updateSendFeedbackButtonState(); }
+    @FXML public void handleStar3() { selectedRating = 3; updateStarDisplay(3); updateSendFeedbackButtonState(); }
+    @FXML public void handleStar4() { selectedRating = 4; updateStarDisplay(4); updateSendFeedbackButtonState(); }
+    @FXML public void handleStar5() { selectedRating = 5; updateStarDisplay(5); updateSendFeedbackButtonState(); }
 
     @FXML public void hoverStar1() { if (selectedRating == 0) updateStarDisplay(1); }
     @FXML public void hoverStar2() { if (selectedRating == 0) updateStarDisplay(2); }
@@ -654,6 +743,8 @@ public class TicketDetailController {
         if (content == null || content.trim().isEmpty()) return;
         boolean internal = internalCheckBox.isVisible() && internalCheckBox.isSelected();
 
+        // KAT-68: Doppelklick-Schutz, sonst kann derselbe Kommentar zweifach gesendet werden
+        if (sendCommentBtn != null) sendCommentBtn.setDisable(true);
         new Thread(() -> {
             try {
                 commentService.createComment(currentTicketId, content, internal);
@@ -663,7 +754,10 @@ public class TicketDetailController {
                     loadTicket();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Kommentar konnte nicht gesendet werden."));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Kommentar konnte nicht gesendet werden.");
+                    updateSendCommentButtonState();
+                });
             }
         }).start();
     }
@@ -671,6 +765,11 @@ public class TicketDetailController {
     // Feature 38 – Ticket wiedereröffnen
     @FXML
     public void handleReopenTicket() {
+        // KAT-70: Wiedereröffnen ändert den Workflow-Status -> vorher bestätigen lassen
+        if (!AlertHelper.showConfirm("Ticket wieder öffnen", "Möchten Sie dieses Ticket wirklich wieder öffnen?", "Wieder öffnen")) {
+            return;
+        }
+        reopenTicketBtn.setDisable(true);
         new Thread(() -> {
             try {
                 ticketService.reopenTicket(currentTicketId);
@@ -679,7 +778,10 @@ public class TicketDetailController {
                     loadTicket();
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> AlertHelper.showError("Fehler", "Ticket konnte nicht wiedereröffnet werden.\n" + e.getMessage()));
+                Platform.runLater(() -> {
+                    AlertHelper.showError("Fehler", "Ticket konnte nicht wiedereröffnet werden.\n" + e.getMessage());
+                    reopenTicketBtn.setDisable(false);
+                });
             }
         }).start();
     }
