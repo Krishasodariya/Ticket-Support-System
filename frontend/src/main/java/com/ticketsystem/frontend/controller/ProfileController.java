@@ -59,7 +59,23 @@ public class ProfileController {
 
         setupProfilePicturePreview();
         updateProfilePicturePreview(SessionManager.getProfilePicture());
+        setupBirthDatePicker();
         loadProfile();
+    }
+
+    // KAT-21 + KAT-22: Formatbeispiel anzeigen und zukünftige Tage sperren
+    private void setupBirthDatePicker() {
+        birthDatePicker.getEditor().setPromptText("TT.MM.JJJJ");
+        birthDatePicker.setDayCellFactory(picker -> new javafx.scene.control.DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                if (date != null && date.isAfter(LocalDate.now())) {
+                    setDisable(true);
+                    setStyle("-fx-opacity: 0.4;");
+                }
+            }
+        });
     }
 
     private void loadProfile() {

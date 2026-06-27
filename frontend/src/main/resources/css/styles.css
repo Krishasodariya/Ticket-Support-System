@@ -844,6 +844,34 @@
     -fx-text-fill: #FCA5A5;
 }
 
+/* KAT-16: visuelles Feedback bei ungueltiger Live-Validierung */
+/* Selektor muss genauso spezifisch sein wie .theme-light/.theme-dark .register-card .text-field,
+   sonst gewinnt die Theme-Regel und die rote Rahmenfarbe wird ignoriert. */
+.theme-light .register-card .text-field.text-field-error,
+.theme-dark .register-card .text-field.text-field-error,
+.text-field-error {
+    -fx-border-color: #EF4444;
+    -fx-border-width: 1.5px;
+}
+
+/* KAT-18: Hinweis auf Pflichtfelder */
+.register-required-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #94A3B8;
+}
+
+.register-terms-checkbox {
+    -fx-font-size: 12px;
+}
+
+.theme-light .register-terms-checkbox {
+    -fx-text-fill: #374151;
+}
+
+.theme-dark .register-terms-checkbox {
+    -fx-text-fill: #CBD5E1;
+}
+
 /* Login/Register inputs */
 .register-card .text-field,
 .register-card .password-field {
