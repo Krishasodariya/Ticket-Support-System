@@ -6,7 +6,7 @@ Ein modernes Ticket-Support-System mit JavaFX-Frontend und Spring-Boot-Backend. 
 
 | Ebene                 | Technologie                                 |
 | --------------------- | ------------------------------------------- |
-| **Frontend**          | Java 17, JavaFX 21.0.6, FXML, CSS           |
+| **Frontend**          | Java 21, JavaFX 21.0.6, FXML, CSS           |
 | **Backend**           | Java 21, Spring Boot 3.2.3, Spring Security |
 | **Datenbank**         | H2 In-Memory, Spring Data JPA, Hibernate    |
 | **Authentifizierung** | JWT (JSON Web Tokens)                       |
