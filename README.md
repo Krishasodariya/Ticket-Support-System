@@ -22,8 +22,7 @@ Ein modernes Ticket-Support-System mit JavaFX-Frontend und Spring-Boot-Backend. 
 * Maven
 * Windows für den automatischen Start über die `.bat`-Datei
 
-Eine separate PostgreSQL-Installation ist nicht erforderlich.
-
+Eine separate Datenbankinstallation ist nicht erforderlich.
 ## Anwendung starten
 
 ### Automatischer Start unter Windows
