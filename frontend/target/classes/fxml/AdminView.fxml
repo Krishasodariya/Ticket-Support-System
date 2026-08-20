@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ticketsystem.frontend.controller.AdminController" stylesheets="@../css/styles.css" styleClass="root">
+    <left>
+        <VBox styleClass="sidebar" prefWidth="210">
+            <VBox>
+                <padding><Insets top="20" right="16" bottom="16" left="16"/></padding>
+                <Label text="Ticket Support System" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0EA5E9;" />
+            </VBox>
+            <Label text="VERWALTUNG" styleClass="nav-section-label" />
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showDashboard" fx:id="navDashboard" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#0EA5E9" fx:id="dotDashboard" />
+                <Label text="Dashboard" styleClass="text-secondary" fx:id="labelDashboard" />
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showTickets" fx:id="navTickets" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" fx:id="dotTickets" />
+                <Label text="Alle Tickets" styleClass="text-secondary" fx:id="labelTickets" />
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showUsers" fx:id="navUsers" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" fx:id="dotUsers" />
+                <Label text="Benutzer" styleClass="text-secondary" fx:id="labelUsers" />
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showCategories" fx:id="navCategories" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" fx:id="dotCategories" />
+                <Label text="Kategorien" styleClass="text-secondary" fx:id="labelCategories" />
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showReports" fx:id="navReports" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" fx:id="dotReports" />
+                <Label text="Berichte / Export" styleClass="text-secondary" fx:id="labelReports" />
+            </HBox>
+
+            <Label text="SYSTEM" styleClass="nav-section-label" />
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showAuditLog" fx:id="navAuditLog" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" fx:id="dotAuditLog" />
+                <Label text="Audit-Log" styleClass="text-secondary" fx:id="labelAuditLog" />
+            </HBox>
+            <!-- Feature 32 – System-Aktivitätsprotokoll -->
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#showSystemAuditLog" fx:id="navSystemAuditLog" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#475569" fx:id="dotSystemAuditLog" />
+                <Label text="Aktivitätsprotokoll" styleClass="text-secondary" fx:id="labelSystemAuditLog" />
+            </HBox>
+
+            <VBox VBox.vgrow="ALWAYS" />
+            <Separator styleClass="separator" />
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+                <StackPane>
+                    <Circle fx:id="sidebarAvatarBackground" radius="16" fill="#0EA5E9" />
+                    <ImageView fx:id="sidebarProfileImage" fitWidth="32" fitHeight="32" preserveRatio="false" smooth="true" visible="false" managed="false" />
+                    <Label fx:id="sidebarInitials" text="AD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
+                </StackPane>
+                <VBox>
+                    <Label fx:id="sidebarName" text="Admin" style="-fx-font-size: 13px; -fx-text-fill: #F1F5F9;" />
+                    <Label text="Administrator" style="-fx-font-size: 11px; -fx-text-fill: #475569;" />
+                </VBox>
+            </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT" onMouseClicked="#handleLogout" styleClass="nav-item">
+                <padding><Insets top="9" right="16" bottom="9" left="16"/></padding>
+                <Circle radius="4" fill="#EF4444" />
+                <Label text="Abmelden" styleClass="text-danger" />
+            </HBox>
+        </VBox>
+    </left>
+
+    <top>
+        <HBox styleClass="topbar" prefHeight="48" alignment="CENTER_LEFT">
+            <padding><Insets top="0" right="16" bottom="0" left="16"/></padding>
+            <Label fx:id="breadcrumb" text="Admin  /  Dashboard" styleClass="text-muted" style="-fx-font-size: 12px;" />
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox spacing="12" alignment="CENTER">
+                <TextField promptText="Suche..." styleClass="text-field" prefWidth="180" style="-fx-padding: 6 10;" />
+                <StackPane styleClass="notification-pill" onMouseClicked="#handleShowNotifications" style="-fx-cursor: hand;">
+                    <Label text="🔔" style="-fx-font-size: 14px;" />
+                    <Label fx:id="notificationCountLabel" text="0" styleClass="notification-count" StackPane.alignment="TOP_RIGHT" />
+                </StackPane>
+                <StackPane onMouseClicked="#handleProfile" style="-fx-cursor: hand;">
+                    <Circle fx:id="topbarAvatarBackground" radius="14" fill="#0EA5E9" />
+                    <ImageView fx:id="topbarProfileImage" fitWidth="28" fitHeight="28" preserveRatio="false" smooth="true" visible="false" managed="false" />
+                    <Label fx:id="topbarInitials" text="AD" style="-fx-font-size: 10px; -fx-text-fill: white; -fx-font-weight: bold;" />
+                </StackPane>
+            </HBox>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane>
+            <ScrollPane fx:id="paneDashboard" fitToWidth="true" styleClass="scroll-pane">
+                <VBox spacing="20">
+                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                    <VBox spacing="5">
+                        <padding><Insets top="0" right="0" bottom="20" left="0"/></padding>
+                        <Label fx:id="greetingLabel" text="Willkommen zurück, Admin!" styleClass="heading-lg" />
+                        <Label text="Live-Überblick über Tickets, Prioritäten und offene Aufgaben." styleClass="text-muted" style="-fx-font-size: 13px;" />
+                        <Button text="Dashboard aktualisieren" onAction="#handleRefreshDashboard" styleClass="btn-ghost" />
+                    </VBox>
+
+                    <HBox spacing="10">
+                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <Label text="GESAMT TICKETS" styleClass="stat-label" />
+                            <Label fx:id="statTotal" text="-" styleClass="stat-value, text-accent" />
+                        </VBox>
+                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <Label text="OFFEN" styleClass="stat-label" />
+                            <Label fx:id="statOpen" text="-" styleClass="stat-value, text-warning" />
+                        </VBox>
+                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <Label text="GELÖST HEUTE" styleClass="stat-label" />
+                            <Label fx:id="statResolvedToday" text="-" styleClass="stat-value, text-success" />
+                        </VBox>
+                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <Label text="KRITISCH" styleClass="stat-label" />
+                            <Label fx:id="statCritical" text="-" styleClass="stat-value, text-danger" />
+                        </VBox>
+                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <Label text="HEUTE ERSTELLT" styleClass="stat-label" />
+                            <Label fx:id="statCreatedToday" text="-" styleClass="stat-value, text-accent" />
+                        </VBox>
+                        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+                            <Label text="ÜBERFÄLLIG" styleClass="stat-label" />
+                            <Label fx:id="statOverdue" text="-" styleClass="stat-value, text-warning" />
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="16">
+                        <VBox HBox.hgrow="ALWAYS" spacing="16" minWidth="400">
+                            <VBox styleClass="card" spacing="10">
+                                <Label text="TICKETS NACH PRIORITÄT" styleClass="label-uppercase" />
+                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Kritisch"/><ProgressBar fx:id="progressCritical" progress="0" styleClass="progress-danger" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblCriticalCount" text="0"/></HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Hoch"/><ProgressBar fx:id="progressHigh" progress="0" styleClass="progress-warning" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblHighCount" text="0"/></HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Mittel"/><ProgressBar fx:id="progressMedium" progress="0" styleClass="progress-info" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblMediumCount" text="0"/></HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="10"><Label prefWidth="70" text="Niedrig"/><ProgressBar fx:id="progressLow" progress="0" styleClass="progress-success" HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="6"/><Label fx:id="lblLowCount" text="0"/></HBox>
+                            </VBox>
+                            <VBox styleClass="card">
+                                <Label text="AGENT-ZUWEISUNG" styleClass="label-uppercase" />
+                                <Label text="Tickets können in der Detailansicht direkt an Agenten zugewiesen werden." styleClass="text-muted" style="-fx-padding: 20 0;" />
+                                <Label text="Durchschnittliche Bearbeitungszeit" styleClass="text-muted" />
+                                <Label fx:id="statAvgResolution" text="-" styleClass="heading-md" />
+                                <Label text="Eskalierte Tickets" styleClass="text-muted" />
+                                <Label fx:id="statEscalated" text="-" styleClass="heading-md" />
+                                <HBox spacing="10">
+                                    <Button text="Überfällige eskalieren" onAction="#handleEscalateOverdue" styleClass="btn-ghost" />
+                                    <Button text="Demo-Daten erstellen" onAction="#handleGenerateDemoData" styleClass="btn-primary" />
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                        <VBox prefWidth="420" spacing="16">
+                            <VBox styleClass="card" VBox.vgrow="ALWAYS">
+                                <Label text="LETZTE TICKETS" styleClass="label-uppercase" />
+                                <Region minHeight="10" />
+                                <TableView fx:id="dashTicketTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                                    <columns>
+                                        <TableColumn fx:id="dashColId" text="#" prefWidth="60" />
+                                        <TableColumn fx:id="dashColTitle" text="Titel" prefWidth="210" />
+                                        <TableColumn fx:id="dashColStatus" text="Status" prefWidth="120" />
+                                    </columns>
+                                </TableView>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+
+            <VBox fx:id="paneTickets" spacing="20" visible="false">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <ComboBox fx:id="filterStatusCombo" promptText="Status" prefWidth="140" styleClass="combo-box" />
+                    <ComboBox fx:id="filterPriorityCombo" promptText="Priorität" prefWidth="140" styleClass="combo-box" />
+                    <TextField fx:id="searchField" promptText="Titel suchen..." prefWidth="220" styleClass="text-field" />
+                    <Button text="Filtern" onAction="#handleApplyTicketFilter" styleClass="btn-primary" />
+                    <Button text="Zurücksetzen" onAction="#handleClearTicketFilter" styleClass="btn-ghost" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Label text="Doppelklick öffnet Details, Historie und Zuweisung." styleClass="text-muted" />
+                </HBox>
+                <TableView fx:id="ticketTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="colId" text="#" prefWidth="60" />
+                        <TableColumn fx:id="colTitle" text="Titel" prefWidth="250" />
+                        <TableColumn fx:id="colPriority" text="Priorität" prefWidth="100" />
+                        <TableColumn fx:id="colStatus" text="Status" prefWidth="130" />
+                        <TableColumn fx:id="colCategory" text="Kategorie" prefWidth="120" />
+                        <TableColumn fx:id="colAgent" text="Agent" prefWidth="120" />
+                        <TableColumn fx:id="colCreatedAt" text="Erstellt" prefWidth="150" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <VBox fx:id="paneUsers" spacing="20" visible="false">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="Rollenrechte: Admin verwaltet Benutzer, Agenten bearbeiten Tickets, Kunden sehen eigene Tickets." styleClass="text-muted" />
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label fx:id="selectedUserLabel" text="Kein Benutzer ausgewählt" styleClass="text-muted" />
+                    <ComboBox fx:id="roleCombo" promptText="Rolle wählen" prefWidth="150" styleClass="combo-box" />
+                    <Button text="Rolle speichern" onAction="#handleUpdateSelectedUserRole" styleClass="btn-primary" />
+                    <Button text="Aktiv/Inaktiv" onAction="#handleToggleSelectedUserActive" styleClass="btn-ghost" />
+                </HBox>
+                <TableView fx:id="userTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="colUsername" text="Benutzername" prefWidth="150" />
+                        <TableColumn fx:id="colEmail" text="E-Mail" prefWidth="220" />
+                        <TableColumn fx:id="colRole" text="Rolle" prefWidth="120" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <VBox fx:id="paneCategories" spacing="20" visible="false">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <HBox spacing="20" VBox.vgrow="ALWAYS">
+                    <VBox styleClass="card" prefWidth="320" spacing="10">
+                        <Label text="KATEGORIEN" styleClass="label-uppercase" />
+                        <ListView fx:id="categoryList" styleClass="list-view" VBox.vgrow="ALWAYS" />
+                    </VBox>
+                    <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="15">
+                        <Label text="NEUE KATEGORIE" styleClass="label-uppercase" />
+                        <Label text="Admin kann hier eigene Kategorien wie Software, Hardware, Netzwerk oder Konto hinzufügen." styleClass="text-muted" wrapText="true" />
+                        <TextField fx:id="categoryNameField" promptText="Name, z.B. Software" styleClass="text-field" />
+                        <TextArea fx:id="categoryDescField" promptText="Beschreibung" prefRowCount="4" styleClass="text-area" wrapText="true" />
+                        <HBox spacing="10">
+                            <Button text="Kategorie hinzufügen" onAction="#handleAddCategory" styleClass="btn-primary" />
+                            <Button text="Ausgewählte löschen" onAction="#handleDeleteCategory" styleClass="btn-ghost" />
+                        </HBox>
+                    </VBox>
+                </HBox>
+            </VBox>
+
+            <ScrollPane fx:id="paneReports" fitToWidth="true" styleClass="scroll-pane" visible="false">
+                <VBox spacing="20">
+                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                    <VBox styleClass="card" spacing="16">
+                        <Label text="EXPORT MIT FILTEROPTIONEN" styleClass="label-uppercase" />
+                        <Label text="Exportiert Ticketdaten als CSV/PDF. Optional können Status, Priorität und Suchtext gefiltert werden." styleClass="text-muted" wrapText="true" />
+                        <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-flex-wrap: wrap;">
+                            <ComboBox fx:id="exportStatusCombo" promptText="Status" prefWidth="140" styleClass="combo-box" />
+                            <ComboBox fx:id="exportPriorityCombo" promptText="Priorität" prefWidth="140" styleClass="combo-box" />
+                            <TextField fx:id="exportSearchField" promptText="Suche: Kunde, Agent, Kategorie..." prefWidth="260" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                            <Button text="CSV exportieren" onAction="#handleExportCsv" styleClass="btn-primary" />
+                            <Button text="PDF exportieren" onAction="#handleExportPdf" styleClass="btn-ghost" />
+                        </HBox>
+                    </VBox>
+
+                    <HBox spacing="20">
+                        <VBox styleClass="card" prefWidth="360" minWidth="280" spacing="10">
+                            <Label text="KNOWLEDGE BASE CRUD" styleClass="label-uppercase" />
+                            <ListView fx:id="kbAdminList" prefHeight="200" styleClass="list-view" />
+                            <Button text="Ausgewählten Artikel deaktivieren" onAction="#handleDeleteKnowledgeBase" styleClass="btn-ghost" />
+                        </VBox>
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="280" spacing="10">
+                            <Label text="NEUER KNOWLEDGE-BASE-ARTIKEL" styleClass="label-uppercase" />
+                            <TextField fx:id="kbTitleField" promptText="Titel, z.B. VPN verbindet nicht" styleClass="text-field" />
+                            <TextField fx:id="kbCategoryField" promptText="Kategorie, z.B. Netzwerk" styleClass="text-field" />
+                            <TextField fx:id="kbKeywordsField" promptText="Keywords, z.B. vpn, wlan, netzwerk" styleClass="text-field" />
+                            <TextArea fx:id="kbSolutionArea" promptText="Lösungsschritte" prefRowCount="4" wrapText="true" styleClass="text-area" />
+                            <TextArea fx:id="kbTemplateArea" promptText="Antwort-Vorlage für Agenten" prefRowCount="3" wrapText="true" styleClass="text-area" />
+                            <Button text="Artikel hinzufügen" onAction="#handleAddKnowledgeBase" styleClass="btn-primary" />
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="20">
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
+                            <Label text="STATUS-TYPEN VERWALTEN" styleClass="label-uppercase" />
+                            <ListView fx:id="statusOptionList" prefHeight="140" styleClass="list-view" />
+                            <HBox spacing="8">
+                                <TextField fx:id="statusNameField" promptText="Name, z.B. ESCALATED" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                <TextField fx:id="statusLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                <Button text="+" onAction="#handleAddStatusOption" styleClass="btn-primary" />
+                                <Button text="-" onAction="#handleDeleteStatusOption" styleClass="btn-ghost" />
+                            </HBox>
+                        </VBox>
+                        <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="240" spacing="10">
+                            <Label text="PRIORITÄTEN VERWALTEN" styleClass="label-uppercase" />
+                            <ListView fx:id="priorityOptionList" prefHeight="140" styleClass="list-view" />
+                            <HBox spacing="8">
+                                <TextField fx:id="priorityNameField" promptText="Name, z.B. BLOCKER" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                <TextField fx:id="priorityLabelField" promptText="Label" styleClass="text-field" HBox.hgrow="ALWAYS" />
+                                <Button text="+" onAction="#handleAddPriorityOption" styleClass="btn-primary" />
+                                <Button text="-" onAction="#handleDeletePriorityOption" styleClass="btn-ghost" />
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+
+            <VBox fx:id="paneAuditLog" spacing="20" visible="false">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="Ticket-Historie: Status-, Prioritäts-, Titel- und Agentenänderungen werden automatisch protokolliert." styleClass="text-muted" />
+                <TableView fx:id="auditLogTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="auditColTicket" text="Ticket" prefWidth="240" />
+                        <TableColumn fx:id="auditColUser" text="Benutzer" prefWidth="120" />
+                        <TableColumn fx:id="auditColType" text="Aktion" prefWidth="150" />
+                        <TableColumn fx:id="auditColOld" text="Alt" prefWidth="150" />
+                        <TableColumn fx:id="auditColNew" text="Neu" prefWidth="150" />
+                        <TableColumn fx:id="auditColTime" text="Zeit" prefWidth="170" />
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Feature 32 – System-Aktivitätsprotokoll -->
+            <VBox fx:id="paneSystemAuditLog" spacing="20" visible="false">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="SYSTEM-AKTIVITÄTSPROTOKOLL" styleClass="label-uppercase" />
+                    <Region HBox.hgrow="ALWAYS" />
+                    <ComboBox fx:id="sysAuditTypeFilter" promptText="Alle Ereignisse" prefWidth="200" styleClass="combo-box" />
+                    <Button text="Filtern" onAction="#handleFilterSystemAuditLog" styleClass="btn-primary" />
+                </HBox>
+                <Label text="Login-Versuche, Rollenänderungen, Benutzeränderungen und Exporte werden hier angezeigt." styleClass="text-muted" />
+                <TableView fx:id="sysAuditTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                    <columns>
+                        <TableColumn fx:id="sysColTime" text="Zeit" prefWidth="170" />
+                        <TableColumn fx:id="sysColActor" text="Benutzer" prefWidth="130" />
+                        <TableColumn fx:id="sysColEventType" text="Ereignis" prefWidth="160" />
+                        <TableColumn fx:id="sysColDetail" text="Detail" prefWidth="330" />
+                        <TableColumn fx:id="sysColTarget" text="Ziel-ID" prefWidth="120" />
+                    </columns>
+                </TableView>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>
